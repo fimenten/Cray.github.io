@@ -90,3 +90,33 @@
   border-radius: 3px;
   font-size: 12px;
 }
+.tray.split {
+  display: flex;
+}
+
+.tray.split-horizontal {
+  flex-direction: row;
+}
+
+.tray.split-vertical {
+  flex-direction: column;
+}
+
+.tray.split > .tray-content {
+  display: flex;
+  flex: 1;
+}
+
+.tray.split-horizontal > .tray-content {
+  flex-direction: row;
+}
+
+.tray.split-vertical > .tray-content {
+  flex-direction: column;
+}
+
+.tray.split > .tray-content > .tray {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
