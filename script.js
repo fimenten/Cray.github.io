@@ -4,6 +4,8 @@ class Tray {
         this.name = name;
         this.labels = labels;
         this.element = this.createElement();
+        this.isSplit = false;  // 新しいプロパティを追加
+
       }
   
     createElement() {
@@ -45,15 +47,17 @@ class Tray {
       tray.addEventListener('drop', this.onDrop);
       tray.addEventListener('dragend', this.onDragEnd); // 追加
       tray.addEventListener('contextmenu', (event) => this.onContextMenu(event));
-      tray.addEventListener('dblclick', (event) => {
-        if (event.target === content) {
+      this.onDoubleClick = (event) => {
+        if (event.target === content && !this.isSplit) {  // 分割されていない場合のみ新規トレイを追加
           const newTray = new Tray(Date.now().toString(), 'New Tray');
           content.appendChild(newTray.element);
           requestAnimationFrame(() => {
             newTray.element.querySelector('.tray-title').focus();
           });
         }
-      });
+      };
+      content.addEventListener('dblclick', this.onDoubleClick);
+
       title.addEventListener('blur', (event) => {
         this.name = event.target.textContent;
       });
@@ -180,6 +184,52 @@ class Tray {
         labelElement.textContent = label;
         this.element.appendChild(labelElement);
       }
+      split() {
+        if (this.isSplit) return;  // 既に分割されている場合は何もしない
+    
+        const newTray1 = new Tray(Date.now().toString(), 'New Tray 1');
+        const newTray2 = new Tray(Date.now().toString(), 'New Tray 2');
+        
+        this.element.classList.add('split');
+        this.isSplit = true;  // 分割状態を更新
+        this.updateSplitDirection();
+    
+        const content = this.element.querySelector('.tray-content');
+        const existingChildTrays = Array.from(content.children);
+        
+        content.innerHTML = '';
+        content.appendChild(newTray1.element);
+        content.appendChild(newTray2.element);
+    
+        // 既存の子トレイを最初の新しいトレイに移動
+        if (existingChildTrays.length > 0) {
+          const newTray1Content = newTray1.element.querySelector('.tray-content');
+          existingChildTrays.forEach(childTray => {
+            newTray1Content.appendChild(childTray);
+          });
+        }
+    
+        // 親トレイ（this）と子トレイの新規追加を無効化
+        this.disableNewTrayCreation();
+
+      }
+      disableNewTrayCreation() {
+        const content = this.element.querySelector('.tray-content');
+        content.removeEventListener('dblclick', this.onDoubleClick);
+        this.element.classList.add('no-new-tray');  // CSSで視覚的なフィードバックを提供するためのクラスを追加
+      }
+    
+      updateSplitDirection() {
+        if (this.element.classList.contains('split')) {
+          if (window.innerWidth > window.innerHeight) {
+            this.element.classList.remove('split-vertical');
+            this.element.classList.add('split-horizontal');
+          } else {
+            this.element.classList.remove('split-horizontal');
+            this.element.classList.add('split-vertical');
+          }
+        }
+      }
       onContextMenu(event) {
         event.preventDefault();
         const menu = document.createElement('div');
@@ -192,6 +242,9 @@ class Tray {
           <div class="menu-item" data-action="label">ラベルを追加</div>
           <div class="menu-item" data-action="delete">トレイを削除</div>
         `;
+        if (!this.isSplit) {
+            menu.innerHTML += `<div class="menu-item" data-action="split">トレイを分割</div>`;
+          }
         menu.style.top = `${event.clientY}px`;
         menu.style.left = `${event.clientX}px`;
         document.body.appendChild(menu);
@@ -227,13 +280,36 @@ class Tray {
             case 'delete':
               this.deleteTray();
               break;
+            case 'split':
+                if (!this.isSplit) {
+                  this.split();
+                }
+                break;
           }
         });
       
         document.addEventListener('click', handleOutsideClick);
       }
   }
+  function updateAllSplitDirections() {
+    document.querySelectorAll('.tray.split').forEach(tray => {
+      const trayInstance = tray.__trayInstance;
+      if (trayInstance) {
+        trayInstance.updateSplitDirection();
+      }
+    });
+  }
   
+  // ウィンドウのリサイズイベントを監視
+  window.addEventListener('resize', updateAllSplitDirections);
+  
+  // Trayインスタンス作成時に__trayInstanceプロパティを設定
+  const originalCreateElement = Tray.prototype.createElement;
+  Tray.prototype.createElement = function() {
+    const element = originalCreateElement.call(this);
+    element.__trayInstance = this;
+    return element;
+  };
   const rootTray = new Tray('root', 'Root Tray');
   document.body.appendChild(rootTray.element);
   
