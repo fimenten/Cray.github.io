@@ -1,5 +1,6 @@
 .tray {
-  width: 300px;
+  width: 100%; /* 画面の幅に合わせる */
+  max-width: 100%; /* 画面幅を超えないようにする */
   background-color: #e0e0e0;
   border-radius: 5px;
   cursor: move;
@@ -7,6 +8,7 @@
   overflow: hidden;
   transition: order 0.3s;
   position: relative;
+  box-sizing: border-box; /* パディングとボーダーを幅に含める */
 }
 
 .tray.dragging {
