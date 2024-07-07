@@ -1,10 +1,10 @@
 window.addEventListener('DOMContentLoaded', () => {
     loadFromLocalStorage();
-    observeAndSaveChanges();
     createHamburgerMenu();
-    
     updateAllTrayDirections();
     window.addEventListener('resize', updateAllTrayDirections);
+    getTrayFromId("root").element.focus();
+
 });
 
 function updateAllTrayDirections() {
@@ -69,7 +69,7 @@ function resetAllTrays() {
     const rootTray = createDefaultRootTray();
     document.body.innerHTML = '';
     document.body.appendChild(rootTray.element);
-    observeAndSaveChanges();
+    // observeAndSaveChanges();
 }
 
 function saveCurrentState() {
@@ -83,7 +83,7 @@ function loadSavedState() {
     if (savedState) {
       localStorage.setItem('trayData', savedState);
       loadFromLocalStorage();
-      observeAndSaveChanges();
+    //   observeAndSaveChanges();
       alert('保存した状態を読み込みました。');
     } else {
       alert('保存された状態がありません。');
