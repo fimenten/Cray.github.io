@@ -33,9 +33,6 @@ class Tray {
         // event.preventDefault();
       });
 
-      title.addEventListener('blur', (event) => {
-        this.name = event.target.textContent;
-      });
   
       const content = document.createElement('div');
       content.classList.add('tray-content');
@@ -48,6 +45,18 @@ class Tray {
       tray.addEventListener('drop', this.onDrop);
       tray.addEventListener('dragend', this.onDragEnd); // 追加
       tray.addEventListener('contextmenu', (event) => this.onContextMenu(event));
+      tray.addEventListener('dblclick', (event) => {
+        if (event.target === content) {
+          const newTray = new Tray(Date.now().toString(), 'New Tray');
+          content.appendChild(newTray.element);
+          requestAnimationFrame(() => {
+            newTray.element.querySelector('.tray-title').focus();
+          });
+        }
+      });
+      title.addEventListener('blur', (event) => {
+        this.name = event.target.textContent;
+      });
       return tray;
     }
   
@@ -63,19 +72,22 @@ class Tray {
         event.target.closest('.tray').style.display = 'block';
         event.target.closest('.tray').style.opacity = '1';
       }
-    onDragOver(event) {
+      onDragOver(event) {
         event.preventDefault();
         const targetTray = event.target.closest('.tray');
         const sourceTray = document.querySelector(`[data-tray-id="${event.dataTransfer.getData('text')}"]`);
-      
+       
         if (targetTray && !targetTray.contains(sourceTray)) {
           targetTray.querySelector('.tray-content').appendChild(sourceTray);
         } else {
-          const board = document.getElementById('board');
-          board.appendChild(sourceTray);
+          const parentTray = this.element.parentNode.closest('.tray');
+          if (parentTray) {
+            parentTray.querySelector('.tray-content').appendChild(sourceTray);
+          } else {
+            this.element.parentNode.appendChild(sourceTray);
+          }
         }
-      }
-  
+       }
       onDrop(event) {
         const sourceId = event.dataTransfer.getData('text');
         const targetId = event.target.closest('.tray').getAttribute('data-tray-id');
@@ -222,50 +234,13 @@ class Tray {
       }
   }
   
-  const board = document.getElementById('board');
+  const rootTray = new Tray('root', 'Root Tray');
+  document.body.appendChild(rootTray.element);
   
   const tray1 = new Tray('tray1', 'ToDo');
   const tray2 = new Tray('tray2', 'Doing');
   const tray3 = new Tray('tray3', 'Done');
   
-  board.appendChild(tray1.element);
-  board.appendChild(tray2.element);
-  board.appendChild(tray3.element);
-  
-  
-  let trayCounter = 4;
-  
-  board.addEventListener('dblclick', (event) => {
-    if (event.target === board) {
-      const newTray = new Tray(`tray${trayCounter}`, 'New Tray');
-      board.appendChild(newTray.element);
-      trayCounter++;
-      newTray.element.querySelector('.tray-title').focus();
-    }
-  });
-  
-  const placeholder = document.getElementById('placeholder');
-  
-  board.addEventListener('dragover', (event) => {
-    event.preventDefault();
-  
-    if (event.target === board) {
-      const rect = board.getBoundingClientRect();
-      placeholder.style.width = `${rect.width}px`;
-      placeholder.style.height = `${rect.height}px`;
-      placeholder.style.top = `${rect.top}px`;
-      placeholder.style.left = `${rect.left}px`;
-      placeholder.style.display = 'block';
-    }
-  });
-  
-  board.addEventListener('drop', (event) => {
-    const sourceId = event.dataTransfer.getData('text');
-    const sourceElement = document.querySelector(`[data-tray-id="${sourceId}"]`);
-  
-    if (event.target === board) {
-      board.appendChild(sourceElement);
-      sourceElement.style.display = 'block'; // 追加
-      sourceElement.style.opacity = '1'; // 追加
-    }
-  });
+  rootTray.element.querySelector('.tray-content').appendChild(tray1.element);
+  rootTray.element.querySelector('.tray-content').appendChild(tray2.element);
+  rootTray.element.querySelector('.tray-content').appendChild(tray3.element);
