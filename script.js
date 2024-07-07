@@ -17,7 +17,9 @@ class Tray {
       title.setAttribute('contenteditable', 'false');
       title.textContent = this.name;
       tray.addEventListener('contextmenu', this.onContextMenu);
-
+      title.addEventListener('contextmenu', (event) => {
+        this.onContextMenu(event);
+      });
       title.addEventListener('dblclick', (event) => {
         title.setAttribute('contenteditable', 'true');
 
@@ -45,7 +47,7 @@ class Tray {
       tray.addEventListener('dragover', this.onDragOver);
       tray.addEventListener('drop', this.onDrop);
       tray.addEventListener('dragend', this.onDragEnd); // 追加
-
+      tray.addEventListener('contextmenu', (event) => this.onContextMenu(event));
       return tray;
     }
   
@@ -133,21 +135,21 @@ class Tray {
         document.body.appendChild(labelMenu);
       
         const handleLabelMenuClick = (event) => {
-          event.stopPropagation();
-          const action = event.target.getAttribute('data-action');
-          const label = event.target.getAttribute('data-label');
-          if (action === 'new') {
-            const newLabel = prompt('新しいラベルを入力してください');
-            if (newLabel) {
-              this.labels.push(newLabel);
-              this.addLabelToTray(newLabel);
+            event.stopPropagation();
+            const action = event.target.getAttribute('data-action');
+            const label = event.target.getAttribute('data-label');
+            if (action === 'new') {
+              const newLabel = prompt('新しいラベルを入力してください');
+              if (newLabel) {
+                this.labels.push(newLabel);
+                this.addLabelToTray(newLabel);
+              }
+            } else if (label) {
+              this.addLabelToTray(label);
             }
-          } else if (label) {
-            this.addLabelToTray(label);
-          }
-          labelMenu.remove();
-          document.removeEventListener('click', handleOutsideLabelMenuClick);
-        };
+            labelMenu.remove();
+            document.removeEventListener('click', handleOutsideLabelMenuClick);
+          };
       
         const handleOutsideLabelMenuClick = (event) => {
           if (!labelMenu.contains(event.target)) {
@@ -182,7 +184,14 @@ class Tray {
         menu.style.left = `${event.clientX}px`;
         document.body.appendChild(menu);
       
-        const handleMenuClick = (event) => {
+        const handleOutsideClick = (event) => {
+          if (!menu.contains(event.target)) {
+            menu.remove();
+            document.removeEventListener('click', handleOutsideClick);
+          }
+        };
+      
+        menu.addEventListener('click', (event) => {
           event.stopPropagation();
           const action = event.target.getAttribute('data-action');
           menu.remove();
@@ -207,16 +216,8 @@ class Tray {
               this.deleteTray();
               break;
           }
-        };
+        });
       
-        const handleOutsideClick = (event) => {
-          if (!menu.contains(event.target)) {
-            menu.remove();
-            document.removeEventListener('click', handleOutsideClick);
-          }
-        };
-      
-        menu.addEventListener('click', handleMenuClick.bind(this));
         document.addEventListener('click', handleOutsideClick);
       }
   }
