@@ -16,7 +16,7 @@ class Tray {
     '#85C1E9'  // Sky Blue
   ];
 
-  constructor(parentId, id, name, color = null, labels = []) {
+  constructor(parentId, id, name, color = null, labels = [], isChecked = false) {
     this.id = id;
     this.name = name;
     this.labels = labels;
@@ -24,6 +24,7 @@ class Tray {
     this.parentId = parentId;
     this.isSplit = false;
     this.isFolded = false;
+    this.isChecked = isChecked;
     this.borderColor = color || Tray.colorPalette[0];
     this.element = this.createElement();
     this.updateAppearance();
