@@ -61,7 +61,7 @@ class Tray {
     content.classList.add('tray-content');
   
     tray.appendChild(titleContainer);
-    tray.appendChild(content);
+    tray.append(content);
   
     tray.addEventListener('dragstart', this.onDragStart.bind(this));
     tray.addEventListener('dragover', this.onDragOver.bind(this));
@@ -286,10 +286,12 @@ finishTitleEdit(titleElement) {
     console.log(movingId);
     
     getTrayFromId(movingTray.parent_id).removeChild(movingId);
-    this.children.push(movingTray);
+    this.children.unshift(movingTray);
     movingTray.parent = this;
     movingTray.parent_id = this.id;
-    this.element.querySelector('.tray-content').appendChild(movingTray.element);
+    const content = this.element.querySelector('.tray-content');
+    content.insertBefore(movingTray.element, content.firstChild);
+    
     movingTray.element.style.display = 'block';
     saveToLocalStorage();
   }
