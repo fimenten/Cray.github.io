@@ -1,9 +1,6 @@
-
 function getTrayFromId(Id) {
   return document.querySelector(`[data-tray-id="${Id}"]`).__trayInstance;
 }
-
-
 
 class Tray {
   static colorPalette = [
@@ -17,29 +14,20 @@ class Tray {
     '#82E0AA', // Light Green
     '#F8C471', // Light Orange
     '#85C1E9'  // Sky Blue
-  ]
-  constructor(parent_id, id, name,color = null, labels = []) {
+  ];
+
+  constructor(parentId, id, name, color = null, labels = []) {
     this.id = id;
     this.name = name;
     this.labels = labels;
     this.children = [];
-    this.parent_id = parent_id
+    this.parentId = parentId;
     this.isSplit = false;
+    this.isFolded = false;
+    this.borderColor = color || Tray.colorPalette[0];
     this.element = this.createElement();
-    this.updateAppearance()
-    this.isFolded = false; // New property to track folded state
-    if (color==null){
-    this.borderColor = Tray.colorPalette[0]; // Default to the first color
-    }
-    else{
-      this.borderColor = color
-    }
+    this.updateAppearance();
     this.updateBorderColor();
-    // if (id!="0"){
-    //   this.parent = getTrayFromId(parent_id)
-    // }else{
-    //   this.parent = null
-    // }
   }
 
   createElement() {
@@ -52,13 +40,13 @@ class Tray {
     titleContainer.classList.add('tray-title-container');
     const checkboxContainer = document.createElement('div');
     checkboxContainer.classList.add('tray-checkbox-container');
-  
+
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.classList.add('tray-checkbox');
     checkbox.checked = this.isChecked;
     checkbox.addEventListener('change', this.onCheckboxChange.bind(this));
-  
+
     checkboxContainer.appendChild(checkbox);
 
     const title = document.createElement('div');
@@ -68,7 +56,7 @@ class Tray {
 
     const contextMenuButton = document.createElement('button');
     contextMenuButton.classList.add('tray-context-menu-button');
-    contextMenuButton.textContent = '⋮'; // You can use any icon or text you prefer
+    contextMenuButton.textContent = '⋮';
     contextMenuButton.addEventListener('click', this.onContextMenuButtonClick.bind(this));
     titleContainer.appendChild(checkboxContainer);
     titleContainer.appendChild(title);
@@ -93,7 +81,7 @@ class Tray {
     titleContainer.addEventListener('dblclick', this.onDoubleClick.bind(this));
     const foldButton = document.createElement('button');
     foldButton.classList.add('tray-fold-button');
-    foldButton.textContent = '▼'; // Down arrow for expand
+    foldButton.textContent = '▼';
     foldButton.addEventListener('click', this.toggleFold.bind(this));
 
     titleContainer.appendChild(foldButton);
@@ -106,50 +94,43 @@ class Tray {
     content.addEventListener('dblclick', this.onDoubleClick.bind(this));
     tray.__trayInstance = this;
     this.setupKeyboardNavigation(tray);
-    // this.updateAppearance()
+
     return tray;
   }
+
   onCheckboxChange(event) {
     this.isChecked = event.target.checked;
-    // You might want to propagate the change to child trays
-    // this.updateChildrenCheckboxes(this.isChecked);
-    saveToLocalStorage(); // Save the change
+    saveToLocalStorage();
   }
-  // updateChildrenCheckboxes(checked) {
-  //   this.children.forEach(child => {
-  //     child.isChecked = checked;
-  //     const childCheckbox = child.element.querySelector('.tray-checkbox');
-  //     if (childCheckbox) {
-  //       childCheckbox.checked = checked;
-  //     }
-  //     child.updateChildrenCheckboxes(checked);
-  //   });
-  // }
-  removeChild(childId) {
-    this.children = this.children.filter(tray => tray.id != childId);
-    this.updateAppearance()
 
+  removeChild(childId) {
+    this.children = this.children.filter(tray => tray.id !== childId);
+    this.updateAppearance();
   }
+
   updateBorderColor() {
     const titleContainer = this.element.querySelector('.tray-title-container');
     if (titleContainer) {
       titleContainer.style.borderBottom = `3px solid ${this.borderColor}`;
     }
-    saveToLocalStorage()
+    saveToLocalStorage();
   }
+
   changeBorderColor(color) {
     if (Tray.colorPalette.includes(color)) {
       this.borderColor = color;
       this.updateBorderColor();
-      saveToLocalStorage(); // Save the change
+      saveToLocalStorage();
     }
   }
+
   setupTitleEditing(titleElement) {
     titleElement.addEventListener('dblclick', (event) => {
       event.stopPropagation();
       this.startTitleEdit(titleElement);
     });
   }
+
   toggleFold(event) {
     event.stopPropagation();
     this.isFolded = !this.isFolded;
@@ -166,21 +147,22 @@ class Tray {
     if (this.children.length === 0) {
       content.style.display = 'none';
       if (this.isFolded) {
-        foldButton.textContent = '▶'; // Right arrow for expand
+        foldButton.textContent = '▶';
       } else {
-        foldButton.textContent = '▼'; // Down arrow for fold
+        foldButton.textContent = '▼';
       }
     } else {
       foldButton.style.display = 'inline-block';
       if (this.isFolded) {
         content.style.display = 'none';
-        foldButton.textContent = '▶'; // Right arrow for expand
+        foldButton.textContent = '▶';
       } else {
         content.style.display = 'block';
-        foldButton.textContent = '▼'; // Down arrow for fold
+        foldButton.textContent = '▼';
       }
     }
   }
+
   startTitleEdit(titleElement) {
     titleElement.setAttribute('contenteditable', 'true');
     titleElement.focus();
@@ -205,6 +187,7 @@ class Tray {
     titleElement.addEventListener('keydown', keyDownHandler);
     titleElement.addEventListener('blur', blurHandler);
   }
+
   onContextMenuButtonClick(event) {
     event.preventDefault();
     event.stopPropagation();
@@ -212,9 +195,9 @@ class Tray {
   }
 
   showContextMenu(event) {
-    // Use the existing onContextMenu method, but pass the event from the button click
     this.onContextMenu(event);
   }
+
   finishTitleEdit(titleElement) {
     titleElement.setAttribute('contenteditable', 'false');
     this.name = titleElement.textContent.trim() || 'Untitled';
@@ -223,28 +206,23 @@ class Tray {
     titleElement.removeEventListener('blur', this.blurHandler);
     saveToLocalStorage();
   }
+
   onDragStart(event) {
     event.stopPropagation();
     event.dataTransfer.setData('text/plain', this.id);
     event.dataTransfer.effectAllowed = 'move';
-    // this.element.classList.add('dragging');
-    // getTrayFromId(this.parent_id).removeChild(this.id)
   }
 
   onDragOver(event) {
     event.preventDefault();
     event.stopPropagation();
     event.dataTransfer.dropEffect = 'move';
-    // this.element.classList.add('drag-over');
-    // getTrayFromId(this.parent_id).removeChild(this.id)
-
   }
 
   setupKeyboardNavigation(element) {
-    element.tabIndex = 0; // トレイをフォーカス可能にする
+    element.tabIndex = 0;
     element.addEventListener('keydown', this.handleKeyDown.bind(this));
   }
-
 
   handleKeyDown(event) {
     event.stopPropagation();
@@ -310,7 +288,7 @@ class Tray {
           this.split();
         }
         break;
-      case 'Space':
+      case ' ':
         event.preventDefault();
         getTrayFromId("root").element.focus();
         break;
@@ -327,7 +305,7 @@ class Tray {
         nextTray = this.getNextSibling();
         break;
       case 'left':
-        nextTray = getTrayFromId(this.parent_id);
+        nextTray = getTrayFromId(this.parentId);
         break;
       case 'right':
         nextTray = this.children[0];
@@ -339,8 +317,8 @@ class Tray {
   }
 
   getPreviousSibling() {
-    if (this.parent_id) {
-      const parent = getTrayFromId(this.parent_id);
+    if (this.parentId) {
+      const parent = getTrayFromId(this.parentId);
       const index = parent.children.indexOf(this);
       return parent.children[index - 1] || null;
     }
@@ -348,8 +326,8 @@ class Tray {
   }
 
   getNextSibling() {
-    if (this.parent_id) {
-      const parent = getTrayFromId(this.parent_id);
+    if (this.parentId) {
+      const parent = getTrayFromId(this.parentId);
       const index = parent.children.indexOf(this);
       return parent.children[index + 1] || null;
     }
@@ -377,22 +355,19 @@ class Tray {
   onDrop(event) {
     event.preventDefault();
     event.stopPropagation();
-    console.log("drop")
 
     const movingId = event.dataTransfer.getData('text/plain');
-    var movingTray = getTrayFromId(movingId);
-    // movingTray.element.classList.remove('dragging');
-    console.log(movingId);
+    const movingTray = getTrayFromId(movingId);
 
-    getTrayFromId(movingTray.parent_id).removeChild(movingId);
+    getTrayFromId(movingTray.parentId).removeChild(movingId);
     this.children.unshift(movingTray);
     movingTray.parent = this;
-    movingTray.parent_id = this.id;
+    movingTray.parentId = this.id;
     const content = this.element.querySelector('.tray-content');
     content.insertBefore(movingTray.element, content.firstChild);
 
     movingTray.element.style.display = 'block';
-    this.updateAppearance()
+    this.updateAppearance();
 
     saveToLocalStorage();
   }
@@ -400,15 +375,12 @@ class Tray {
   onDragEnd(event) {
     event.stopPropagation();
     this.element.classList.remove('drag-over');
-
     this.element.style.display = 'block';
-    // document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
-
   }
 
   onDoubleClick(event) {
-    if (this.isSplit) return; // Don't add new trays if the current tray is split
-  
+    if (this.isSplit) return;
+
     const content = this.element.querySelector('.tray-content');
     
     if (event.target === content || event.target === this.element.querySelector('.tray-title-container')) {
@@ -416,7 +388,6 @@ class Tray {
       this.addChild(newTray);
       content.appendChild(newTray.element);
       
-      // Optional: Focus on the new tray and start editing its title
       newTray.element.focus();
       const newTitleElement = newTray.element.querySelector('.tray-title');
       newTray.startTitleEdit(newTitleElement);
@@ -426,27 +397,9 @@ class Tray {
   addChild(childTray) {
     this.children.push(childTray);
     childTray.parent = this;
-    childTray.parent_id = this.id;
-    this.updateAppearance()
-
+    childTray.parentId = this.id;
+    this.updateAppearance();
   }
-
-  // removeChild(childTray) {
-  //   const index = this.children.findIndex(child => child.id === childTray.id);
-  //   if (index !== -1) {
-  //     this.children.splice(index, 1);
-  //     // childTray.parent = null;
-  //   }
-  // }
-
-  // isDescendantOf(ancestor) {
-  //   let parent = this.parent;
-  //   while (parent) {
-  //     if (parent === ancestor) return true;
-  //     parent = parent.parent;
-  //   }
-  //   return false;
-  // }
 
   onContextMenu(event) {
     event.preventDefault();
@@ -535,7 +488,7 @@ class Tray {
     const title = this.element.querySelector('.tray-title');
     title.setAttribute('contenteditable', 'true');
     title.focus();
-    saveToLocalStorage()
+    saveToLocalStorage();
   }
 
   cutTray() {
@@ -578,13 +531,12 @@ class Tray {
       return;
     }
 
-    const parent = getTrayFromId(this.parent_id);
+    const parent = getTrayFromId(this.parentId);
     const indexInParent = parent.children.findIndex(child => child.id === this.id);
 
     parent.removeChild(this.id);
     this.element.remove();
 
-    // 削除後のフォーカス移動
     this.moveFocusAfterDelete(parent, indexInParent);
 
     historyManager.addAction(new RemoveTrayAction(parent, this));
@@ -596,14 +548,11 @@ class Tray {
 
     if (parent.children.length > 0) {
       if (deletedIndex < parent.children.length) {
-        // 削除されたトレイの次のトレイにフォーカス
         nextFocus = parent.children[deletedIndex].element;
       } else {
-        // 最後のトレイが削除された場合、一つ前のトレイにフォーカス
         nextFocus = parent.children[parent.children.length - 1].element;
       }
     } else {
-      // 子トレイがなくなった場合、親トレイにフォーカス
       nextFocus = parent.element;
     }
 
@@ -654,7 +603,4 @@ class Tray {
 
     this.element.classList.add('no-new-tray');
   }
-
-
-
 }
