@@ -1,13 +1,25 @@
 
-function getTrayFromId(Id){
+function getTrayFromId(Id) {
   return document.querySelector(`[data-tray-id="${Id}"]`).__trayInstance;
 }
 
 
 
 class Tray {
-  constructor(parent_id,id, name, labels = []) {
-    this.id = id ;
+  static colorPalette = [
+    '#FF6B6B', // Red
+    '#4ECDC4', // Teal
+    '#45B7D1', // Light Blue
+    '#FFA07A', // Light Salmon
+    '#98D8C8', // Mint
+    '#F7DC6F', // Yellow
+    '#BB8FCE', // Light Purple
+    '#82E0AA', // Light Green
+    '#F8C471', // Light Orange
+    '#85C1E9'  // Sky Blue
+  ]
+  constructor(parent_id, id, name, labels = []) {
+    this.id = id;
     this.name = name;
     this.labels = labels;
     this.children = [];
@@ -15,6 +27,9 @@ class Tray {
     this.isSplit = false;
     this.element = this.createElement();
     this.updateAppearance()
+    this.isFolded = false; // New property to track folded state
+    this.borderColor = Tray.colorPalette[0]; // Default to the first color
+    this.updateBorderColor();
     // if (id!="0"){
     //   this.parent = getTrayFromId(parent_id)
     // }else{
@@ -27,47 +42,52 @@ class Tray {
     tray.classList.add('tray');
     tray.setAttribute('draggable', 'true');
     tray.setAttribute('data-tray-id', this.id);
-  
+
     const titleContainer = document.createElement('div');
     titleContainer.classList.add('tray-title-container');
-  
+
     const title = document.createElement('div');
     title.classList.add('tray-title');
     title.setAttribute('contenteditable', 'false');
     title.textContent = this.name;
-    
+
     const contextMenuButton = document.createElement('button');
     contextMenuButton.classList.add('tray-context-menu-button');
     contextMenuButton.textContent = '⋮'; // You can use any icon or text you prefer
     contextMenuButton.addEventListener('click', this.onContextMenuButtonClick.bind(this));
-  
+
     titleContainer.appendChild(title);
     titleContainer.appendChild(contextMenuButton);
-  
+
     tray.addEventListener('contextmenu', this.onContextMenu.bind(this));
     title.addEventListener('contextmenu', (event) => {
       event.stopPropagation();
       this.onContextMenu(event);
     });
-    
+
     title.addEventListener('dblclick', (event) => {
       title.setAttribute('contenteditable', 'true');
       event.stopPropagation();
       event.target.focus();
     });
-    
+
     this.setupTitleEditing(title);
-  
+
     const content = document.createElement('div');
     content.classList.add('tray-content');
-  
+    titleContainer.addEventListener('dblclick', this.onDoubleClick.bind(this));
+    const foldButton = document.createElement('button');
+    foldButton.classList.add('tray-fold-button');
+    foldButton.textContent = '▼'; // Down arrow for expand
+    foldButton.addEventListener('click', this.toggleFold.bind(this));
+
+    titleContainer.appendChild(foldButton);
     tray.appendChild(titleContainer);
     tray.append(content);
-  
+
     tray.addEventListener('dragstart', this.onDragStart.bind(this));
     tray.addEventListener('dragover', this.onDragOver.bind(this));
     tray.addEventListener('drop', this.onDrop.bind(this));
-  
     content.addEventListener('dblclick', this.onDoubleClick.bind(this));
     tray.__trayInstance = this;
     this.setupKeyboardNavigation(tray);
@@ -76,69 +96,99 @@ class Tray {
   }
   removeChild(childId) {
     this.children = this.children.filter(tray => tray.id != childId);
-        this.updateAppearance()
+    this.updateAppearance()
 
-}
-setupTitleEditing(titleElement) {
-  titleElement.addEventListener('dblclick', (event) => {
+  }
+  updateBorderColor() {
+    const titleContainer = this.element.querySelector('.tray-title-container');
+    if (titleContainer) {
+      titleContainer.style.borderBottom = `3px solid ${this.borderColor}`;
+    }
+    saveToLocalStorage()
+  }
+  changeBorderColor(color) {
+    if (Tray.colorPalette.includes(color)) {
+      this.borderColor = color;
+      this.updateBorderColor();
+      saveToLocalStorage(); // Save the change
+    }
+  }
+  setupTitleEditing(titleElement) {
+    titleElement.addEventListener('dblclick', (event) => {
+      event.stopPropagation();
+      this.startTitleEdit(titleElement);
+    });
+  }
+  toggleFold(event) {
     event.stopPropagation();
-    this.startTitleEdit(titleElement);
-  });
-}
-updateAppearance() {
-  // try{
+    this.isFolded = !this.isFolded;
+    this.updateAppearance();
+  }
+
+  updateAppearance() {
+    const content = this.element.querySelector('.tray-content');
+    const foldButton = this.element.querySelector('.tray-fold-button');
+
     if (this.children.length === 0) {
-      const content = this.element.querySelector('div.tray-content');
       content.style.display = 'none';
+      if (this.isFolded) {
+        foldButton.textContent = '▶'; // Right arrow for expand
+      } else {
+        foldButton.textContent = '▼'; // Down arrow for fold
+      }
     } else {
-      const content = this.element.querySelector('div.tray-content');
-      content.style.display = 'block';
+      foldButton.style.display = 'inline-block';
+      if (this.isFolded) {
+        content.style.display = 'none';
+        foldButton.textContent = '▶'; // Right arrow for expand
+      } else {
+        content.style.display = 'block';
+        foldButton.textContent = '▼'; // Down arrow for fold
+      }
     }
-  // }
+  }
+  startTitleEdit(titleElement) {
+    titleElement.setAttribute('contenteditable', 'true');
+    titleElement.focus();
 
-}
-startTitleEdit(titleElement) {
-  titleElement.setAttribute('contenteditable', 'true');
-  titleElement.focus();
+    const range = document.createRange();
+    range.selectNodeContents(titleElement);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
 
-  const range = document.createRange();
-  range.selectNodeContents(titleElement);
-  const selection = window.getSelection();
-  selection.removeAllRanges();
-  selection.addRange(range);
+    const keyDownHandler = (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        titleElement.blur();
+      }
+    };
 
-  const keyDownHandler = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      titleElement.blur();
-    }
-  };
+    const blurHandler = () => {
+      this.finishTitleEdit(titleElement);
+    };
 
-  const blurHandler = () => {
-    this.finishTitleEdit(titleElement);
-  };
+    titleElement.addEventListener('keydown', keyDownHandler);
+    titleElement.addEventListener('blur', blurHandler);
+  }
+  onContextMenuButtonClick(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.showContextMenu(event);
+  }
 
-  titleElement.addEventListener('keydown', keyDownHandler);
-  titleElement.addEventListener('blur', blurHandler);
-}
-onContextMenuButtonClick(event) {
-  event.preventDefault();
-  event.stopPropagation();
-  this.showContextMenu(event);
-}
-
-showContextMenu(event) {
-  // Use the existing onContextMenu method, but pass the event from the button click
-  this.onContextMenu(event);
-}
-finishTitleEdit(titleElement) {
-  titleElement.setAttribute('contenteditable', 'false');
-  this.name = titleElement.textContent.trim() || 'Untitled';
-  titleElement.textContent = this.name;
-  titleElement.removeEventListener('keydown', this.keyDownHandler);
-  titleElement.removeEventListener('blur', this.blurHandler);
-  saveToLocalStorage();
-}
+  showContextMenu(event) {
+    // Use the existing onContextMenu method, but pass the event from the button click
+    this.onContextMenu(event);
+  }
+  finishTitleEdit(titleElement) {
+    titleElement.setAttribute('contenteditable', 'false');
+    this.name = titleElement.textContent.trim() || 'Untitled';
+    titleElement.textContent = this.name;
+    titleElement.removeEventListener('keydown', this.keyDownHandler);
+    titleElement.removeEventListener('blur', this.blurHandler);
+    saveToLocalStorage();
+  }
   onDragStart(event) {
     event.stopPropagation();
     event.dataTransfer.setData('text/plain', this.id);
@@ -165,7 +215,7 @@ finishTitleEdit(titleElement) {
   handleKeyDown(event) {
     event.stopPropagation();
 
-    switch(event.key) {
+    switch (event.key) {
       case 'ArrowUp':
         event.preventDefault();
         this.moveFocus('up');
@@ -215,27 +265,27 @@ finishTitleEdit(titleElement) {
         }
         break;
       case 'l':
-          if (event.ctrlKey) {
-            event.preventDefault();
-            this.addLabel();
-          }
-          break;
-          case 's':
-            if (event.ctrlKey) {
-              event.preventDefault();
-              this.split();
-            }
-            break;
-          case 'Space':
-              event.preventDefault();
-              getTrayFromId("root").element.focus();
-              break;
+        if (event.ctrlKey) {
+          event.preventDefault();
+          this.addLabel();
+        }
+        break;
+      case 's':
+        if (event.ctrlKey) {
+          event.preventDefault();
+          this.split();
+        }
+        break;
+      case 'Space':
+        event.preventDefault();
+        getTrayFromId("root").element.focus();
+        break;
     }
   }
 
   moveFocus(direction) {
     let nextTray;
-    switch(direction) {
+    switch (direction) {
       case 'up':
         nextTray = this.getPreviousSibling();
         break;
@@ -294,21 +344,21 @@ finishTitleEdit(titleElement) {
     event.preventDefault();
     event.stopPropagation();
     console.log("drop")
-  
+
     const movingId = event.dataTransfer.getData('text/plain');
     var movingTray = getTrayFromId(movingId);
     // movingTray.element.classList.remove('dragging');
     console.log(movingId);
-    
+
     getTrayFromId(movingTray.parent_id).removeChild(movingId);
     this.children.unshift(movingTray);
     movingTray.parent = this;
     movingTray.parent_id = this.id;
     const content = this.element.querySelector('.tray-content');
     content.insertBefore(movingTray.element, content.firstChild);
-    
+
     movingTray.element.style.display = 'block';
-        this.updateAppearance()
+    this.updateAppearance()
 
     saveToLocalStorage();
   }
@@ -316,7 +366,7 @@ finishTitleEdit(titleElement) {
   onDragEnd(event) {
     event.stopPropagation();
     this.element.classList.remove('drag-over');
-    
+
     this.element.style.display = 'block';
     // document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
 
@@ -324,9 +374,14 @@ finishTitleEdit(titleElement) {
 
   onDoubleClick(event) {
     if (event.target === this.element.querySelector('.tray-content') && !this.isSplit) {
-      const newTray = new Tray(this.id,Date.now().toString(), 'New Tray');
+      const newTray = new Tray(this.id, Date.now().toString(), 'New Tray');
       this.addChild(newTray);
       event.target.appendChild(newTray.element);
+    }
+    if (event.target === this.element.querySelector('.tray-title-container')) {
+      const newTray = new Tray(this.id, Date.now().toString(), 'New Tray');
+      this.addChild(newTray);
+      this.element.appendChild(newTray.element);
     }
   }
 
@@ -334,7 +389,7 @@ finishTitleEdit(titleElement) {
     this.children.push(childTray);
     childTray.parent = this;
     childTray.parent_id = this.id;
-      this.updateAppearance()
+    this.updateAppearance()
 
   }
 
@@ -368,7 +423,14 @@ finishTitleEdit(titleElement) {
       <div class="menu-item" data-action="paste">Paste</div>
       <div class="menu-item" data-action="label">Add Label</div>
       <div class="menu-item" data-action="delete">Delete</div>
+      <div class="menu-item color-picker">
+        Change Border Color
+        <div class="color-options">
+          ${Tray.colorPalette.map(color => `<div class="color-option" style="background-color: ${color};" data-color="${color}"></div>`).join('')}
+        </div>
+      </div>
     `;
+
     if (!this.isSplit) {
       menu.innerHTML += `<div class="menu-item" data-action="split">Split</div>`;
     }
@@ -378,6 +440,10 @@ finishTitleEdit(titleElement) {
 
     const handleMenuClick = (e) => {
       const action = e.target.getAttribute('data-action');
+      const color = e.target.getAttribute('data-color');
+      if (color) {
+        this.changeBorderColor(color);
+      }
       switch (action) {
         case 'copy':
           this.copyTray();
@@ -476,7 +542,7 @@ finishTitleEdit(titleElement) {
 
     const parent = getTrayFromId(this.parent_id);
     const indexInParent = parent.children.findIndex(child => child.id === this.id);
-    
+
     parent.removeChild(this.id);
     this.element.remove();
 
@@ -523,16 +589,16 @@ finishTitleEdit(titleElement) {
   split() {
     if (this.isSplit) return;
 
-    const newTray1 = new Tray(this.id,Date.now().toString(), 'N');
-    const newTray2 = new Tray(this.id,Date.now().toString(), 'S');
-    
+    const newTray1 = new Tray(this.id, Date.now().toString(), 'N');
+    const newTray2 = new Tray(this.id, Date.now().toString(), 'S');
+
     this.element.classList.add('split');
     this.isSplit = true;
     this.updateSplitDirection();
 
     const content = this.element.querySelector('.tray-content');
     const existingChildTrays = Array.from(this.children);
-    
+
     content.innerHTML = '';
     this.children = [];
 

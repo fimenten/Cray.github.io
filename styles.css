@@ -31,8 +31,10 @@
   position: absolute;
   top: 10px;
   left: 10px;
+  bottom: 10px;
+
   background-color: rgba(255, 255, 255, 0.7);
-  padding: 5px;
+  /* padding: 5px; */
   border-radius: 3px;
 }
 
@@ -52,7 +54,7 @@
 
 .tray-content {
   /* min-height: 100px; */
-  padding: 40px 15px 15px;
+  padding: 10px 20px 15px;
   background-color: #f5f5f5;
 }
 
@@ -175,4 +177,45 @@
   right: 0;
   height: 2px;
   background-color: #000;
+}
+
+.tray-fold-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0 5px;
+}
+
+.color-picker {
+  position: relative;
+}
+
+.color-options {
+  display: none;
+  position: absolute;
+  right: 100%;
+  top: 0;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 5px;
+  border-radius: 3px;
+}
+
+.color-picker:hover .color-options {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100px;
+}
+
+.color-option {
+  width: 20px;
+  height: 20px;
+  margin: 2px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.color-option:hover {
+  transform: scale(1.2);
 }
