@@ -23,11 +23,12 @@ class Tray {
     this.children = [];
     this.parentId = parentId;
     this.isSplit = false;
-    this.isFolded = false;
+    this.isFolded = true;
     this.isChecked = isChecked;
     this.borderColor = color || Tray.colorPalette[0];
     this.element = this.createElement();
     this.flexDirection = 'column'; // Add this line
+    this.isEditing = false; // 新しいプロパティを追加
 
     this.updateAppearance();
     this.updateBorderColor();
@@ -141,9 +142,15 @@ class Tray {
 
   updateBorderColor() {
     const titleContainer = this.element.querySelector('.tray-title-container');
-    if (titleContainer) {
-      titleContainer.style.borderBottom = `3px solid ${this.borderColor}`;
+    // if (titleContainer) {
+    //   titleContainer.style.borderBottom = `3px solid ${this.borderColor}`;
+    // }
+    const content = this.element.querySelector(".tray");
+    if (content) {
+      content.style.borderLeftColor = `3px solid ${this.borderColor}`;
     }
+
+
     saveToLocalStorage();
   }
 
@@ -266,7 +273,22 @@ class Tray {
 
   handleKeyDown(event) {
     event.stopPropagation();
-
+    if (this.isEditing) {
+      // 編集モード中は特定のキーのみを処理
+      switch (event.key) {
+        case 'Enter':
+          if (!event.shiftKey) {
+            event.preventDefault();
+            this.finishTitleEdit(event.target);
+          }
+          break;
+        case 'Escape':
+          event.preventDefault();
+          this.cancelTitleEdit(event.target);
+          break;
+      }
+      return; // 他のキー操作は無視
+    }
     switch (event.key) {
       case 'ArrowUp':
         event.preventDefault();
@@ -355,7 +377,31 @@ class Tray {
       nextTray.element.focus();
     }
   }
+  startTitleEdit(titleElement) {
+    this.isEditing = true;
+    titleElement.setAttribute('contenteditable', 'true');
+    titleElement.focus();
 
+    const range = document.createRange();
+    range.selectNodeContents(titleElement);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  finishTitleEdit(titleElement) {
+    this.isEditing = false;
+    titleElement.setAttribute('contenteditable', 'false');
+    this.name = titleElement.textContent.trim() || 'Untitled';
+    titleElement.textContent = this.name;
+    saveToLocalStorage();
+  }
+
+  cancelTitleEdit(titleElement) {
+    this.isEditing = false;
+    titleElement.setAttribute('contenteditable', 'false');
+    titleElement.textContent = this.name;
+  }
   getPreviousSibling() {
     if (this.parentId) {
       const parent = getTrayFromId(this.parentId);
@@ -391,7 +437,17 @@ class Tray {
     const newTitleElement = newTray.element.querySelector('.tray-title');
     newTray.startTitleEdit(newTitleElement);
   }
-
+  updateBorderColor() {
+    const trayElement = this.element;
+    const titleContainer = trayElement.querySelector('.tray-title-container');
+    if (titleContainer && trayElement) {
+      titleContainer.style.borderBottomColor = this.borderColor;
+      titleContainer.style.borderLeftColor = this.borderColor;
+      trayElement.style.borderLeftColor = this.borderColor;
+      trayElement.style.borderBottomColor = this.borderColor;
+    }
+    saveToLocalStorage();
+  }
   onDrop(event) {
     event.preventDefault();
     event.stopPropagation();
@@ -407,6 +463,7 @@ class Tray {
     content.insertBefore(movingTray.element, content.firstChild);
 
     movingTray.element.style.display = 'block';
+    this.isFolded = false;
     this.updateAppearance();
 
     saveToLocalStorage();
@@ -426,6 +483,7 @@ class Tray {
     if (event.target === content || event.target === this.element.querySelector('.tray-title-container')) {
       const newTray = new Tray(this.id, Date.now().toString(), 'New Tray');
       this.addChild(newTray);
+      this.isFolded = false;
       content.appendChild(newTray.element);
       
       newTray.element.focus();

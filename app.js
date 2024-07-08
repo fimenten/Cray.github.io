@@ -18,50 +18,82 @@ function updateAllTrayDirections() {
 }
 
 function createHamburgerMenu() {
-    const hamburger = document.createElement('div');
-    hamburger.classList.add('hamburger-menu');
-    hamburger.innerHTML = '☰';
-    document.body.appendChild(hamburger);
-  
-    const menu = document.createElement('div');
-    menu.classList.add('hamburger-menu-items');
+  const hamburger = document.createElement('div');
+  hamburger.classList.add('hamburger-menu');
+  hamburger.innerHTML = '☰';
+  hamburger.style.position = 'fixed';
+  hamburger.style.top = '10px';
+  hamburger.style.right = '10px';
+  hamburger.style.fontSize = '24px';
+  hamburger.style.cursor = 'pointer';
+  hamburger.style.zIndex = '1000';
+  document.body.appendChild(hamburger);
+
+  const menu = document.createElement('div');
+  menu.classList.add('hamburger-menu-items');
+  menu.style.display = 'none';
+  menu.style.position = 'fixed';
+  menu.style.top = '40px';
+  menu.style.right = '10px';
+  menu.style.backgroundColor = 'white';
+  menu.style.border = '1px solid #ccc';
+  menu.style.borderRadius = '4px';
+  menu.style.padding = '10px';
+  menu.style.zIndex = '999';
+  menu.innerHTML = `
+    <div class="menu-item" data-action="reset">トレイをリセット</div>
+    <div class="menu-item" data-action="save">現在の状態を保存</div>
+    <div class="menu-item" data-action="load">保存した状態を読み込む</div>
+    <div class="menu-item" data-action="export">データのエクスポート</div>
+    <div class="menu-item" data-action="import">データのインポート</div>
+  `;
+  document.body.appendChild(menu);
+
+  // メニュー項目のスタイリング
+  const menuItems = menu.querySelectorAll('.menu-item');
+  menuItems.forEach(item => {
+      item.style.padding = '5px 10px';
+      item.style.cursor = 'pointer';
+      item.style.transition = 'background-color 0.3s';
+  });
+
+  hamburger.addEventListener('click', () => {
+    menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  });
+
+  menu.addEventListener('click', (event) => {
+    const action = event.target.getAttribute('data-action');
+    switch (action) {
+      case 'reset':
+        if (confirm('すべてのトレイをリセットしますか？この操作は元に戻せません。')) {
+          resetAllTrays();
+        }
+        break;
+      case 'save':
+        saveCurrentState();
+        break;
+      case 'load':
+        loadSavedState();
+        break;
+      case 'export':
+        exportData();
+        break;
+      case 'import':
+        importData();
+        break;
+    }
     menu.style.display = 'none';
-    menu.innerHTML = `
-      <div class="menu-item" data-action="reset">トレイをリセット</div>
-      <div class="menu-item" data-action="save">現在の状態を保存</div>
-      <div class="menu-item" data-action="load">保存した状態を読み込む</div>
-      <div class="menu-item" data-action="export">データのエクスポート</div>
-      <div class="menu-item" data-action="import">データのインポート</div>
-    `;
-    document.body.appendChild(menu);
-  
-    hamburger.addEventListener('click', () => {
-      menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
-    });
-  
-    menu.addEventListener('click', (event) => {
-      const action = event.target.getAttribute('data-action');
-      switch (action) {
-        case 'reset':
-          if (confirm('すべてのトレイをリセットしますか？この操作は元に戻せません。')) {
-            resetAllTrays();
-          }
-          break;
-        case 'save':
-          saveCurrentState();
-          break;
-        case 'load':
-          loadSavedState();
-          break;
-        case 'export':
-          exportData();
-          break;
-        case 'import':
-          importData();
-          break;
-      }
-      menu.style.display = 'none';
-    });
+  });
+
+  // ホバー効果の追加
+  menuItems.forEach(item => {
+      item.addEventListener('mouseover', () => {
+          item.style.backgroundColor = '#f0f0f0';
+      });
+      item.addEventListener('mouseout', () => {
+          item.style.backgroundColor = 'transparent';
+      });
+  });
 }
 
 function resetAllTrays() {
