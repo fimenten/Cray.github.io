@@ -26,12 +26,23 @@ class Tray {
     tray.classList.add('tray');
     tray.setAttribute('draggable', 'true');
     tray.setAttribute('data-tray-id', this.id);
-
+  
+    const titleContainer = document.createElement('div');
+    titleContainer.classList.add('tray-title-container');
+  
     const title = document.createElement('div');
     title.classList.add('tray-title');
     title.setAttribute('contenteditable', 'false');
     title.textContent = this.name;
     
+    const contextMenuButton = document.createElement('button');
+    contextMenuButton.classList.add('tray-context-menu-button');
+    contextMenuButton.textContent = '⋮'; // You can use any icon or text you prefer
+    contextMenuButton.addEventListener('click', this.onContextMenuButtonClick.bind(this));
+  
+    titleContainer.appendChild(title);
+    titleContainer.appendChild(contextMenuButton);
+  
     tray.addEventListener('contextmenu', this.onContextMenu.bind(this));
     title.addEventListener('contextmenu', (event) => {
       event.stopPropagation();
@@ -45,23 +56,21 @@ class Tray {
     });
     
     this.setupTitleEditing(title);
-
-
+  
     const content = document.createElement('div');
     content.classList.add('tray-content');
-
-    tray.appendChild(title);
+  
+    tray.appendChild(titleContainer);
     tray.appendChild(content);
-
+  
     tray.addEventListener('dragstart', this.onDragStart.bind(this));
     tray.addEventListener('dragover', this.onDragOver.bind(this));
     tray.addEventListener('drop', this.onDrop.bind(this));
-    // tray.addEventListener('dragend', this.onDragEnd.bind(this));
-    
+  
     content.addEventListener('dblclick', this.onDoubleClick.bind(this));
     tray.__trayInstance = this;
     this.setupKeyboardNavigation(tray);
-
+  
     return tray;
   }
   removeChild(childId) {
@@ -97,7 +106,16 @@ startTitleEdit(titleElement) {
   titleElement.addEventListener('keydown', keyDownHandler);
   titleElement.addEventListener('blur', blurHandler);
 }
+onContextMenuButtonClick(event) {
+  event.preventDefault();
+  event.stopPropagation();
+  this.showContextMenu(event);
+}
 
+showContextMenu(event) {
+  // Use the existing onContextMenu method, but pass the event from the button click
+  this.onContextMenu(event);
+}
 finishTitleEdit(titleElement) {
   titleElement.setAttribute('contenteditable', 'false');
   this.name = titleElement.textContent.trim() || 'Untitled';
