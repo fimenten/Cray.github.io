@@ -63,7 +63,8 @@ function serializeDOM(tray) {
     labels: tray.labels,
     isSplit: tray.isSplit,
     children: tray.children.map(serializeDOM),
-    parent_id: tray.parent_id
+    parent_id: tray.parent_id,
+    borderColor:tray.borderColor
   };
 }
 
@@ -92,7 +93,7 @@ function loadFromLocalStorage() {
 }
 
 function deserializeDOM(data) {
-  const tray = new Tray(data.parent_id,data.id, data.name, data.labels);
+  const tray = new Tray(data.parent_id,data.id, data.name,data.borderColor, data.labels);
   tray.isSplit = data.isSplit;
   if (tray.isSplit) {
     tray.element.classList.add('split');

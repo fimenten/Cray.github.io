@@ -18,7 +18,7 @@ class Tray {
     '#F8C471', // Light Orange
     '#85C1E9'  // Sky Blue
   ]
-  constructor(parent_id, id, name, labels = []) {
+  constructor(parent_id, id, name,color = null, labels = []) {
     this.id = id;
     this.name = name;
     this.labels = labels;
@@ -28,7 +28,12 @@ class Tray {
     this.element = this.createElement();
     this.updateAppearance()
     this.isFolded = false; // New property to track folded state
+    if (color==null){
     this.borderColor = Tray.colorPalette[0]; // Default to the first color
+    }
+    else{
+      this.borderColor = color
+    }
     this.updateBorderColor();
     // if (id!="0"){
     //   this.parent = getTrayFromId(parent_id)
@@ -373,15 +378,19 @@ class Tray {
   }
 
   onDoubleClick(event) {
-    if (event.target === this.element.querySelector('.tray-content') && !this.isSplit) {
+    if (this.isSplit) return; // Don't add new trays if the current tray is split
+  
+    const content = this.element.querySelector('.tray-content');
+    
+    if (event.target === content || event.target === this.element.querySelector('.tray-title-container')) {
       const newTray = new Tray(this.id, Date.now().toString(), 'New Tray');
       this.addChild(newTray);
-      event.target.appendChild(newTray.element);
-    }
-    if (event.target === this.element.querySelector('.tray-title-container')) {
-      const newTray = new Tray(this.id, Date.now().toString(), 'New Tray');
-      this.addChild(newTray);
-      this.element.appendChild(newTray.element);
+      content.appendChild(newTray.element);
+      
+      // Optional: Focus on the new tray and start editing its title
+      newTray.element.focus();
+      const newTitleElement = newTray.element.querySelector('.tray-title');
+      newTray.startTitleEdit(newTitleElement);
     }
   }
 

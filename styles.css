@@ -29,12 +29,14 @@
   text-overflow: ellipsis;
   cursor: text;
   position: absolute;
-  bottom: 10px;
+  /* bottom: 10px; */
   top: 10px;
-  left: 10px;
-  background-color: rgba(255, 255, 255, 0.7);
-  /* padding: 5px; */
+  /* left: 10px; */
+  /* Remove or comment out the next line */
+  /* background-color: rgba(255, 255, 255, 0.7); */
   border-radius: 3px;
+  /* Add a color that contrasts with the tray background */
+  color: #333;
 }
 
 .tray-title:focus {
@@ -48,18 +50,21 @@
 }
 
 .tray-title:hover {
-  background-color: rgba(255, 255, 255, 0.9);
+  /* Remove or comment out the next line */
+  /* background-color: rgba(255, 255, 255, 0.9); */
+  /* Optionally, add an underline or other visual indication on hover */
+  text-decoration: underline;
 }
 
 .tray-content {
   /* min-height: 100px; */
-  padding: 10px 20px 15px;
+  padding: 10px 5px 15px;
   background-color: #f5f5f5;
 }
 
 .tray .tray {
-  margin: 10px 0;
-  border: 1px solid #999;
+  margin: 0px 0;
+  /* border: 1px solid #999; */
   width: calc(100% - 10px);
 }
 
