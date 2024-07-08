@@ -14,6 +14,7 @@ class Tray {
     this.parent_id = parent_id
     this.isSplit = false;
     this.element = this.createElement();
+    this.updateAppearance()
     // if (id!="0"){
     //   this.parent = getTrayFromId(parent_id)
     // }else{
@@ -70,17 +71,31 @@ class Tray {
     content.addEventListener('dblclick', this.onDoubleClick.bind(this));
     tray.__trayInstance = this;
     this.setupKeyboardNavigation(tray);
-  
+    // this.updateAppearance()
     return tray;
   }
   removeChild(childId) {
     this.children = this.children.filter(tray => tray.id != childId);
+        this.updateAppearance()
+
 }
 setupTitleEditing(titleElement) {
   titleElement.addEventListener('dblclick', (event) => {
     event.stopPropagation();
     this.startTitleEdit(titleElement);
   });
+}
+updateAppearance() {
+  // try{
+    if (this.children.length === 0) {
+      const content = this.element.querySelector('div.tray-content');
+      content.style.display = 'none';
+    } else {
+      const content = this.element.querySelector('div.tray-content');
+      content.style.display = 'block';
+    }
+  // }
+
 }
 startTitleEdit(titleElement) {
   titleElement.setAttribute('contenteditable', 'true');
@@ -293,6 +308,8 @@ finishTitleEdit(titleElement) {
     content.insertBefore(movingTray.element, content.firstChild);
     
     movingTray.element.style.display = 'block';
+        this.updateAppearance()
+
     saveToLocalStorage();
   }
 
@@ -317,6 +334,8 @@ finishTitleEdit(titleElement) {
     this.children.push(childTray);
     childTray.parent = this;
     childTray.parent_id = this.id;
+      this.updateAppearance()
+
   }
 
   // removeChild(childTray) {
