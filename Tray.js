@@ -50,6 +50,16 @@ class Tray {
 
     const titleContainer = document.createElement('div');
     titleContainer.classList.add('tray-title-container');
+    const checkboxContainer = document.createElement('div');
+    checkboxContainer.classList.add('tray-checkbox-container');
+  
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.classList.add('tray-checkbox');
+    checkbox.checked = this.isChecked;
+    checkbox.addEventListener('change', this.onCheckboxChange.bind(this));
+  
+    checkboxContainer.appendChild(checkbox);
 
     const title = document.createElement('div');
     title.classList.add('tray-title');
@@ -60,7 +70,7 @@ class Tray {
     contextMenuButton.classList.add('tray-context-menu-button');
     contextMenuButton.textContent = '⋮'; // You can use any icon or text you prefer
     contextMenuButton.addEventListener('click', this.onContextMenuButtonClick.bind(this));
-
+    titleContainer.appendChild(checkboxContainer);
     titleContainer.appendChild(title);
     titleContainer.appendChild(contextMenuButton);
 
@@ -99,6 +109,22 @@ class Tray {
     // this.updateAppearance()
     return tray;
   }
+  onCheckboxChange(event) {
+    this.isChecked = event.target.checked;
+    // You might want to propagate the change to child trays
+    // this.updateChildrenCheckboxes(this.isChecked);
+    saveToLocalStorage(); // Save the change
+  }
+  // updateChildrenCheckboxes(checked) {
+  //   this.children.forEach(child => {
+  //     child.isChecked = checked;
+  //     const childCheckbox = child.element.querySelector('.tray-checkbox');
+  //     if (childCheckbox) {
+  //       childCheckbox.checked = checked;
+  //     }
+  //     child.updateChildrenCheckboxes(checked);
+  //   });
+  // }
   removeChild(childId) {
     this.children = this.children.filter(tray => tray.id != childId);
     this.updateAppearance()
@@ -133,7 +159,10 @@ class Tray {
   updateAppearance() {
     const content = this.element.querySelector('.tray-content');
     const foldButton = this.element.querySelector('.tray-fold-button');
-
+    const checkbox = this.element.querySelector('.tray-checkbox');
+    if (checkbox) {
+      checkbox.checked = this.isChecked;
+    }
     if (this.children.length === 0) {
       content.style.display = 'none';
       if (this.isFolded) {
