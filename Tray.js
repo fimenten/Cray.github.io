@@ -135,6 +135,15 @@ class Tray {
     event.stopPropagation();
     this.isFolded = !this.isFolded;
     this.updateAppearance();
+    this.foldChildren();
+  }
+  
+  foldChildren() {
+    this.children.forEach(child => {
+      child.isFolded = true;
+      child.updateAppearance();
+      child.foldChildren(true);
+    });
   }
 
   updateAppearance() {
