@@ -43,6 +43,10 @@ class Tray {
     titleContainer.classList.add('tray-title-container');
     const checkboxContainer = document.createElement('div');
     checkboxContainer.classList.add('tray-checkbox-container');
+    const clickArea = document.createElement('div');
+    clickArea.classList.add('tray-click-area');
+    clickArea.style.flexGrow = '1';
+    clickArea.style.cursor = 'pointer';
 
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
@@ -90,6 +94,7 @@ class Tray {
     titleContainer.appendChild(contextMenuButton);
     titleContainer.appendChild(checkboxContainer);
     titleContainer.appendChild(title);
+    titleContainer.appendChild(clickArea)
     tray.appendChild(titleContainer);
     tray.append(content);
 
