@@ -61,9 +61,7 @@ class Tray {
     contextMenuButton.classList.add('tray-context-menu-button');
     contextMenuButton.textContent = '⋮';
     contextMenuButton.addEventListener('click', this.onContextMenuButtonClick.bind(this));
-    titleContainer.appendChild(contextMenuButton);
-    titleContainer.appendChild(checkboxContainer);
-    titleContainer.appendChild(title);
+
 
     tray.addEventListener('contextmenu', this.onContextMenu.bind(this));
     title.addEventListener('contextmenu', (event) => {
@@ -88,8 +86,10 @@ class Tray {
     foldButton.classList.add('tray-fold-button');
     foldButton.textContent = '▼';
     foldButton.addEventListener('click', this.toggleFold.bind(this));
-
     titleContainer.appendChild(foldButton);
+    titleContainer.appendChild(contextMenuButton);
+    titleContainer.appendChild(checkboxContainer);
+    titleContainer.appendChild(title);
     tray.appendChild(titleContainer);
     tray.append(content);
 
