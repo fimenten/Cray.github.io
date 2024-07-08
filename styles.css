@@ -205,3 +205,6 @@
 .color-option:hover {
   transform: scale(1.2);
 }
+.tray-content {
+  display: flex;
+}

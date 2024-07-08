@@ -27,6 +27,8 @@ class Tray {
     this.isChecked = isChecked;
     this.borderColor = color || Tray.colorPalette[0];
     this.element = this.createElement();
+    this.flexDirection = 'column'; // Add this line
+
     this.updateAppearance();
     this.updateBorderColor();
   }
@@ -59,9 +61,9 @@ class Tray {
     contextMenuButton.classList.add('tray-context-menu-button');
     contextMenuButton.textContent = '⋮';
     contextMenuButton.addEventListener('click', this.onContextMenuButtonClick.bind(this));
+    titleContainer.appendChild(contextMenuButton);
     titleContainer.appendChild(checkboxContainer);
     titleContainer.appendChild(title);
-    titleContainer.appendChild(contextMenuButton);
 
     tray.addEventListener('contextmenu', this.onContextMenu.bind(this));
     title.addEventListener('contextmenu', (event) => {
@@ -79,6 +81,8 @@ class Tray {
 
     const content = document.createElement('div');
     content.classList.add('tray-content');
+    content.style.flexDirection = this.flexDirection; // Add this line
+
     titleContainer.addEventListener('dblclick', this.onDoubleClick.bind(this));
     const foldButton = document.createElement('button');
     foldButton.classList.add('tray-fold-button');
@@ -98,7 +102,28 @@ class Tray {
 
     return tray;
   }
-
+  toggleFlexDirection() {
+    this.flexDirection = this.flexDirection === 'column' ? 'row' : 'column';
+    this.updateFlexDirection();
+    this.updateChildrenAppearance(); // Add this line
+    saveToLocalStorage();
+  }
+  
+  updateFlexDirection() {
+    const content = this.element.querySelector('.tray-content');
+    content.style.flexDirection = this.flexDirection;
+    content.style.display = 'flex'; // Ensure flex display is set
+  }
+  
+  updateChildrenAppearance() {
+    this.children.forEach(child => {
+      if (this.flexDirection === 'row') {
+        child.element.style.width = '200px'; // Or any appropriate width
+      } else {
+        child.element.style.width = '100%';
+      }
+    });
+  }
   onCheckboxChange(event) {
     this.isChecked = event.target.checked;
     saveToLocalStorage();
@@ -418,19 +443,20 @@ class Tray {
     const menu = document.createElement('div');
     menu.classList.add('context-menu');
     menu.innerHTML = `
-      <div class="menu-item" data-action="copy">Copy</div>
-      <div class="menu-item" data-action="rename">Rename</div>
-      <div class="menu-item" data-action="cut">Cut</div>
-      <div class="menu-item" data-action="paste">Paste</div>
-      <div class="menu-item" data-action="label">Add Label</div>
-      <div class="menu-item" data-action="delete">Delete</div>
-      <div class="menu-item color-picker">
-        Change Border Color
-        <div class="color-options">
-          ${Tray.colorPalette.map(color => `<div class="color-option" style="background-color: ${color};" data-color="${color}"></div>`).join('')}
-        </div>
+    <div class="menu-item" data-action="copy">Copy</div>
+    <div class="menu-item" data-action="rename">Rename</div>
+    <div class="menu-item" data-action="cut">Cut</div>
+    <div class="menu-item" data-action="paste">Paste</div>
+    <div class="menu-item" data-action="label">Add Label</div>
+    <div class="menu-item" data-action="delete">Delete</div>
+    <div class="menu-item" data-action="toggleFlexDirection">Toggle Flex Direction</div>
+    <div class="menu-item color-picker">
+      Change Border Color
+      <div class="color-options">
+        ${Tray.colorPalette.map(color => `<div class="color-option" style="background-color: ${color};" data-color="${color}"></div>`).join('')}
       </div>
-    `;
+    </div>
+  `;
 
     if (!this.isSplit) {
       menu.innerHTML += `<div class="menu-item" data-action="split">Split</div>`;
@@ -469,6 +495,9 @@ class Tray {
             this.split();
           }
           break;
+        case 'toggleFlexDirection':
+            this.toggleFlexDirection();
+            break;
       }
       menu.remove();
       document.removeEventListener('click', handleOutsideClick);
