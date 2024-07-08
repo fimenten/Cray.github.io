@@ -118,11 +118,11 @@
 }
 
 .tray.split-horizontal {
-  flex-direction: row;
+  flex-direction: column;
 }
 
 .tray.split-vertical {
-  flex-direction: column;
+  flex-direction: row;
 }
 
 .tray.split > .tray-content {
@@ -131,11 +131,11 @@
 }
 
 .tray.split-horizontal > .tray-content {
-  flex-direction: row;
+  flex-direction: column;
 }
 
 .tray.split-vertical > .tray-content {
-  flex-direction: column;
+  flex-direction: row;
 }
 
 .tray.split > .tray-content > .tray {
