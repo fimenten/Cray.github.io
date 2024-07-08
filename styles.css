@@ -38,7 +38,7 @@
   flex: 0.5; /* flexを0.5に変更 */
   min-width: 0;
   /* max-width: 50%; 最大幅を50%に設定 */
-  overflow: hidden;
+  /* overflow: hidden; */
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: bold;
