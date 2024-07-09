@@ -13,7 +13,8 @@ class Tray {
     '#BB8FCE', // Light Purple
     '#82E0AA', // Light Green
     '#F8C471', // Light Orange
-    '#85C1E9'  // Sky Blue
+    '#85C1E9',  // Sky Blue
+    "#e0e0e0", // Tray color
   ];
 
   constructor(parentId, id, name, color = null, labels = [], isChecked = false) {
@@ -25,11 +26,10 @@ class Tray {
     this.isSplit = false;
     this.isFolded = true;
     this.isChecked = isChecked;
-    this.borderColor = color || Tray.colorPalette[0];
+    this.borderColor = color || Tray.colorPalette[-1];
     this.element = this.createElement();
     this.flexDirection = 'column'; // Add this line
     this.isEditing = false; // 新しいプロパティを追加
-
     this.updateAppearance();
     this.updateBorderColor();
   }
