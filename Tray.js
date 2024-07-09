@@ -251,6 +251,7 @@ class Tray {
     titleElement.textContent = this.name;
     titleElement.removeEventListener('keydown', this.keyDownHandler);
     titleElement.removeEventListener('blur', this.blurHandler);
+    this.isEditing = false
     saveToLocalStorage();
   }
 
@@ -280,6 +281,7 @@ class Tray {
           if (!event.shiftKey) {
             event.preventDefault();
             this.finishTitleEdit(event.target);
+
           }
           break;
         case 'Escape':
