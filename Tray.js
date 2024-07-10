@@ -354,7 +354,7 @@ class Tray {
         break;
       case ' ':
         event.preventDefault();
-        getTrayFromId("root").element.focus();
+        this.onContextMenu(event);
         break;
     }
   }
