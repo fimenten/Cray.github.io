@@ -625,7 +625,7 @@ class Tray {
       const labelElement = document.createElement('span');
       labelElement.classList.add('tray-label');
       labelElement.textContent = label;
-      this.element.appendChild(labelElement);
+      this.element.titleContainer.appendChild(labelElement);
     }
   }
 
