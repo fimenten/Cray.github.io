@@ -498,36 +498,36 @@ class Tray {
     childTray.parentId = this.id;
     this.updateAppearance();
   }
-
   onContextMenu(event) {
     event.preventDefault();
     event.stopPropagation();
-
+  
     const menu = document.createElement('div');
     menu.classList.add('context-menu');
     menu.innerHTML = `
-    <div class="menu-item" data-action="copy">Copy</div>
-    <div class="menu-item" data-action="rename">Rename</div>
-    <div class="menu-item" data-action="cut">Cut</div>
-    <div class="menu-item" data-action="paste">Paste</div>
-    <div class="menu-item" data-action="label">Add Label</div>
-    <div class="menu-item" data-action="delete">Delete</div>
-    <div class="menu-item" data-action="toggleFlexDirection">Toggle Flex Direction</div>
-    <div class="menu-item color-picker">
-      Change Border Color
-      <div class="color-options">
-        ${Tray.colorPalette.map(color => `<div class="color-option" style="background-color: ${color};" data-color="${color}"></div>`).join('')}
+      <div class="menu-item" data-action="copy">Copy</div>
+      <div class="menu-item" data-action="rename">Rename</div>
+      <div class="menu-item" data-action="cut">Cut</div>
+      <div class="menu-item" data-action="paste">Paste</div>
+      <div class="menu-item" data-action="label">Add Label</div>
+      <div class="menu-item" data-action="delete">Delete</div>
+      <div class="menu-item" data-action="toggleFlexDirection">Toggle Flex Direction</div>
+      <div class="menu-item" data-action="convertToNetwork">Convert to NetworkTray</div>
+      <div class="menu-item color-picker">
+        Change Border Color
+        <div class="color-options">
+          ${Tray.colorPalette.map(color => `<div class="color-option" style="background-color: ${color};" data-color="${color}"></div>`).join('')}
+        </div>
       </div>
-    </div>
-  `;
-
+    `;
+  
     if (!this.isSplit) {
       menu.innerHTML += `<div class="menu-item" data-action="split">Split</div>`;
     }
     menu.style.top = `${event.clientY}px`;
     menu.style.left = `${event.clientX}px`;
     document.body.appendChild(menu);
-
+  
     const handleMenuClick = (e) => {
       const action = e.target.getAttribute('data-action');
       const color = e.target.getAttribute('data-color');
@@ -559,12 +559,30 @@ class Tray {
           }
           break;
         case 'toggleFlexDirection':
-            this.toggleFlexDirection();
-            break;
+          this.toggleFlexDirection();
+          break;
+        case 'convertToNetwork':
+          const url = prompt('Enter URL for NetworkTray:', 'http://host.com:8080');
+          const filename = prompt('Enter filename for NetworkTray:', `tray_${this.id}.json`);
+          if (url && filename) {
+            this.convertToNetworkTray(url, filename);
+          }
+          break;
       }
       menu.remove();
       document.removeEventListener('click', handleOutsideClick);
     };
+  
+    const handleOutsideClick = (e) => {
+      if (!menu.contains(e.target)) {
+        menu.remove();
+        document.removeEventListener('click', handleOutsideClick);
+      }
+    };
+  
+    menu.addEventListener('click', handleMenuClick);
+    document.addEventListener('click', handleOutsideClick);
+  }
 
     const handleOutsideClick = (e) => {
       if (!menu.contains(e.target)) {
@@ -704,5 +722,34 @@ class Tray {
     }
 
     this.element.classList.add('no-new-tray');
+  }
+  convertToNetworkTray(url = '', filename = '') {
+    const networkTray = new NetworkTray(
+      this.parentId,
+      this.id,
+      this.name,
+      this.borderColor,
+      this.labels,
+      this.isChecked,
+      url,
+      filename
+    );
+
+    networkTray.children = this.children;
+    networkTray.isSplit = this.isSplit;
+    networkTray.isFolded = this.isFolded;
+    networkTray.flexDirection = this.flexDirection;
+
+    // Replace this Tray with the new NetworkTray in the parent's children array
+    const parent = getTrayFromId(this.parentId);
+    const index = parent.children.indexOf(this);
+    if (index !== -1) {
+      parent.children[index] = networkTray;
+    }
+
+    // Replace the DOM element
+    this.element.parentNode.replaceChild(networkTray.element, this.element);
+
+    return networkTray;
   }
 }
