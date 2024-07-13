@@ -17,19 +17,19 @@ class Tray {
     "#e0e0e0", // Tray color
   ];
 
-  constructor(parentId, id, name, color = null, labels = [], isChecked = false) {
+  constructor(parentId, id, name,children = [], color = null, labels = [], isChecked = false) {
     this.id = id;
     this.name = name;
+    this.children = []
     this.labels = labels;
-    this.children = [];
     this.parentId = parentId;
     this.isSplit = false;
     this.isFolded = true;
     this.isChecked = isChecked;
     this.borderColor = color || Tray.colorPalette[-1];
     this.element = this.createElement();
-    this.flexDirection = 'column'; // Add this line
-    this.isEditing = false; // 新しいプロパティを追加
+    this.flexDirection = 'column'; 
+    this.isEditing = false; 
     this.updateAppearance();
     this.updateBorderColor();
   }
@@ -39,7 +39,7 @@ class Tray {
     tray.classList.add('tray');
     tray.setAttribute('draggable', 'true');
     tray.setAttribute('data-tray-id', this.id);
-
+    tray.style.display = "block";
     const titleContainer = document.createElement('div');
     titleContainer.classList.add('tray-title-container');
     const checkboxContainer = document.createElement('div');
@@ -85,7 +85,6 @@ class Tray {
     const content = document.createElement('div');
     content.classList.add('tray-content');
     content.style.flexDirection = this.flexDirection; // Add this line
-
     titleContainer.addEventListener('dblclick', this.onDoubleClick.bind(this));
     const foldButton = document.createElement('button');
     foldButton.classList.add('tray-fold-button');
@@ -124,7 +123,7 @@ class Tray {
   updateChildrenAppearance() {
     this.children.forEach(child => {
       if (this.flexDirection === 'row') {
-        child.element.style.width = '200px'; // Or any appropriate width
+        child.element.style.width = '50%'; // Or any appropriate width
       } else {
         child.element.style.width = '100%';
       }
@@ -142,9 +141,6 @@ class Tray {
 
   updateBorderColor() {
     const titleContainer = this.element.querySelector('.tray-title-container');
-    // if (titleContainer) {
-    //   titleContainer.style.borderBottom = `3px solid ${this.borderColor}`;
-    // }
     const content = this.element.querySelector(".tray");
     if (content) {
       content.style.borderLeftColor = `3px solid ${this.borderColor}`;
@@ -174,8 +170,8 @@ class Tray {
   toggleFold(event) {
     event.stopPropagation();
     this.isFolded = !this.isFolded;
-    this.updateAppearance();
     this.foldChildren();
+    this.updateAppearance();
   }
   
   foldChildren() {
@@ -194,8 +190,9 @@ class Tray {
     if (checkbox) {
       checkbox.checked = this.isChecked;
     }
-    if (this.children.length === 0) {
+    if (!this.children ) {
       content.style.display = 'none';
+      
       if (this.isFolded) {
         foldButton.textContent = '▶';
       } else {
@@ -431,9 +428,8 @@ class Tray {
   }
 
   addNewChild() {
-    const newTray = new Tray(this.id, Date.now().toString(), 'New Tray');
+    const newTray = new Tray(this.id, Date.now().toString(), 'New Tray',);
     this.addChild(newTray);
-    this.element.querySelector('.tray-content').appendChild(newTray.element);
     this.isFolded = false;
     this.updateAppearance();
     newTray.element.focus();
@@ -471,7 +467,8 @@ class Tray {
     content.insertBefore(movingTray.element, content.firstChild);
 
     movingTray.element.style.display = 'block';
-
+    this.isFolded = false;
+    this.updateAppearance();
 
     saveToLocalStorage();
   }
@@ -483,59 +480,57 @@ class Tray {
   }
 
   onDoubleClick(event) {
+    event.stopPropagation()
     if (this.isSplit) return;
-
-    const content = this.element.querySelector('.tray-content');
-    
-    if (event.target === content || event.target === this.element.querySelector('.tray-title-container')) {
+    // if (event.target === content || event.target === this.element.querySelector('.tray-title-container')) {
       const newTray = new Tray(this.id, Date.now().toString(), 'New Tray');
       this.addChild(newTray);
       this.isFolded = false;
-      this.updateAppearance();
       content.appendChild(newTray.element);
       
       newTray.element.focus();
       const newTitleElement = newTray.element.querySelector('.tray-title');
       newTray.startTitleEdit(newTitleElement);
-    }
+    // }
+
   }
 
   addChild(childTray) {
     this.children.push(childTray);
     childTray.parent = this;
     childTray.parentId = this.id;
-    this.updateAppearance();
+    this.element.querySelector('.tray-content').appendChild(childTray.element)
   }
-
   onContextMenu(event) {
     event.preventDefault();
     event.stopPropagation();
-
+  
     const menu = document.createElement('div');
     menu.classList.add('context-menu');
     menu.innerHTML = `
-    <div class="menu-item" data-action="copy">Copy</div>
-    <div class="menu-item" data-action="rename">Rename</div>
-    <div class="menu-item" data-action="cut">Cut</div>
-    <div class="menu-item" data-action="paste">Paste</div>
-    <div class="menu-item" data-action="label">Add Label</div>
-    <div class="menu-item" data-action="delete">Delete</div>
-    <div class="menu-item" data-action="toggleFlexDirection">Toggle Flex Direction</div>
-    <div class="menu-item color-picker">
-      Change Border Color
-      <div class="color-options">
-        ${Tray.colorPalette.map(color => `<div class="color-option" style="background-color: ${color};" data-color="${color}"></div>`).join('')}
+      <div class="menu-item" data-action="copy">Copy</div>
+      <div class="menu-item" data-action="rename">Rename</div>
+      <div class="menu-item" data-action="cut">Cut</div>
+      <div class="menu-item" data-action="paste">Paste</div>
+      <div class="menu-item" data-action="label">Add Label</div>
+      <div class="menu-item" data-action="delete">Delete</div>
+      <div class="menu-item" data-action="toggleFlexDirection">Toggle Flex Direction</div>
+      <div class="menu-item" data-action="convertToNetwork">Convert to NetworkTray</div>
+      <div class="menu-item color-picker">
+        Change Border Color
+        <div class="color-options">
+          ${Tray.colorPalette.map(color => `<div class="color-option" style="background-color: ${color};" data-color="${color}"></div>`).join('')}
+        </div>
       </div>
-    </div>
-  `;
-
+    `;
+  
     if (!this.isSplit) {
       menu.innerHTML += `<div class="menu-item" data-action="split">Split</div>`;
     }
     menu.style.top = `${event.clientY}px`;
     menu.style.left = `${event.clientX}px`;
     document.body.appendChild(menu);
-
+  
     const handleMenuClick = (e) => {
       const action = e.target.getAttribute('data-action');
       const color = e.target.getAttribute('data-color');
@@ -567,12 +562,21 @@ class Tray {
           }
           break;
         case 'toggleFlexDirection':
-            this.toggleFlexDirection();
-            break;
+          this.toggleFlexDirection();
+          break;
+        case 'convertToNetwork':
+          const url = prompt('Enter URL for NetworkTray:', 'http://192.168.0.13:8080');
+          const filename = prompt('Enter filename for NetworkTray:', `tray_${this.id}.json`);
+          if (url && filename) {
+            this.convertToNetworkTray(url, filename);
+          }
+          break;
       }
       menu.remove();
       document.removeEventListener('click', handleOutsideClick);
     };
+  
+
 
     const handleOutsideClick = (e) => {
       if (!menu.contains(e.target)) {
@@ -649,6 +653,7 @@ class Tray {
 
     this.moveFocusAfterDelete(parent, indexInParent);
 
+    historyManager.addAction(new RemoveTrayAction(parent, this));
     saveToLocalStorage();
   }
 
@@ -711,5 +716,217 @@ class Tray {
     }
 
     this.element.classList.add('no-new-tray');
+  }
+  convertToNetworkTray(url = '', filename = '') {
+    const networkTray = new NetworkTray(
+      this.parentId,
+      this.id,
+      this.name,
+      this.children,
+      this.borderColor,
+      this.labels,
+      this.isChecked,
+      url,
+      filename
+    );
+
+    networkTray.isSplit = this.isSplit;
+    networkTray.isFolded = this.isFolded;
+    networkTray.flexDirection = this.flexDirection;
+
+    // Replace the DOM element
+    this.element.parentNode.replaceChild(networkTray.element, this.element);
+    return networkTray;
+  }
+
+  serialize() {
+    console.log(this.children);
+    return {
+      id: this.id,
+      name: this.name,
+      labels: this.labels,
+      isSplit: this.isSplit,
+      children: this.children.length ? this.children.map(child => child.serialize()) : [],
+      parentId: this.parentId,
+      borderColor: this.borderColor,
+      isChecked: this.isChecked , // Add this line,
+      flexDirection: this.flexDirection,
+  
+    };
+  }
+
+}
+function deserialize(data) {
+  let tray;
+  if (data.host_url == null) {
+    tray = new Tray(
+      data.parentId, 
+      data.id, 
+      data.name, 
+      [],
+      data.borderColor, 
+      data.labels, 
+      data.isChecked
+    );
+  } else {
+    tray = new NetworkTray(
+      data.parentId, 
+      data.id, 
+      data.name, 
+      [],
+      data.borderColor, 
+      data.labels, 
+      data.isChecked,
+      data.host_url,
+      data.filename
+    );
+  }
+  let children = data.children.length ? data.children.map(d => deserialize(d)) : []; 
+  console.log(children)
+  children.forEach(childTray => {
+    tray.addChild(childTray)    
+  });
+  tray.isSplit = data.isSplit;
+  tray.flexDirection = data.flexDirection || 'column';
+  tray.updateFlexDirection();
+
+  if (tray.isSplit) {
+    tray.element.classList.add('split');
+    tray.updateSplitDirection();
+  }
+
+
+
+  return tray;
+}
+
+
+
+
+
+class NetworkTray extends Tray {
+  constructor(parentId, id, name,children =[], color = null, labels = [], isChecked = false, url = '', filename = '') {
+    super(parentId=parentId, id = id, name = name,children =children,color= color,labels= labels, isChecked = isChecked);
+    this.host_url = url || 'http://127.0.0.1:8080';
+    this.filename = filename || `tray_${this.id}.json`;
+  }
+
+  uploadData() {
+    const data = this.serialize();
+    
+    return fetch(`${this.host_url}/tray/save`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'filename': this.filename
+      },
+      body: JSON.stringify({ data: data }),
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.text();
+    })
+    .then(result => {
+      console.log(result);
+      notifyUser('データのアップロードに成功しました。');
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      notifyUser('データのアップロードに失敗しました。');
+      throw error;
+    });
+  }
+
+  downloadData() {
+    return fetch(`${this.host_url}/tray/load`, {
+      method: 'GET',
+      headers: {
+        'filename': this.filename
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      this.deserialize(data);
+      notifyUser('データのダウンロードに成功しました。');
+      return this;
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      notifyUser('データのダウンロードに失敗しました。');
+      throw error;
+    });
+  }
+
+  serialize() {
+    return {
+      ...super.serialize(),
+      host_url: this.host_url,
+      filename: this.filename
+    };
+  }
+
+  deserialize(data) {
+    let tray = deserialize(data);
+    
+    if (tray.host_url){tray.updateNetworkInfo();}
+    return tray
+  }
+
+  createElement() {
+    const element = super.createElement();
+    
+    const networkInfoElement = document.createElement('div');
+    networkInfoElement.classList.add('network-tray-info');
+    this.updateNetworkInfo(networkInfoElement);
+    
+    const uploadButton = document.createElement('button');
+    uploadButton.textContent = 'Upload';
+    uploadButton.addEventListener('click', () => this.uploadData());
+    
+    const downloadButton = document.createElement('button');
+    downloadButton.textContent = 'Download';
+    downloadButton.addEventListener('click', () => this.downloadData());
+    
+    element.querySelector('.tray-title-container').appendChild(networkInfoElement);
+    element.querySelector('.tray-title-container').appendChild(uploadButton);
+    element.querySelector('.tray-title-container').appendChild(downloadButton);
+    
+    return element;
+  }
+
+  onContextMenu(event) {
+    super.onContextMenu(event);
+    const menu = document.querySelector('.context-menu');
+    
+    const networkOptions = document.createElement('div');
+    networkOptions.classList.add('menu-item');
+    networkOptions.textContent = 'Network Options';
+    networkOptions.addEventListener('click', () => this.showNetworkOptions());
+    
+    menu.appendChild(networkOptions);
+  }
+
+  showNetworkOptions() {
+    const url = prompt('Enter URL:', this.host_url);
+    const filename = prompt('Enter filename:', this.filename);
+    
+    if (url) this.host_url = url;
+    if (filename) this.filename = filename;
+    
+    this.updateNetworkInfo();
+    saveToLocalStorage();
+  }
+
+  updateNetworkInfo(element = this.element.querySelector('.network-tray-info')) {
+    if (element) {
+      element.textContent = `URL: ${this.host_url}, Filename: ${this.filename}`;
+    }
   }
 }

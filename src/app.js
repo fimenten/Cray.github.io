@@ -156,3 +156,55 @@ function importData() {
     }
     input.click();
 }
+
+function uploadData(data,filename) {
+  // const data = localStorage.getItem('trayData');
+  // const filename = input()
+
+  fetch('http://host.com:8080/tray/save', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'filename': filename
+      },
+      body: JSON.stringify({ data: JSON.parse(data) })
+  })
+  .then(response => {
+      if (!response.ok) {
+          throw new Error('Network response was not ok');
+      }
+      return response.text();
+  })
+  .then(result => {
+      console.log(result);
+      notifyUser('データのアップロードに成功しました。');
+  })
+  .catch(error => {
+      console.error('Error:', error);
+      notifyUser('データのアップロードに失敗しました。');
+  });
+}
+
+function downloadData(filename) {
+
+  fetch('http://host.com:8080/tray/load', {
+      method: 'GET',
+      headers: {
+          'filename': filename
+      }
+  })
+  .then(response => {
+      if (!response.ok) {
+          throw new Error('Network response was not ok');
+      }
+      return response.json();
+  })
+  .then(data => {
+    // notifyUser('データのダウンロードに成功しました。');
+    return Deseria
+  })
+  .catch(error => {
+      console.error('Error:', error);
+      notifyUser('データのダウンロードに失敗しました。');
+  });
+}
