@@ -636,7 +636,6 @@ class Tray {
 
     this.moveFocusAfterDelete(parent, indexInParent);
 
-    historyManager.addAction(new RemoveTrayAction(parent, this));
     saveToLocalStorage();
   }
 
