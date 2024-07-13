@@ -13,7 +13,8 @@ class Tray {
     '#BB8FCE', // Light Purple
     '#82E0AA', // Light Green
     '#F8C471', // Light Orange
-    '#85C1E9'  // Sky Blue
+    '#85C1E9',  // Sky Blue
+    "#e0e0e0", // Tray color
   ];
 
   constructor(parentId, id, name,children = [], color = null, labels = [], isChecked = false) {
@@ -24,15 +25,10 @@ class Tray {
     this.isSplit = false;
     this.isFolded = true;
     this.isChecked = isChecked;
-    this.borderColor = color || Tray.colorPalette[0];
+    this.borderColor = color || Tray.colorPalette[-1];
     this.element = this.createElement();
     this.flexDirection = 'column'; // Add this line
     this.isEditing = false; // 新しいプロパティを追加
-    this.children = [];
-    children.forEach(child => {
-      this.addChild(child)
-    });
-
 
     this.updateAppearance();
     this.updateBorderColor();
@@ -169,6 +165,8 @@ class Tray {
     titleElement.addEventListener('dblclick', (event) => {
       event.stopPropagation();
       this.startTitleEdit(titleElement);
+      saveToLocalStorage();
+
     });
   }
 
@@ -180,13 +178,14 @@ class Tray {
   }
   
   foldChildren() {
+    if (this.isFolded) {
     this.children.forEach(child => {
       child.isFolded = true;
       child.updateAppearance();
       child.foldChildren(true);
     });
   }
-
+  }
   updateAppearance() {
     const content = this.element.querySelector('.tray-content');
     const foldButton = this.element.querySelector('.tray-fold-button');
@@ -239,6 +238,20 @@ class Tray {
     titleElement.addEventListener('blur', blurHandler);
   }
 
+
+  finishTitleEdit(titleElement) {
+    this.isEditing = false;
+    titleElement.setAttribute('contenteditable', 'false');
+    this.name = titleElement.textContent.trim() || 'Untitled';
+    titleElement.textContent = this.name;
+    saveToLocalStorage();
+  }
+
+  cancelTitleEdit(titleElement) {
+    this.isEditing = false;
+    titleElement.setAttribute('contenteditable', 'false');
+    titleElement.textContent = this.name;
+  }
   onContextMenuButtonClick(event) {
     event.preventDefault();
     event.stopPropagation();
@@ -255,6 +268,7 @@ class Tray {
     titleElement.textContent = this.name;
     titleElement.removeEventListener('keydown', this.keyDownHandler);
     titleElement.removeEventListener('blur', this.blurHandler);
+    this.isEditing = false
     saveToLocalStorage();
   }
 
@@ -284,6 +298,7 @@ class Tray {
           if (!event.shiftKey) {
             event.preventDefault();
             this.finishTitleEdit(event.target);
+
           }
           break;
         case 'Escape':
@@ -314,9 +329,13 @@ class Tray {
         event.preventDefault();
         if (event.ctrlKey) {
           this.addNewChild();
-        } else {
+        } else if (event.shiftKey) {
           this.toggleEditMode();
-        }
+        } else 
+          {event.preventDefault();
+            this.isFolded = false;
+            this.updateAppearance();
+          }
         break;
       case 'Delete':
         event.preventDefault();
@@ -356,8 +375,9 @@ class Tray {
         break;
       case ' ':
         event.preventDefault();
-        getTrayFromId("root").element.focus();
+        this.onContextMenu(event);
         break;
+
     }
   }
 
@@ -381,31 +401,7 @@ class Tray {
       nextTray.element.focus();
     }
   }
-  startTitleEdit(titleElement) {
-    this.isEditing = true;
-    titleElement.setAttribute('contenteditable', 'true');
-    titleElement.focus();
 
-    const range = document.createRange();
-    range.selectNodeContents(titleElement);
-    const selection = window.getSelection();
-    selection.removeAllRanges();
-    selection.addRange(range);
-  }
-
-  finishTitleEdit(titleElement) {
-    this.isEditing = false;
-    titleElement.setAttribute('contenteditable', 'false');
-    this.name = titleElement.textContent.trim() || 'Untitled';
-    titleElement.textContent = this.name;
-    saveToLocalStorage();
-  }
-
-  cancelTitleEdit(titleElement) {
-    this.isEditing = false;
-    titleElement.setAttribute('contenteditable', 'false');
-    titleElement.textContent = this.name;
-  }
   getPreviousSibling() {
     if (this.parentId) {
       const parent = getTrayFromId(this.parentId);
@@ -431,12 +427,15 @@ class Tray {
     } else {
       this.startTitleEdit(titleElement);
     }
+    
   }
 
   addNewChild() {
     const newTray = new Tray(this.id, Date.now().toString(), 'New Tray',);
     this.addChild(newTray);
     this.element.querySelector('.tray-content').appendChild(newTray.element);
+    this.isFolded = false;
+    this.updateAppearance();
     newTray.element.focus();
     const newTitleElement = newTray.element.querySelector('.tray-title');
     newTray.startTitleEdit(newTitleElement);
@@ -454,6 +453,11 @@ class Tray {
   }
   onDrop(event) {
     event.preventDefault();
+    if (this.isFolded){
+      this.toggleFold(event)
+    }
+    this.updateAppearance();
+    
     event.stopPropagation();
 
     const movingId = event.dataTransfer.getData('text/plain');
@@ -467,7 +471,7 @@ class Tray {
     content.insertBefore(movingTray.element, content.firstChild);
 
     movingTray.element.style.display = 'block';
-    // this.isFolded = false;
+    this.isFolded = false;
     this.updateAppearance();
 
     saveToLocalStorage();
@@ -485,8 +489,8 @@ class Tray {
     // if (event.target === content || event.target === this.element.querySelector('.tray-title-container')) {
       const newTray = new Tray(this.id, Date.now().toString(), 'New Tray');
       this.addChild(newTray);
-      // if (this.isFolded){this.toggleFold.bind(this);}
-      // this.updateAppearance();
+      this.isFolded = false;
+      content.appendChild(newTray.element);
       
       newTray.element.focus();
       const newTitleElement = newTray.element.querySelector('.tray-title');
@@ -635,7 +639,7 @@ class Tray {
       const labelElement = document.createElement('span');
       labelElement.classList.add('tray-label');
       labelElement.textContent = label;
-      this.element.appendChild(labelElement);
+      this.element.titleContainer.appendChild(labelElement);
     }
   }
 
@@ -653,7 +657,7 @@ class Tray {
 
     this.moveFocusAfterDelete(parent, indexInParent);
 
-    // historyManager.addAction(new RemoveTrayAction(parent, this));
+    historyManager.addAction(new RemoveTrayAction(parent, this));
     saveToLocalStorage();
   }
 
