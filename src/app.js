@@ -3,7 +3,7 @@ window.addEventListener('DOMContentLoaded', () => {
     createHamburgerMenu();
     updateAllTrayDirections();
     window.addEventListener('resize', updateAllTrayDirections);
-    getTrayFromId("root").element.focus();
+    getTrayFromId("0").element.focus();
 
 });
 
@@ -82,7 +82,9 @@ function createHamburgerMenu() {
         importData();
         break;
     }
+    saveCurrentState()
     menu.style.display = 'none';
+    createHamburgerMenu()
   });
 
   // ホバー効果の追加
@@ -155,6 +157,7 @@ function importData() {
         reader.readAsText(file,'UTF-8');
     }
     input.click();
+
 }
 
 function uploadData(data,filename) {
