@@ -330,8 +330,7 @@ class Tray {
           this.toggleEditMode();
         } else 
           {event.preventDefault();
-            this.isFolded = false;
-            this.updateAppearance();
+            this.toggleFold(event);
           }
         break;
       case 'Delete':
@@ -486,8 +485,7 @@ class Tray {
       const newTray = new Tray(this.id, Date.now().toString(), 'New Tray');
       this.addChild(newTray);
       this.isFolded = false;
-      content.appendChild(newTray.element);
-      
+      this.updateAppearance()      
       newTray.element.focus();
       const newTitleElement = newTray.element.querySelector('.tray-title');
       newTray.startTitleEdit(newTitleElement);

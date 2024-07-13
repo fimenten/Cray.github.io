@@ -113,6 +113,14 @@ function deserializeDOM(data) {
     }
     let children = data.children.length ? data.children.map(d => deserialize(d)) : []; 
     console.log(children)
+
+    children.forEach(childTray => {
+      tray.addChild(childTray)
+
+    });
+    tray.foldChildren()
+    tray.updateAppearance()
+
     tray.isSplit = data.isSplit;
     tray.flexDirection = data.flexDirection || 'column';
     tray.updateFlexDirection();
@@ -122,6 +130,7 @@ function deserializeDOM(data) {
       tray.updateSplitDirection();
     }
   
+    tray.fold
   
   
     return tray;
