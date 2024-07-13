@@ -93,7 +93,7 @@ function deserializeDOM(data) {
         data.parentId, 
         data.id, 
         data.name, 
-        children,
+        [],
         data.borderColor, 
         data.labels, 
         data.isChecked
@@ -103,7 +103,7 @@ function deserializeDOM(data) {
         data.parentId, 
         data.id, 
         data.name, 
-        children,
+        [],
         data.borderColor, 
         data.labels, 
         data.isChecked,
