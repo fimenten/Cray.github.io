@@ -166,6 +166,8 @@ class Tray {
     titleElement.addEventListener('dblclick', (event) => {
       event.stopPropagation();
       this.startTitleEdit(titleElement);
+      saveToLocalStorage();
+
     });
   }
 
@@ -235,6 +237,20 @@ class Tray {
     titleElement.addEventListener('blur', blurHandler);
   }
 
+
+  finishTitleEdit(titleElement) {
+    this.isEditing = false;
+    titleElement.setAttribute('contenteditable', 'false');
+    this.name = titleElement.textContent.trim() || 'Untitled';
+    titleElement.textContent = this.name;
+    saveToLocalStorage();
+  }
+
+  cancelTitleEdit(titleElement) {
+    this.isEditing = false;
+    titleElement.setAttribute('contenteditable', 'false');
+    titleElement.textContent = this.name;
+  }
   onContextMenuButtonClick(event) {
     event.preventDefault();
     event.stopPropagation();
@@ -377,31 +393,7 @@ class Tray {
       nextTray.element.focus();
     }
   }
-  startTitleEdit(titleElement) {
-    this.isEditing = true;
-    titleElement.setAttribute('contenteditable', 'true');
-    titleElement.focus();
 
-    const range = document.createRange();
-    range.selectNodeContents(titleElement);
-    const selection = window.getSelection();
-    selection.removeAllRanges();
-    selection.addRange(range);
-  }
-
-  finishTitleEdit(titleElement) {
-    this.isEditing = false;
-    titleElement.setAttribute('contenteditable', 'false');
-    this.name = titleElement.textContent.trim() || 'Untitled';
-    titleElement.textContent = this.name;
-    saveToLocalStorage();
-  }
-
-  cancelTitleEdit(titleElement) {
-    this.isEditing = false;
-    titleElement.setAttribute('contenteditable', 'false');
-    titleElement.textContent = this.name;
-  }
   getPreviousSibling() {
     if (this.parentId) {
       const parent = getTrayFromId(this.parentId);
@@ -427,6 +419,7 @@ class Tray {
     } else {
       this.startTitleEdit(titleElement);
     }
+    
   }
 
   addNewChild() {
