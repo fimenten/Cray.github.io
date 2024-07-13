@@ -87,8 +87,7 @@ function loadFromLocalStorage() {
 
 function deserializeDOM(data) {
     let tray;
-    let children = data.children.length ? data.children.map(d => deserialize(d)) : []; 
-    console.log(children)
+
     if (data.host_url == null) {
       tray = new Tray(
         data.parentId, 
@@ -112,7 +111,8 @@ function deserializeDOM(data) {
         data.filename
       );
     }
-  
+    let children = data.children.length ? data.children.map(d => deserialize(d)) : []; 
+    console.log(children)
     tray.isSplit = data.isSplit;
     tray.flexDirection = data.flexDirection || 'column';
     tray.updateFlexDirection();

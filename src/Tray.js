@@ -20,6 +20,7 @@ class Tray {
   constructor(parentId, id, name,children = [], color = null, labels = [], isChecked = false) {
     this.id = id;
     this.name = name;
+    this.children = []
     this.labels = labels;
     this.parentId = parentId;
     this.isSplit = false;
@@ -27,9 +28,8 @@ class Tray {
     this.isChecked = isChecked;
     this.borderColor = color || Tray.colorPalette[-1];
     this.element = this.createElement();
-    this.flexDirection = 'column'; // Add this line
-    this.isEditing = false; // 新しいプロパティを追加
-
+    this.flexDirection = 'column'; 
+    this.isEditing = false; 
     this.updateAppearance();
     this.updateBorderColor();
   }
@@ -123,7 +123,7 @@ class Tray {
   updateChildrenAppearance() {
     this.children.forEach(child => {
       if (this.flexDirection === 'row') {
-        child.element.style.width = '200px'; // Or any appropriate width
+        child.element.style.width = '50%'; // Or any appropriate width
       } else {
         child.element.style.width = '100%';
       }
@@ -141,9 +141,6 @@ class Tray {
 
   updateBorderColor() {
     const titleContainer = this.element.querySelector('.tray-title-container');
-    // if (titleContainer) {
-    //   titleContainer.style.borderBottom = `3px solid ${this.borderColor}`;
-    // }
     const content = this.element.querySelector(".tray");
     if (content) {
       content.style.borderLeftColor = `3px solid ${this.borderColor}`;
@@ -433,7 +430,6 @@ class Tray {
   addNewChild() {
     const newTray = new Tray(this.id, Date.now().toString(), 'New Tray',);
     this.addChild(newTray);
-    this.element.querySelector('.tray-content').appendChild(newTray.element);
     this.isFolded = false;
     this.updateAppearance();
     newTray.element.focus();
@@ -762,14 +758,12 @@ class Tray {
 }
 function deserialize(data) {
   let tray;
-  let children = data.children.length ? data.children.map(d => deserialize(d)) : []; 
-  console.log(children)
   if (data.host_url == null) {
     tray = new Tray(
       data.parentId, 
       data.id, 
       data.name, 
-      children,
+      [],
       data.borderColor, 
       data.labels, 
       data.isChecked
@@ -779,7 +773,7 @@ function deserialize(data) {
       data.parentId, 
       data.id, 
       data.name, 
-      children,
+      [],
       data.borderColor, 
       data.labels, 
       data.isChecked,
@@ -787,7 +781,11 @@ function deserialize(data) {
       data.filename
     );
   }
-
+  let children = data.children.length ? data.children.map(d => deserialize(d)) : []; 
+  console.log(children)
+  children.forEach(childTray => {
+    tray.addChild(childTray)    
+  });
   tray.isSplit = data.isSplit;
   tray.flexDirection = data.flexDirection || 'column';
   tray.updateFlexDirection();
@@ -808,9 +806,8 @@ function deserialize(data) {
 
 class NetworkTray extends Tray {
   constructor(parentId, id, name,children =[], color = null, labels = [], isChecked = false, url = '', filename = '') {
-    super(parentId, id, name,children, color, labels, isChecked);
-
-    this.host_url = url || 'http://localhost:8080';
+    super(parentId=parentId, id = id, name = name,children =children,color= color,labels= labels, isChecked = isChecked);
+    this.host_url = url || 'http://127.0.0.1:8080';
     this.filename = filename || `tray_${this.id}.json`;
   }
 
