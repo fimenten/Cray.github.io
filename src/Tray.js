@@ -567,11 +567,7 @@ class Tray {
           this.toggleFlexDirection();
           break;
         case 'convertToNetwork':
-          const url = prompt('Enter URL for NetworkTray:', 'http://192.168.0.13:8080');
-          const filename = prompt('Enter filename for NetworkTray:', `tray_${this.id}.json`);
-          if (url && filename) {
-            this.convertToNetworkTray(url, filename);
-          }
+          this.convertToNetworkTray();
           break;
         case 'add_fetch_networkTray_to_child':
           this.add_fetch_networkTray_to_child();
@@ -732,7 +728,6 @@ class Tray {
       url,
       filename
     );
-
     this.children.forEach(childTray => {
       networkTray.addChild(childTray)      
     });
@@ -741,14 +736,20 @@ class Tray {
     networkTray.isFolded = this.isFolded;
     networkTray.flexDirection = this.flexDirection;
 
-    networkTray.updateAppearance();
-    networkTray.updateChildrenAppearance();
 
+    if (this.id=="0"){
+      document.body.innerHTML = '';
+      document.body.appendChild(networkTray.element);
+    }else{
     let parent = getTrayFromId(this.parentId)
     parent.addChild(networkTray)
     parent.removeChild(this)
     parent.updateAppearance()
     }
+    networkTray.updateAppearance();
+    networkTray.updateChildrenAppearance();
+
+  }
   add_fetch_networkTray_to_child() {
 
     let tmp = new NetworkTray(
@@ -842,8 +843,7 @@ function deserialize(data) {
 class NetworkTray extends Tray {
   constructor(parentId, id, name,children =[], color = null, labels = [], isChecked = false, url = '', filename = '') {
     super(parentId=parentId, id = id, name = name,children =children,color= color,labels= labels, isChecked = isChecked);
-    this.host_url = url || 'http://127.0.0.1:8080';
-    this.filename = filename || `tray_${this.id}.json`;
+    this.showNetworkOptions();
     this.updateNetworkInfo();
   }
 
@@ -955,7 +955,7 @@ class NetworkTray extends Tray {
   }
 
   showNetworkOptions() {
-    const url = prompt('Enter URL:', this.host_url);
+    const url = prompt('Enter URL:', "http://192.168.0.13:8080");
     const filename = prompt('Enter filename:', "default");
     
     if (url) this.host_url = url;
