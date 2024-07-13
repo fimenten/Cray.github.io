@@ -1,6 +1,15 @@
-const ROOT_TRAY_SELECTOR = '.tray[data-tray-id="root"]';
+const ROOT_TRAY_SELECTOR = '.tray[data-tray-id="0"]';
 const TRAY_DATA_KEY = 'trayData';
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0,
+        v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
 
+// Usage
+console.log(generateUUID());
 function getRootElement() {
   return document.querySelector(ROOT_TRAY_SELECTOR);
 }
@@ -49,18 +58,7 @@ function saveToLocalStorage() {
 }
 
 function serializeDOM(tray) {
-  return {
-    id: tray.id,
-    name: tray.name,
-    labels: tray.labels,
-    isSplit: tray.isSplit,
-    children: tray.children.map(serializeDOM),
-    parentId: tray.parentId,
-    borderColor: tray.borderColor,
-    isChecked: tray.isChecked , // Add this line,
-    flexDirection: tray.flexDirection,
-
-  };
+  return tray.serialize()
 }
 
 function loadFromLocalStorage() {
@@ -116,6 +114,14 @@ function deserializeDOM(data) {
       tray.addChild(childTray)
     });
     console.log(children)
+
+    children.forEach(childTray => {
+      tray.addChild(childTray)
+
+    });
+    tray.foldChildren()
+    tray.updateAppearance()
+
     tray.isSplit = data.isSplit;
     tray.flexDirection = data.flexDirection || 'column';
     tray.updateFlexDirection();
@@ -132,12 +138,12 @@ function deserializeDOM(data) {
 }
 
 function createDefaultRootTray() {
-  const rootTray = new Tray("0", 'root', 'Root Tray');
+  const rootTray = new Tray("0", '0', 'Root Tray');
   const content = rootTray.element.querySelector('.tray-content');
 
-  const tray1 = new Tray(rootTray.id, 'tray1', 'ToDo');
-  const tray2 = new Tray(rootTray.id, 'tray2', 'Doing');
-  const tray3 = new Tray(rootTray.id, 'tray3', 'Done');
+  const tray1 = new Tray(rootTray.id, generateUUID(), 'ToDo');
+  const tray2 = new Tray(rootTray.id, generateUUID(), 'Doing');
+  const tray3 = new Tray(rootTray.id, generateUUID(), 'Done');
 
   rootTray.addChild(tray1);
   rootTray.addChild(tray2);

@@ -211,6 +211,7 @@ class Tray {
   }
 
   startTitleEdit(titleElement) {
+    this.isEditing = true;
     titleElement.setAttribute('contenteditable', 'true');
     titleElement.focus();
 
@@ -241,6 +242,7 @@ class Tray {
     titleElement.setAttribute('contenteditable', 'false');
     this.name = titleElement.textContent.trim() || 'Untitled';
     titleElement.textContent = this.name;
+    this.element.focus();
     saveToLocalStorage();
   }
 
@@ -295,7 +297,6 @@ class Tray {
           if (!event.shiftKey) {
             event.preventDefault();
             this.finishTitleEdit(event.target);
-
           }
           break;
         case 'Escape':
@@ -330,8 +331,7 @@ class Tray {
           this.toggleEditMode();
         } else 
           {event.preventDefault();
-            this.isFolded = false;
-            this.updateAppearance();
+            this.toggleFold(event);
           }
         break;
       case 'Delete':
@@ -371,14 +371,16 @@ class Tray {
         }
         break;
       case ' ':
+        if (event.ctrlKey){
         event.preventDefault();
         this.onContextMenu(event);
-        break;
+        }break;
 
     }
   }
 
   moveFocus(direction) {
+    if (this.isEditing){return}
     let nextTray;
     switch (direction) {
       case 'up':
@@ -486,8 +488,7 @@ class Tray {
       const newTray = new Tray(this.id, Date.now().toString(), 'New Tray');
       this.addChild(newTray);
       this.isFolded = false;
-      content.appendChild(newTray.element);
-      
+      this.updateAppearance()      
       newTray.element.focus();
       const newTitleElement = newTray.element.querySelector('.tray-title');
       newTray.startTitleEdit(newTitleElement);
@@ -516,6 +517,7 @@ class Tray {
       <div class="menu-item" data-action="delete">Delete</div>
       <div class="menu-item" data-action="toggleFlexDirection">Toggle Flex Direction</div>
       <div class="menu-item" data-action="convertToNetwork">Convert to NetworkTray</div>
+      <div class="menu-item" data-action="add_fetch_networkTray_to_child">add_fetch_networkTray_to_child </div>
       <div class="menu-item color-picker">
         Change Border Color
         <div class="color-options">
@@ -571,6 +573,8 @@ class Tray {
             this.convertToNetworkTray(url, filename);
           }
           break;
+        case 'add_fetch_networkTray_to_child':
+          this.add_fetch_networkTray_to_child();
       }
       menu.remove();
       document.removeEventListener('click', handleOutsideClick);
@@ -606,7 +610,7 @@ class Tray {
   }
 
   cutTray() {
-    if (this.id === 'root') {
+    if (this.id === '0') {
       alert('Cannot cut root tray');
       return;
     }
@@ -640,7 +644,7 @@ class Tray {
   }
 
   deleteTray() {
-    if (this.id === 'root') {
+    if (this.id === '0') {
       alert('Cannot delete root tray');
       return;
     }
@@ -653,7 +657,6 @@ class Tray {
 
     this.moveFocusAfterDelete(parent, indexInParent);
 
-    historyManager.addAction(new RemoveTrayAction(parent, this));
     saveToLocalStorage();
   }
 
@@ -705,8 +708,8 @@ class Tray {
 
     this.addChild(newTray1);
     this.addChild(newTray2);
-    content.appendChild(newTray1.element);
-    content.appendChild(newTray2.element);
+    // content.appendChild(newTray1.element);
+    // content.appendChild(newTray2.element);
 
     if (existingChildTrays.length > 0) {
       existingChildTrays.forEach(childTray => {
@@ -722,7 +725,7 @@ class Tray {
       this.parentId,
       this.id,
       this.name,
-      this.children,
+      [],
       this.borderColor,
       this.labels,
       this.isChecked,
@@ -730,13 +733,45 @@ class Tray {
       filename
     );
 
+    this.children.forEach(childTray => {
+      networkTray.addChild(childTray)      
+    });
+
     networkTray.isSplit = this.isSplit;
     networkTray.isFolded = this.isFolded;
     networkTray.flexDirection = this.flexDirection;
 
-    // Replace the DOM element
-    this.element.parentNode.replaceChild(networkTray.element, this.element);
-    return networkTray;
+    networkTray.updateAppearance();
+    networkTray.updateChildrenAppearance();
+
+    let parent = getTrayFromId(this.parentId)
+    parent.addChild(networkTray)
+    parent.removeChild(this)
+    parent.updateAppearance()
+    }
+  add_fetch_networkTray_to_child() {
+
+    let tmp = new NetworkTray(
+      this.id,
+      generateUUID(),
+      "Existing networkTray",
+      [],
+      null,
+      "",
+      ""
+    );
+    tmp.showNetworkOptions();
+    tmp.downloadData().then( tray =>{
+      this.addChild(tray);
+      tray.updateAppearance();
+      tray.updateChildrenAppearance();
+
+    }
+
+    )
+
+
+
   }
 
   serialize() {
@@ -809,6 +844,7 @@ class NetworkTray extends Tray {
     super(parentId=parentId, id = id, name = name,children =children,color= color,labels= labels, isChecked = isChecked);
     this.host_url = url || 'http://127.0.0.1:8080';
     this.filename = filename || `tray_${this.id}.json`;
+    this.updateNetworkInfo();
   }
 
   uploadData() {
@@ -853,9 +889,14 @@ class NetworkTray extends Tray {
       return response.json();
     })
     .then(data => {
-      this.deserialize(data);
+      let tray = this.deserialize(data);
+      // let parent = getTrayFromId(this.parentId);
+      // parent.addChild(tray);
+      // parent.updateAppearance()
+      // this.element = tray.element
       notifyUser('データのダウンロードに成功しました。');
-      return this;
+      return tray
+      ;
     })
     .catch(error => {
       console.error('Error:', error);
@@ -875,7 +916,7 @@ class NetworkTray extends Tray {
   deserialize(data) {
     let tray = deserialize(data);
     
-    if (tray.host_url){tray.updateNetworkInfo();}
+    // if (tray.host_url){tray.updateNetworkInfo();}
     return tray
   }
 
@@ -915,7 +956,7 @@ class NetworkTray extends Tray {
 
   showNetworkOptions() {
     const url = prompt('Enter URL:', this.host_url);
-    const filename = prompt('Enter filename:', this.filename);
+    const filename = prompt('Enter filename:', "default");
     
     if (url) this.host_url = url;
     if (filename) this.filename = filename;
