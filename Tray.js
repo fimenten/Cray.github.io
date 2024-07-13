@@ -179,13 +179,14 @@ class Tray {
   }
   
   foldChildren() {
+    if (this.isFolded) {
     this.children.forEach(child => {
       child.isFolded = true;
       child.updateAppearance();
       child.foldChildren(true);
     });
   }
-
+  }
   updateAppearance() {
     const content = this.element.querySelector('.tray-content');
     const foldButton = this.element.querySelector('.tray-fold-button');
@@ -328,9 +329,13 @@ class Tray {
         event.preventDefault();
         if (event.ctrlKey) {
           this.addNewChild();
-        } else {
+        } else if (event.shiftKey) {
           this.toggleEditMode();
-        }
+        } else 
+          {event.preventDefault();
+            this.isFolded = false;
+            this.updateAppearance();
+          }
         break;
       case 'Delete':
         event.preventDefault();
@@ -372,6 +377,7 @@ class Tray {
         event.preventDefault();
         this.onContextMenu(event);
         break;
+
     }
   }
 
@@ -428,6 +434,8 @@ class Tray {
     const newTray = new Tray(this.id, Date.now().toString(), 'New Tray');
     this.addChild(newTray);
     this.element.querySelector('.tray-content').appendChild(newTray.element);
+    this.isFolded = false;
+    this.updateAppearance();
     newTray.element.focus();
     const newTitleElement = newTray.element.querySelector('.tray-title');
     newTray.startTitleEdit(newTitleElement);
@@ -445,6 +453,11 @@ class Tray {
   }
   onDrop(event) {
     event.preventDefault();
+    if (this.isFolded){
+      this.toggleFold(event)
+    }
+    this.updateAppearance();
+    
     event.stopPropagation();
 
     const movingId = event.dataTransfer.getData('text/plain');
@@ -458,8 +471,7 @@ class Tray {
     content.insertBefore(movingTray.element, content.firstChild);
 
     movingTray.element.style.display = 'block';
-    this.isFolded = false;
-    this.updateAppearance();
+
 
     saveToLocalStorage();
   }
@@ -479,6 +491,7 @@ class Tray {
       const newTray = new Tray(this.id, Date.now().toString(), 'New Tray');
       this.addChild(newTray);
       this.isFolded = false;
+      this.updateAppearance();
       content.appendChild(newTray.element);
       
       newTray.element.focus();
