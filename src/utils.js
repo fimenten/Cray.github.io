@@ -112,6 +112,9 @@ function deserializeDOM(data) {
       );
     }
     let children = data.children.length ? data.children.map(d => deserialize(d)) : []; 
+    children.forEach(childTray => {
+      tray.addChild(childTray)
+    });
     console.log(children)
     tray.isSplit = data.isSplit;
     tray.flexDirection = data.flexDirection || 'column';
@@ -121,7 +124,8 @@ function deserializeDOM(data) {
       tray.element.classList.add('split');
       tray.updateSplitDirection();
     }
-  
+    tray.foldChildren()  
+    tray.updateAppearance()
   
   
     return tray;
