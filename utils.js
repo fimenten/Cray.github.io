@@ -86,20 +86,45 @@ function loadFromLocalStorage() {
 }
 
 function deserializeDOM(data) {
-  const tray = new Tray(data.parentId, data.id, data.name, data.borderColor, data.labels, data.isChecked);
-  tray.isSplit = data.isSplit;
-  tray.flexDirection = data.flexDirection || 'column'; // Add this line
-  tray.updateFlexDirection(); 
-  if (tray.isSplit) {
-    tray.element.classList.add('split');
-    tray.updateSplitDirection();
-  }
-  data.children.forEach(childData => {
-    const childTray = deserializeDOM(childData);
-    tray.addChild(childTray);
-    tray.element.querySelector('.tray-content').appendChild(childTray.element);
-  });
-  return tray;
+    let tray;
+    let children = data.children.length ? data.children.map(d => deserialize(d)) : []; 
+    console.log(children)
+    if (data.host_url == null) {
+      tray = new Tray(
+        data.parentId, 
+        data.id, 
+        data.name, 
+        children,
+        data.borderColor, 
+        data.labels, 
+        data.isChecked
+      );
+    } else {
+      tray = new NetworkTray(
+        data.parentId, 
+        data.id, 
+        data.name, 
+        children,
+        data.borderColor, 
+        data.labels, 
+        data.isChecked,
+        data.host_url,
+        data.filename
+      );
+    }
+  
+    tray.isSplit = data.isSplit;
+    tray.flexDirection = data.flexDirection || 'column';
+    tray.updateFlexDirection();
+  
+    if (tray.isSplit) {
+      tray.element.classList.add('split');
+      tray.updateSplitDirection();
+    }
+  
+  
+  
+    return tray;
 }
 
 function createDefaultRootTray() {
@@ -114,9 +139,9 @@ function createDefaultRootTray() {
   rootTray.addChild(tray2);
   rootTray.addChild(tray3);
 
-  content.appendChild(tray1.element);
-  content.appendChild(tray2.element);
-  content.appendChild(tray3.element);
+  // content.appendChild(tray1.element);
+  // content.appendChild(tray2.element);
+  // content.appendChild(tray3.element);
 
   return rootTray;
 }
