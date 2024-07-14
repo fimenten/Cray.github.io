@@ -47,6 +47,8 @@ function createHamburgerMenu() {
     <div class="menu-item" data-action="load">保存した状態を読み込む</div>
     <div class="menu-item" data-action="export">データのエクスポート</div>
     <div class="menu-item" data-action="import">データのインポート</div>
+    <div class="menu-item" data-action="set_default_server">set_default_server</div>
+
   `;
   document.body.appendChild(menu);
 
@@ -82,6 +84,9 @@ function createHamburgerMenu() {
       case 'import':
         importData();
         break;
+      case "set_default_server":
+        set_default_server()
+        break;
     }
     menu.style.display = 'none';
   });
@@ -106,7 +111,11 @@ function resetAllTrays() {
     document.body.appendChild(rootTray.element);
     hamburgerElements = createHamburgerMenu();
 }
-
+function set_default_server(){
+  let url = localStorage.getItem("defaultServer");
+  url = prompt("set default URL",url)
+  localStorage.setItem("defaultServer",url)
+}
 function saveCurrentState() {
     const currentState = localStorage.getItem('trayData');
     localStorage.setItem('savedTrayState', currentState);

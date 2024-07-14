@@ -959,7 +959,13 @@ class NetworkTray extends Tray {
   }
 
   showNetworkOptions() {
-    const url = prompt('Enter URL:', this.host_url);
+    let d 
+    if (this.host_url){
+      d = this.host_url
+    }else{
+      d = localStorage.getItem("defaultServer")
+    }
+    const url = prompt('Enter URL:', d);
     const filename = prompt('Enter filename:', this.filename);
     
     if (url) this.host_url = url;
