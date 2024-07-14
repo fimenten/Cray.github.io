@@ -152,7 +152,13 @@ function importData() {
                 hamburgerElements = createHamburgerMenu();
                 updateAllTrayDirections();
                 window.addEventListener('resize', updateAllTrayDirections);
+                try{
                 getTrayFromId("0").element.focus();
+                }
+                catch{
+                getTrayFromId("root").element.focus();
+
+                }
                 notifyUser('データのインポートに成功しました。');
             } catch (error) {
                 console.error('Invalid JSON file:', error);
