@@ -761,7 +761,7 @@ class Tray {
       "",
       ""
     );
-    tmp.showNetworkOptions();
+    // tmp.showNetworkOptions();
     tmp.downloadData().then( tray =>{
       this.addChild(tray);
       tray.updateAppearance();
