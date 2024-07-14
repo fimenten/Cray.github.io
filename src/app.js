@@ -153,7 +153,6 @@ function importData() {
                 updateAllTrayDirections();
                 window.addEventListener('resize', updateAllTrayDirections);
                 getTrayFromId("0").element.focus();
-                saveToLocalStorage();
                 notifyUser('データのインポートに成功しました。');
             } catch (error) {
                 console.error('Invalid JSON file:', error);
