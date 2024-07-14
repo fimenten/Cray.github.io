@@ -213,7 +213,7 @@ class Tray {
   startTitleEdit(titleElement) {
     this.isEditing = true;
     titleElement.setAttribute('contenteditable', 'true');
-    titleElement.focus();
+    // titleElement.focus();
 
     const range = document.createRange();
     range.selectNodeContents(titleElement);
@@ -242,8 +242,8 @@ class Tray {
     titleElement.setAttribute('contenteditable', 'false');
     this.name = titleElement.textContent.trim() || 'Untitled';
     titleElement.textContent = this.name;
-    this.element.focus();
     saveToLocalStorage();
+    // titleElement.focus();
   }
 
   cancelTitleEdit(titleElement) {
@@ -306,6 +306,7 @@ class Tray {
       }
       return; // 他のキー操作は無視
     }
+    this.element.focus()
     switch (event.key) {
       case 'ArrowUp':
         event.preventDefault();
@@ -434,7 +435,7 @@ class Tray {
     this.addChild(newTray);
     this.isFolded = false;
     this.updateAppearance();
-    newTray.element.focus();
+    // newTray.element.focus();
     const newTitleElement = newTray.element.querySelector('.tray-title');
     newTray.startTitleEdit(newTitleElement);
   }
@@ -489,7 +490,7 @@ class Tray {
       this.addChild(newTray);
       this.isFolded = false;
       this.updateAppearance()      
-      newTray.element.focus();
+      // newTray.element.focus();
       const newTitleElement = newTray.element.querySelector('.tray-title');
       newTray.startTitleEdit(newTitleElement);
     // }
@@ -601,7 +602,7 @@ class Tray {
   renameTray() {
     const title = this.element.querySelector('.tray-title');
     title.setAttribute('contenteditable', 'true');
-    title.focus();
+    // title.focus();
     saveToLocalStorage();
   }
 
