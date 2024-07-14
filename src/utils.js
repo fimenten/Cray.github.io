@@ -1,4 +1,4 @@
-const ROOT_TRAY_SELECTOR = '.tray[data-tray-id="0"]';
+const ROOT_TRAY_SELECTOR = '[data-tray-id="0"]';
 const TRAY_DATA_KEY = 'trayData';
 function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -49,7 +49,7 @@ function saveToLocalStorage() {
     }
     const data = serializeDOM(rootElement.__trayInstance);
     const serializedData = JSON.stringify(data);
-    
+    console.log(serializedData)
     localStorage.setItem(TRAY_DATA_KEY, serializedData);
     console.log('Data saved successfully');
   } catch (error) {
@@ -61,9 +61,9 @@ function serializeDOM(tray) {
   return tray.serialize()
 }
 
-function loadFromLocalStorage() {
+function loadFromLocalStorage(key=TRAY_DATA_KEY) {
   try {
-    const savedData = localStorage.getItem(TRAY_DATA_KEY);
+    const savedData = localStorage.getItem(key);
     let rootTray;
     console.log(savedData);
     if (savedData) {

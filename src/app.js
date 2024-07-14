@@ -83,7 +83,6 @@ function createHamburgerMenu() {
         importData();
         break;
     }
-    saveCurrentState();
     menu.style.display = 'none';
   });
 
@@ -147,23 +146,23 @@ function importData() {
             try {
                 const content = readerEvent.target.result;
                 JSON.parse(content); // Validate JSON
-                localStorage.setItem('trayData', content);
-                loadFromLocalStorage()
-                hamburgerElements = createHamburgerMenu();
-                updateAllTrayDirections();
-                window.addEventListener('resize', updateAllTrayDirections);
-                try{
-                getTrayFromId("0").element.focus();
-                }
-                catch{
-                getTrayFromId("root").element.focus();
+                localStorage.setItem("imported_tray", content);
 
-                }
+
                 notifyUser('データのインポートに成功しました。');
             } catch (error) {
                 console.error('Invalid JSON file:', error);
                 notifyUser('無効なJSONファイルです。');
             }
+            try{
+              document.body.innerHTML = "";
+              loadFromLocalStorage("imported_tray")
+              saveToLocalStorage()
+              hamburgerElements = createHamburgerMenu();
+              updateAllTrayDirections();
+              window.addEventListener('resize', updateAllTrayDirections);
+            } catch {console.error("failed to draw")}
+
         }
         reader.readAsText(file,'UTF-8');
     }
