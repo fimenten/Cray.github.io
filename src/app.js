@@ -149,6 +149,7 @@ function importData() {
                 localStorage.setItem("imported_tray", content);
 
 
+
                 notifyUser('データのインポートに成功しました。');
             } catch (error) {
                 console.error('Invalid JSON file:', error);

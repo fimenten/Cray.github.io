@@ -955,8 +955,8 @@ class NetworkTray extends Tray {
   }
 
   showNetworkOptions() {
-    const url = prompt('Enter URL:', "http://192.168.0.13:8080");
-    const filename = prompt('Enter filename:', "default");
+    const url = prompt('Enter URL:', this.host_url);
+    const filename = prompt('Enter filename:', this.filename);
     
     if (url) this.host_url = url;
     if (filename) this.filename = filename;
