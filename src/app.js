@@ -87,6 +87,7 @@ function createHamburgerMenu() {
       case "set_default_server":
         set_default_server()
         break;
+      
     }
     menu.style.display = 'none';
   });

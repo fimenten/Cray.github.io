@@ -1,4 +1,3 @@
-const ROOT_TRAY_SELECTOR = '[data-tray-id="0"]';
 const TRAY_DATA_KEY = 'trayData';
 function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -11,7 +10,11 @@ function generateUUID() {
 // Usage
 console.log(generateUUID());
 function getRootElement() {
-  return document.querySelector(ROOT_TRAY_SELECTOR);
+  const rootTrayElement = document.querySelector('body > div.tray');
+  if (rootTrayElement) {
+    return rootTrayElement;
+  }
+  return null;
 }
 
 function updateAllTrayDirections() {
