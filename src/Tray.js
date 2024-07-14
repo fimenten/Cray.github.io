@@ -843,7 +843,11 @@ function deserialize(data) {
 class NetworkTray extends Tray {
   constructor(parentId, id, name,children =[], color = null, labels = [], isChecked = false, url = '', filename = '') {
     super(parentId=parentId, id = id, name = name,children =children,color= color,labels= labels, isChecked = isChecked);
-    this.showNetworkOptions();
+    if ((url.length==0)|(filename.length==0)){
+      this.url = url
+      this.filename = filename
+      this.showNetworkOptions();
+    }
     this.updateNetworkInfo();
   }
 
