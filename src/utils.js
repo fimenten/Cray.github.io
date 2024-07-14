@@ -116,10 +116,7 @@ function deserializeDOM(data) {
     });
     console.log(children)
 
-    children.forEach(childTray => {
-      tray.addChild(childTray)
 
-    });
     tray.foldChildren()
     tray.updateAppearance()
 
