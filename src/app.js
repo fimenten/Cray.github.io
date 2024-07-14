@@ -1,10 +1,11 @@
+let hamburgerElements;
+
 window.addEventListener('DOMContentLoaded', () => {
     loadFromLocalStorage();
-    createHamburgerMenu();
+    hamburgerElements = createHamburgerMenu();
     updateAllTrayDirections();
     window.addEventListener('resize', updateAllTrayDirections);
     getTrayFromId("0").element.focus();
-
 });
 
 function updateAllTrayDirections() {
@@ -82,9 +83,8 @@ function createHamburgerMenu() {
         importData();
         break;
     }
-    saveCurrentState()
+    saveCurrentState();
     menu.style.display = 'none';
-    createHamburgerMenu()
   });
 
   // ホバー効果の追加
@@ -96,6 +96,8 @@ function createHamburgerMenu() {
           item.style.backgroundColor = 'transparent';
       });
   });
+
+  return { hamburger, menu };
 }
 
 function resetAllTrays() {
@@ -103,7 +105,7 @@ function resetAllTrays() {
     const rootTray = createDefaultRootTray();
     document.body.innerHTML = '';
     document.body.appendChild(rootTray.element);
-    // observeAndSaveChanges();
+    hamburgerElements = createHamburgerMenu();
 }
 
 function saveCurrentState() {
@@ -117,7 +119,6 @@ function loadSavedState() {
     if (savedState) {
       localStorage.setItem('trayData', savedState);
       loadFromLocalStorage();
-    //   observeAndSaveChanges();
       alert('保存した状態を読み込みました。');
     } else {
       alert('保存された状態がありません。');
@@ -147,7 +148,12 @@ function importData() {
                 const content = readerEvent.target.result;
                 JSON.parse(content); // Validate JSON
                 localStorage.setItem('trayData', content);
-                loadFromLocalStorage();
+                loadFromLocalStorage()
+                hamburgerElements = createHamburgerMenu();
+                updateAllTrayDirections();
+                window.addEventListener('resize', updateAllTrayDirections);
+                getTrayFromId("0").element.focus();
+                saveToLocalStorage();
                 notifyUser('データのインポートに成功しました。');
             } catch (error) {
                 console.error('Invalid JSON file:', error);
@@ -157,13 +163,9 @@ function importData() {
         reader.readAsText(file,'UTF-8');
     }
     input.click();
-
 }
 
-function uploadData(data,filename) {
-  // const data = localStorage.getItem('trayData');
-  // const filename = input()
-
+function uploadData(data, filename) {
   fetch('http://host.com:8080/tray/save', {
       method: 'POST',
       headers: {
@@ -189,7 +191,6 @@ function uploadData(data,filename) {
 }
 
 function downloadData(filename) {
-
   fetch('http://host.com:8080/tray/load', {
       method: 'GET',
       headers: {
@@ -204,7 +205,7 @@ function downloadData(filename) {
   })
   .then(data => {
     // notifyUser('データのダウンロードに成功しました。');
-    return Deseria
+    return data;
   })
   .catch(error => {
       console.error('Error:', error);

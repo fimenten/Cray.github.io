@@ -81,6 +81,7 @@ function loadFromLocalStorage() {
     document.body.innerHTML = '';
     document.body.appendChild(rootTray.element);
   }
+  createHamburgerMenu()
 }
 
 function deserializeDOM(data) {
