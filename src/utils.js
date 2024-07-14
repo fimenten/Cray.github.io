@@ -1,6 +1,15 @@
-const ROOT_TRAY_SELECTOR = '.tray[data-tray-id="root"]';
+const ROOT_TRAY_SELECTOR = '.tray[data-tray-id="0"]';
 const TRAY_DATA_KEY = 'trayData';
+function generateUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    var r = Math.random() * 16 | 0,
+        v = c == 'x' ? r : (r & 0x3 | 0x8);
+    return v.toString(16);
+  });
+}
 
+// Usage
+console.log(generateUUID());
 function getRootElement() {
   return document.querySelector(ROOT_TRAY_SELECTOR);
 }
@@ -49,18 +58,7 @@ function saveToLocalStorage() {
 }
 
 function serializeDOM(tray) {
-  return {
-    id: tray.id,
-    name: tray.name,
-    labels: tray.labels,
-    isSplit: tray.isSplit,
-    children: tray.children.map(serializeDOM),
-    parentId: tray.parentId,
-    borderColor: tray.borderColor,
-    isChecked: tray.isChecked , // Add this line,
-    flexDirection: tray.flexDirection,
-
-  };
+  return tray.serialize()
 }
 
 function loadFromLocalStorage() {
@@ -83,40 +81,78 @@ function loadFromLocalStorage() {
     document.body.innerHTML = '';
     document.body.appendChild(rootTray.element);
   }
+  createHamburgerMenu()
 }
 
 function deserializeDOM(data) {
-  const tray = new Tray(data.parentId, data.id, data.name, data.borderColor, data.labels, data.isChecked);
-  tray.isSplit = data.isSplit;
-  tray.flexDirection = data.flexDirection || 'column'; // Add this line
-  tray.updateFlexDirection(); 
-  if (tray.isSplit) {
-    tray.element.classList.add('split');
-    tray.updateSplitDirection();
-  }
-  data.children.forEach(childData => {
-    const childTray = deserializeDOM(childData);
-    tray.addChild(childTray);
-    tray.element.querySelector('.tray-content').appendChild(childTray.element);
-  });
-  return tray;
+    let tray;
+
+    if (data.host_url == null) {
+      tray = new Tray(
+        data.parentId, 
+        data.id, 
+        data.name, 
+        [],
+        data.borderColor, 
+        data.labels, 
+        data.isChecked
+      );
+    } else {
+      tray = new NetworkTray(
+        data.parentId, 
+        data.id, 
+        data.name, 
+        [],
+        data.borderColor, 
+        data.labels, 
+        data.isChecked,
+        data.host_url,
+        data.filename
+      );
+    }
+    let children = data.children.length ? data.children.map(d => deserialize(d)) : []; 
+    children.forEach(childTray => {
+      tray.addChild(childTray)
+    });
+    console.log(children)
+
+    children.forEach(childTray => {
+      tray.addChild(childTray)
+
+    });
+    tray.foldChildren()
+    tray.updateAppearance()
+
+    tray.isSplit = data.isSplit;
+    tray.flexDirection = data.flexDirection || 'column';
+    tray.updateFlexDirection();
+  
+    if (tray.isSplit) {
+      tray.element.classList.add('split');
+      tray.updateSplitDirection();
+    }
+    tray.foldChildren()  
+    tray.updateAppearance()
+  
+  
+    return tray;
 }
 
 function createDefaultRootTray() {
-  const rootTray = new Tray("0", 'root', 'Root Tray');
+  const rootTray = new Tray("0", '0', 'Root Tray');
   const content = rootTray.element.querySelector('.tray-content');
 
-  const tray1 = new Tray(rootTray.id, 'tray1', 'ToDo');
-  const tray2 = new Tray(rootTray.id, 'tray2', 'Doing');
-  const tray3 = new Tray(rootTray.id, 'tray3', 'Done');
+  const tray1 = new Tray(rootTray.id, generateUUID(), 'ToDo');
+  const tray2 = new Tray(rootTray.id, generateUUID(), 'Doing');
+  const tray3 = new Tray(rootTray.id, generateUUID(), 'Done');
 
   rootTray.addChild(tray1);
   rootTray.addChild(tray2);
   rootTray.addChild(tray3);
 
-  content.appendChild(tray1.element);
-  content.appendChild(tray2.element);
-  content.appendChild(tray3.element);
+  // content.appendChild(tray1.element);
+  // content.appendChild(tray2.element);
+  // content.appendChild(tray3.element);
 
   return rootTray;
 }
