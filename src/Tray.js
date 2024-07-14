@@ -533,7 +533,7 @@ class Tray {
     menu.style.top = `${event.clientY}px`;
     menu.style.left = `${event.clientX}px`;
     document.body.appendChild(menu);
-  
+    menu.focus()
     const handleMenuClick = (e) => {
       const action = e.target.getAttribute('data-action');
       const color = e.target.getAttribute('data-color');
@@ -871,11 +871,11 @@ class NetworkTray extends Tray {
     })
     .then(result => {
       console.log(result);
-      notifyUser('データのアップロードに成功しました。');
+      // notifyUser('データのアップロードに成功しました。');
     })
     .catch(error => {
       console.error('Error:', error);
-      notifyUser('データのアップロードに失敗しました。');
+      // notifyUser('データのアップロードに失敗しました。');
       throw error;
     });
   }
