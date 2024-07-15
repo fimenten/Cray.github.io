@@ -576,11 +576,14 @@ class Tray {
           break;
         case 'add_fetch_networkTray_to_child':
           this.add_fetch_networkTray_to_child();
+          break
         case "open_this_in_other":
           this.open_this_in_other();
+          break;
         case "add_child_from_localStorage":
           this.add_child_from_localStorage();
-      }
+          break
+        }
       menu.remove();
       document.removeEventListener('click', handleOutsideClick);
     };
@@ -875,7 +878,7 @@ function deserialize(data) {
 class NetworkTray extends Tray {
   constructor(parentId, id, name,children =[], color = null, labels = [], isChecked = false, url = '', filename = '') {
     super(parentId=parentId, id = id, name = name,children =children,color= color,labels= labels, isChecked = isChecked);
-    this.url = url
+    this.host_url = url
     this.filename = filename
     if ((url.length==0)|(filename.length==0)){
       this.showNetworkOptions();
