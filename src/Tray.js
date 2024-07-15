@@ -519,6 +519,10 @@ class Tray {
       <div class="menu-item" data-action="toggleFlexDirection">Toggle Flex Direction</div>
       <div class="menu-item" data-action="convertToNetwork">Convert to NetworkTray</div>
       <div class="menu-item" data-action="add_fetch_networkTray_to_child">add_fetch_networkTray_to_child </div>
+      <div class="menu-item" data-action="open_this_in_other">open_this_in_other </div>
+      <div class="menu-item" data-action="add_child_from_localStorage">add_child_from_localStorage </div>
+
+
       <div class="menu-item color-picker">
         Change Border Color
         <div class="color-options">
@@ -572,6 +576,10 @@ class Tray {
           break;
         case 'add_fetch_networkTray_to_child':
           this.add_fetch_networkTray_to_child();
+        case "open_this_in_other":
+          this.open_this_in_other();
+        case "add_child_from_localStorage":
+          this.add_child_from_localStorage();
       }
       menu.remove();
       document.removeEventListener('click', handleOutsideClick);
@@ -791,7 +799,30 @@ class Tray {
   
     };
   }
-
+  open_this_in_other(){
+    const data = JSON.stringify(this.serialize());
+    const id = generateUUID();
+    localStorage.setItem(id,data)
+    window.open(window.location.href + "?sessionId=" + id,"_blank")
+  }
+  add_child_from_localStorage(){
+    let SessionId = prompt("input the sessionId",null);
+    let data;
+    if (SessionId){
+      data = localStorage.getItem(SessionId)
+    }else{return}
+    if (data){
+      let tray = deserialize(JSON.parse(data));
+      this.addChild(tray);
+    }
+    return
+  }
+  add_child_(){
+    const data = JSON.stringify(this.serialize());
+    const id = generateUUID();
+    localStorage.setItem(id,data)
+    window.open(window.location.href + "?sessionId=" + id,"_blank")
+  }
 }
 function deserialize(data) {
   let tray;

@@ -43,8 +43,9 @@ function observeWindowResize() {
   });
 }
 
-function saveToLocalStorage() {
+function saveToLocalStorage(key = null) {
   try {
+    const sessionId = getUrlParameter("sessionId");
     const rootElement = getRootElement();
     if (!rootElement) {
       console.error('Root element not found');
@@ -53,7 +54,11 @@ function saveToLocalStorage() {
     const data = serializeDOM(rootElement.__trayInstance);
     const serializedData = JSON.stringify(data);
     console.log(serializedData)
-    localStorage.setItem(TRAY_DATA_KEY, serializedData);
+    let keyy;
+    if (key != null){keyy = key}
+    else{if (sessionId){keyy = sessionId}else{keyy = sessionId}}
+    
+    localStorage.setItem(keyy, serializedData);
     console.log('Data saved successfully');
   } catch (error) {
     console.error('Error saving to localStorage:', error);
@@ -65,7 +70,7 @@ function serializeDOM(tray) {
 }
 
 function loadFromLocalStorage(key=TRAY_DATA_KEY) {
-  try {
+  try {    
     const savedData = localStorage.getItem(key);
     let rootTray;
     console.log(savedData);
@@ -78,6 +83,7 @@ function loadFromLocalStorage(key=TRAY_DATA_KEY) {
 
     document.body.innerHTML = '';
     document.body.appendChild(rootTray.element);
+    rootTray.updateAppearance()
   } catch (error) {
     console.error('Error loading from localStorage:', error);
     const rootTray = createDefaultRootTray();
@@ -112,6 +118,7 @@ function deserializeDOM(data) {
         data.host_url,
         data.filename
       );
+      // tray.host_url = data.host_url
     }
     let children = data.children.length ? data.children.map(d => deserialize(d)) : []; 
     children.forEach(childTray => {

@@ -1,13 +1,24 @@
 let hamburgerElements;
 
 window.addEventListener('DOMContentLoaded', () => {
+  let sessionId = getUrlParameter("sessionId");
+  if (sessionId){
+    loadFromLocalStorage(sessionId);
+  }
+  else{
     loadFromLocalStorage();
-    hamburgerElements = createHamburgerMenu();
-    updateAllTrayDirections();
-    window.addEventListener('resize', updateAllTrayDirections);
-    getTrayFromId("0").element.focus();
+  }
+  hamburgerElements = createHamburgerMenu();
+  updateAllTrayDirections();
+  window.addEventListener('resize', updateAllTrayDirections);
+  getRootElement().focus();
 });
-
+function getUrlParameter(name) {
+  name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+  var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+  var results = regex.exec(location.search);
+  return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+}
 function updateAllTrayDirections() {
     const allTrays = document.querySelectorAll('.tray');
     allTrays.forEach(trayElement => {
@@ -48,6 +59,8 @@ function createHamburgerMenu() {
     <div class="menu-item" data-action="export">データのエクスポート</div>
     <div class="menu-item" data-action="import">データのインポート</div>
     <div class="menu-item" data-action="set_default_server">set_default_server</div>
+    <div class="menu-item" data-action="import_network_tray_directly_as_root">import_network_tray_directly_as_root</div>
+
 
   `;
   document.body.appendChild(menu);
@@ -87,6 +100,9 @@ function createHamburgerMenu() {
       case "set_default_server":
         set_default_server()
         break;
+      case "import_network_tray_directly_as_root":
+        import_network_tray_directly_as_root();
+        break
       
     }
     menu.style.display = 'none';
@@ -104,6 +120,41 @@ function createHamburgerMenu() {
 
   return { hamburger, menu };
 }
+function import_network_tray_directly_as_root(){
+  let url = prompt("server host?",localStorage.getItem("defaultServer"));
+  let name = prompt("name?")
+  let tray_data;
+  fetch(`${url}/tray/load`, {
+    method: 'GET',
+    headers: {
+      'filename': name
+    }
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  })
+  .then(data => {
+    console.log(data);
+    localStorage.setItem("downloaded_data", JSON.stringify(data));
+    notifyUser('データのダウンロードに成功しました。');
+    return data;
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    notifyUser('データのダウンロードに失敗しました。');
+  });
+    document.body.innerHTML = "";
+
+    loadFromLocalStorage("downloaded_data")
+    saveToLocalStorage()
+    hamburgerElements = createHamburgerMenu();
+    updateAllTrayDirections();
+    window.addEventListener('resize', updateAllTrayDirections);
+  }
+
 
 function resetAllTrays() {
     localStorage.removeItem('trayData');
