@@ -2,6 +2,10 @@ let hamburgerElements;
 
 window.addEventListener('DOMContentLoaded', () => {
   let sessionId = getUrlParameter("sessionId");
+  if (sessionId == "new"){
+    let id = generateUUID();
+    window.location.replace(window.location.href.replace("?sessionId=new","?sessionId="+id))
+  }
   if (sessionId){
     loadFromLocalStorage(sessionId);
   }
