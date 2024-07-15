@@ -905,7 +905,7 @@ class NetworkTray extends Tray {
     })
     .then(result => {
       console.log(result);
-      // notifyUser('データのアップロードに成功しました。');
+      notifyUser('データのアップロードに成功しました。');
     })
     .catch(error => {
       console.error('Error:', error);
