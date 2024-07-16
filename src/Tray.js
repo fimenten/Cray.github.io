@@ -521,6 +521,7 @@ class Tray {
       <div class="menu-item" data-action="add_fetch_networkTray_to_child">add_fetch_networkTray_to_child </div>
       <div class="menu-item" data-action="open_this_in_other">open_this_in_other </div>
       <div class="menu-item" data-action="add_child_from_localStorage">add_child_from_localStorage </div>
+      <div class="menu-item" data-action="fetchTrayFromServer">Fetch Tray from Server</div>
 
 
       <div class="menu-item color-picker">
@@ -582,7 +583,10 @@ class Tray {
           break;
         case "add_child_from_localStorage":
           this.add_child_from_localStorage();
-          break
+          break;
+        case 'fetchTrayFromServer':
+          this.fetchTrayList();
+          break;
         }
       menu.remove();
       document.removeEventListener('click', handleOutsideClick);
@@ -820,12 +824,137 @@ class Tray {
     }
     return
   }
+  showTraySelectionDialog(url, files) {
+    const dialog = document.createElement('div');
+    dialog.classList.add('tray-selection-dialog');
+    dialog.innerHTML = `
+      <h3>Select a tray to add:</h3>
+      <select id="tray-select">
+        ${files.map(file => `<option value="${file}">${file}</option>`).join('')}
+      </select>
+      <button id="add-tray-btn">Add Tray</button>
+      <button id="cancel-btn">Cancel</button>
+    `;
+  
+    document.body.appendChild(dialog);
+  
+    document.getElementById('add-tray-btn').addEventListener('click', () => {
+      const selectedFile = document.getElementById('tray-select').value;
+      this.addTrayFromServer(url, selectedFile);
+      dialog.remove();
+    });
+  
+    document.getElementById('cancel-btn').addEventListener('click', () => {
+      dialog.remove();
+    });
+  }
+  addTrayFromServer(url, filename) {
+    fetch(`${url}/tray/load`, {
+      method: 'GET',
+      headers: {
+        'filename': filename
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      const newTray = deserialize(data);
+      this.addChild(newTray);
+      this.updateAppearance();
+      notifyUser('Tray added successfully.');
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      notifyUser('Failed to add tray from server.');
+    });
+  }
   add_child_(){
     const data = JSON.stringify(this.serialize());
     const id = generateUUID();
     localStorage.setItem(id,data)
     window.open(window.location.href + "?sessionId=" + id,"_blank")
   }
+  fetchTrayList() {
+    const defaultServer = localStorage.getItem("defaultServer") || "";
+    const url = prompt("Enter server URL:", defaultServer);
+    if (!url) return;
+  
+    fetch(`${url}/tray/list`, {
+      method: 'GET',
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      this.showTraySelectionDialog(url, data.files);
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Failed to fetch tray list from server.');
+    });
+  }
+  
+  showTraySelectionDialog(url, files) {
+    const dialog = document.createElement('div');
+    dialog.classList.add('tray-selection-dialog');
+    dialog.innerHTML = `
+      <h3>Select a tray to add:</h3>
+      <select id="tray-select">
+        ${files.map(file => `<option value="${file}">${file}</option>`).join('')}
+      </select>
+      <button id="add-tray-btn">Add Tray</button>
+      <button id="cancel-btn">Cancel</button>
+    `;
+  
+    document.body.appendChild(dialog);
+  
+    document.getElementById('add-tray-btn').addEventListener('click', () => {
+      const selectedFile = document.getElementById('tray-select').value;
+      this.addTrayFromServer(url, selectedFile);
+      dialog.remove();
+    });
+  
+    document.getElementById('cancel-btn').addEventListener('click', () => {
+      dialog.remove();
+    });
+  }
+  
+  addTrayFromServer(url, filename) {
+    fetch(`${url}/tray/load`, {
+      method: 'GET',
+      headers: {
+        'filename': filename
+      }
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      const newTray = deserialize(data);
+      this.addChild(newTray);
+      this.updateAppearance();
+      alert('Tray added successfully.');
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Failed to add tray from server.');
+    });
+  }
+
+
+
+
+
 }
 function deserialize(data) {
   let tray;
@@ -1013,6 +1142,28 @@ class NetworkTray extends Tray {
   updateNetworkInfo(element = this.element.querySelector('.network-tray-info')) {
     if (element) {
       element.textContent = `URL: ${this.host_url}, Filename: ${this.filename}`;
-    }
+    };
   }
+fetchTrayList() {
+  const defaultServer = localStorage.getItem("defaultServer") || "";
+  const url = prompt("Enter server URL:", defaultServer);
+  if (!url) return;
+
+  fetch(`${url}/tray/list`, {
+    method: 'GET',
+  })
+  .then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  })
+  .then(data => {
+    this.showTraySelectionDialog(url, data.files);
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    notifyUser('Failed to fetch tray list from server.');
+  });
+}
 }
