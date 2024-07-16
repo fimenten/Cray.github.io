@@ -1141,8 +1141,62 @@ class NetworkTray extends Tray {
 
   updateNetworkInfo(element = this.element.querySelector('.network-tray-info')) {
     if (element) {
-      element.textContent = `URL: ${this.host_url}, Filename: ${this.filename}`;
-    };
+      // Clear existing content
+      element.innerHTML = '';
+  
+      // Create URL button
+      const urlButton = document.createElement('button');
+      urlButton.textContent = 'URL';
+      urlButton.style.fontSize = 'small';
+      urlButton.style.padding = '2px 5px';
+      urlButton.style.marginBottom = '5px';
+      urlButton.style.cursor = 'pointer';
+  
+      // Set button color based on host_url validity
+      if (this.host_url && this.host_url.trim() !== '') {
+        urlButton.style.backgroundColor = 'green';
+        urlButton.style.color = 'white';
+      } else {
+        urlButton.style.backgroundColor = 'gray';
+        urlButton.style.color = 'white';
+      }
+  
+      // Add tooltip functionality
+      urlButton.title = this.host_url || 'No URL set';
+  
+      // Create filename element
+      const filenameElement = document.createElement('div');
+      filenameElement.textContent = `Filename: ${this.filename}`;
+  
+      // Append elements to the container
+      element.appendChild(urlButton);
+      element.appendChild(filenameElement);
+  
+      // Add event listeners for custom tooltip (optional, for more control)
+      let tooltip;
+      urlButton.addEventListener('mouseover', (e) => {
+        tooltip = document.createElement('div');
+        tooltip.textContent = this.host_url || 'No URL set';
+        tooltip.style.position = 'absolute';
+        tooltip.style.backgroundColor = 'black';
+        tooltip.style.color = 'white';
+        tooltip.style.padding = '5px';
+        tooltip.style.borderRadius = '3px';
+        tooltip.style.zIndex = '1000';
+        document.body.appendChild(tooltip);
+  
+        const rect = e.target.getBoundingClientRect();
+        tooltip.style.left = `${rect.left}px`;
+        tooltip.style.top = `${rect.bottom + 5}px`;
+      });
+  
+      urlButton.addEventListener('mouseout', () => {
+        if (tooltip) {
+          document.body.removeChild(tooltip);
+          tooltip = null;
+        }
+      });
+    }
   }
 fetchTrayList() {
   const defaultServer = localStorage.getItem("defaultServer") || "";

@@ -78,7 +78,7 @@
 
 /* Tray Content */
 .tray-content {
-  padding: 10px 5px 15px;
+  padding: 10px 5px;
   background-color: #f5f5f5;
 }
 
@@ -244,4 +244,35 @@
 
 .tray-selection-dialog button:hover {
   background-color: #e0e0e0;
+}
+/* Title */
+.tray-title {
+  flex: 1;
+  min-width: 0;
+  word-wrap: break-word;
+  white-space: normal;
+  font-weight: bold;
+  outline: none;
+  cursor: text;
+  color: #333;
+  line-height: 1.2;
+  /* max-height: 2.4em; 2行分の高さ */
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.tray-title:focus {
+  background-color: white;
+  max-height: none; /* フォーカス時に制限を解除 */
+}
+
+/* Tray Title Container */
+.tray-title-container {
+  display: flex;
+  align-items: flex-start; /* 上揃えに変更 */
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  min-height: 40px; /* 最小の高さを設定 */
+  transition: min-height 0.3s ease;
 }
