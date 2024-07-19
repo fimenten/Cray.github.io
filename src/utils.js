@@ -56,7 +56,7 @@ function saveToLocalStorage(key = null) {
     console.log(serializedData)
     let keyy;
     if (key != null){keyy = key}
-    else{if (sessionId){keyy = sessionId}else{keyy = sessionId}}
+    else{if (sessionId){keyy = sessionId}else{keyy = TRAY_DATA_KEY}}
     
     localStorage.setItem(keyy, serializedData);
     console.log('Data saved successfully');
