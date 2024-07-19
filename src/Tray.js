@@ -1,7 +1,41 @@
 function getTrayFromId(Id) {
   return document.querySelector(`[data-tray-id="${Id}"]`).__trayInstance;
 }
+class LabelManager {
+  constructor() {
+    this.labels = {};
+    this.initializeDefaultLabels();
+  }
 
+  initializeDefaultLabels() {
+    this.addLabel('done', 'DONE', '#4CAF50');
+    this.addLabel('wip', 'WIP', '#FFC107');
+    this.addLabel('planning', 'PLANNING', '#2196F3');
+    this.addLabel('archive', 'ARCHIVE', '#9E9E9E');
+  }
+
+  addLabel(id, name, color) {
+    this.labels[id] = { name, color };
+  }
+
+  getLabel(id) {
+    return this.labels[id];
+  }
+
+  getAllLabels() {
+    return this.labels;
+  }
+
+  exportLabels() {
+    return JSON.stringify(this.labels);
+  }
+
+  importLabels(jsonString) {
+    this.labels = JSON.parse(jsonString);
+  }
+}
+
+const globalLabelManager = new LabelManager();
 class Tray {
   static colorPalette = [
     '#FF6B6B', // Red
@@ -17,19 +51,22 @@ class Tray {
     "#e0e0e0", // Tray color
   ];
 
-  constructor(parentId, id, name,children = [], color = null, labels = [], isChecked = false) {
+  constructor(parentId, id, name,children = [], color = null, labels = [], isChecked = false,created_dt = null) {
     this.id = id;
     this.name = name;
     this.children = []
     this.labels = labels;
+
     this.parentId = parentId;
     this.isSplit = false;
     this.isFolded = true;
     this.isChecked = isChecked;
     this.borderColor = color || Tray.colorPalette[-1];
+    this.created_dt = created_dt || new Date();
     this.element = this.createElement();
     this.flexDirection = 'column'; 
     this.isEditing = false; 
+    this.updateLabels();
     this.updateAppearance();
     this.updateBorderColor();
   }
@@ -66,7 +103,9 @@ class Tray {
     contextMenuButton.classList.add('tray-context-menu-button');
     contextMenuButton.textContent = '⋮';
     contextMenuButton.addEventListener('click', this.onContextMenuButtonClick.bind(this));
-
+    const labelsElement = document.createElement('div');
+    labelsElement.classList.add('tray-labels');
+    if (!this.labels){labelsElement.style.display = "none"}
 
     tray.addEventListener('contextmenu', this.onContextMenu.bind(this));
     title.addEventListener('contextmenu', (event) => {
@@ -84,7 +123,7 @@ class Tray {
 
     const content = document.createElement('div');
     content.classList.add('tray-content');
-    content.style.flexDirection = this.flexDirection; // Add this line
+    content.style.flexDirection = this.flexDirection; 
     titleContainer.addEventListener('dblclick', this.onDoubleClick.bind(this));
     const foldButton = document.createElement('button');
     foldButton.classList.add('tray-fold-button');
@@ -94,6 +133,8 @@ class Tray {
     titleContainer.appendChild(contextMenuButton);
     titleContainer.appendChild(checkboxContainer);
     titleContainer.appendChild(title);
+    titleContainer.appendChild(labelsElement);
+  
     titleContainer.appendChild(clickArea)
     tray.appendChild(titleContainer);
     tray.append(content);
@@ -113,7 +154,102 @@ class Tray {
     this.updateChildrenAppearance(); // Add this line
     saveToLocalStorage();
   }
+  addLabel(event) {
+    const labelSelector = document.createElement('div');
+    labelSelector.classList.add('label-selector');
+    labelSelector.innerHTML = `
+      <select id="existingLabels">
+        <option value="">-- 既存のラベルを選択 --</option>
+        ${Object.entries(globalLabelManager.getAllLabels()).map(([id, label]) => 
+          `<option value="${id}">${label.name}</option>`
+        ).join('')}
+      </select>
+      <button id="selectExistingLabel">選択</button>
+      <div>または</div>
+      <input type="text" id="newLabelName" placeholder="新しいラベル名">
+      <input type="color" id="newLabelColor" value="#000000">
+      <button id="addNewLabel">新しいラベルを追加</button>
+    `;
+    
+    // ポップアップの位置を設定
+    const rect = event.target.getBoundingClientRect();
+    labelSelector.style.position = 'absolute';
+    labelSelector.style.top = `${rect.bottom + window.scrollY}px`;
+    labelSelector.style.left = `${rect.left + window.scrollX}px`;
+    
+    document.body.appendChild(labelSelector);
+
+    document.getElementById('selectExistingLabel').addEventListener('click', () => {
+      const selectedId = document.getElementById('existingLabels').value;
+      if (selectedId) {
+        this.addExistingLabel(selectedId);
+        labelSelector.remove();
+      }
+    });
+
+    document.getElementById('addNewLabel').addEventListener('click', () => {
+      const name = document.getElementById('newLabelName').value;
+      const color = document.getElementById('newLabelColor').value;
+      if (name) {
+        const newId = this.addNewLabelToManager(name, color);
+        this.addExistingLabel(newId);
+        labelSelector.remove();
+      }
+    });
+
+    // クリックイベントリスナーを追加して、ポップアップの外側をクリックしたら閉じる
+    document.addEventListener('click', (e) => {
+      if (!labelSelector.contains(e.target) && e.target !== event.target) {
+        labelSelector.remove();
+      }
+    }, { once: true });
+  }
+
+  addExistingLabel(labelId) {
+    if (!this.labels.includes(labelId)) {
+      this.labels.push(labelId);
+      this.updateLabels();
+      saveToLocalStorage(); // ラベル追加後に保存
+    }
+  }
   
+  addNewLabelToManager(name, color) {
+    const id = Date.now().toString();
+    globalLabelManager.addLabel(id, name, color);
+    this.addExistingLabel(id); // この行を追加
+    saveToLocalStorage(); // ラベル追加後に保存
+    return id;
+  }
+
+  updateLabels() {
+    let labelContainer = this.element.querySelector('.tray-labels');
+    if (!labelContainer) {
+      const titleContainer = this.element.querySelector('.tray-title-container');
+      labelContainer = document.createElement('div');
+      labelContainer.classList.add('tray-labels');
+      titleContainer.appendChild(labelContainer);
+    }
+    
+    labelContainer.innerHTML = '';
+    this.labels.forEach(labelId => {
+      const label = globalLabelManager.getLabel(labelId);
+      if (label) {
+        const labelElement = document.createElement('span');
+        labelElement.classList.add('tray-label');
+        labelElement.textContent = label.name;
+        labelElement.style.backgroundColor = label.color;
+        labelContainer.appendChild(labelElement);
+      }
+    });
+    saveToLocalStorage()
+    // 「+」ボタンを追加
+    // const addLabelButton = document.createElement('button');
+    // addLabelButton.textContent = '+';
+    // addLabelButton.classList.add('add-label-button');
+    // addLabelButton.addEventListener('click', (event) => this.addLabel(event));
+    // labelContainer.appendChild(addLabelButton);
+  }
+
   updateFlexDirection() {
     const content = this.element.querySelector('.tray-content');
     content.style.flexDirection = this.flexDirection;
@@ -506,7 +642,10 @@ class Tray {
   onContextMenu(event) {
     event.preventDefault();
     event.stopPropagation();
-  
+    const existingMenu = document.querySelector('.context-menu');
+    if (existingMenu) {
+      existingMenu.remove();
+    }
     const menu = document.createElement('div');
     menu.classList.add('context-menu');
     menu.innerHTML = `
@@ -514,7 +653,8 @@ class Tray {
       <div class="menu-item" data-action="rename">Rename</div>
       <div class="menu-item" data-action="cut">Cut</div>
       <div class="menu-item" data-action="paste">Paste</div>
-      <div class="menu-item" data-action="label">Add Label</div>
+      <div class="menu-item" data-action="addLabel">ラベルを追加</div>
+      <div class="menu-item" data-action="removeLabel">ラベルを削除</div>
       <div class="menu-item" data-action="delete">Delete</div>
       <div class="menu-item" data-action="toggleFlexDirection">Toggle Flex Direction</div>
       <div class="menu-item" data-action="convertToNetwork">Convert to NetworkTray</div>
@@ -558,8 +698,11 @@ class Tray {
         case 'paste':
           this.pasteTray();
           break;
-        case 'label':
-          this.addLabel(event);
+        case 'addLabel':
+          this.showLabelSelector(event);
+          break;
+        case 'removeLabel':
+          this.showLabelRemover();
           break;
         case 'delete':
           this.deleteTray();
@@ -604,7 +747,96 @@ class Tray {
     menu.addEventListener('click', handleMenuClick);
     document.addEventListener('click', handleOutsideClick);
   }
+  showLabelSelector(event) {
+    // 既存のラベルセレクターを削除
+    const existingSelector = document.querySelector('.label-selector');
+    if (existingSelector) {
+      existingSelector.remove();
+    }
 
+    const labelSelector = document.createElement('div');
+    labelSelector.classList.add('label-selector');
+    labelSelector.innerHTML = `
+      <select id="existingLabels">
+        <option value="">-- Select existing label --</option>
+        ${Object.entries(globalLabelManager.getAllLabels()).map(([id, label]) => 
+          `<option value="${id}">${label.name}</option>`
+        ).join('')}
+      </select>
+      <button id="selectExistingLabel">Select</button>
+      <div>or</div>
+      <input type="text" id="newLabelName" placeholder="New label name">
+      <input type="color" id="newLabelColor" value="#000000">
+      <button id="addNewLabel">Add new label</button>
+    `;
+    
+    // ポップアップの位置を設定
+    labelSelector.style.position = 'fixed';
+    labelSelector.style.top = `${event.clientY}px`;
+    labelSelector.style.left = `${event.clientX}px`;
+    
+    document.body.appendChild(labelSelector);
+
+    document.getElementById('selectExistingLabel').addEventListener('click', () => {
+      const selectedId = document.getElementById('existingLabels').value;
+      if (selectedId) {
+        this.addExistingLabel(selectedId);
+        labelSelector.remove();
+      }
+    });
+
+    document.getElementById('addNewLabel').addEventListener('click', () => {
+      const name = document.getElementById('newLabelName').value;
+      const color = document.getElementById('newLabelColor').value;
+      if (name) {
+        const newId = this.addNewLabelToManager(name, color);
+        this.addExistingLabel(newId);
+        labelSelector.remove();
+      }
+    });
+
+    // クリックイベントリスナーを追加して、ポップアップの外側をクリックしたら閉じる
+    document.addEventListener('click', (e) => {
+      if (!labelSelector.contains(e.target) && !e.target.closest('.context-menu')) {
+        labelSelector.remove();
+      }
+    }, { once: true });
+  }
+
+  addExistingLabel(labelId) {
+    if (!this.labels.includes(labelId)) {
+      this.labels.push(labelId);
+      this.updateLabels();
+    }
+  }
+
+  addNewLabelToManager(name, color) {
+    const id = Date.now().toString();
+    globalLabelManager.addLabel(id, name, color);
+    return id;
+  }
+
+  updateLabels() {
+    let labelContainer = this.element.querySelector('.tray-labels');
+    if (!labelContainer) {
+      const titleContainer = this.element.querySelector('.tray-title-container');
+      labelContainer = document.createElement('div');
+      labelContainer.classList.add('tray-labels');
+      titleContainer.appendChild(labelContainer);
+    }
+    
+    labelContainer.innerHTML = '';
+    this.labels.forEach(labelId => {
+      const label = globalLabelManager.getLabel(labelId);
+      if (label) {
+        const labelElement = document.createElement('span');
+        labelElement.classList.add('tray-label');
+        labelElement.textContent = label.name;
+        labelElement.style.backgroundColor = label.color;
+        labelContainer.appendChild(labelElement);
+      }
+    });
+  }
   copyTray() {
     const copiedTray = new Tray(Date.now().toString(), this.name + ' (Copy)', [...this.labels]);
     if (this.parent) {
@@ -644,16 +876,7 @@ class Tray {
     }
   }
 
-  addLabel() {
-    const label = prompt('Enter label name:');
-    if (label) {
-      this.labels.push(label);
-      const labelElement = document.createElement('span');
-      labelElement.classList.add('tray-label');
-      labelElement.textContent = label;
-      this.element.titleContainer.appendChild(labelElement);
-    }
-  }
+
 
   deleteTray() {
     if (this.id === '0') {
@@ -801,8 +1024,9 @@ class Tray {
       children: this.children.length ? this.children.map(child => child.serialize()) : [],
       parentId: this.parentId,
       borderColor: this.borderColor,
-      isChecked: this.isChecked , // Add this line,
+      isChecked: this.isChecked , 
       flexDirection: this.flexDirection,
+      created_dt:this.created_dt
   
     };
   }
@@ -872,12 +1096,7 @@ class Tray {
       notifyUser('Failed to add tray from server.');
     });
   }
-  add_child_(){
-    const data = JSON.stringify(this.serialize());
-    const id = generateUUID();
-    localStorage.setItem(id,data)
-    window.open(window.location.href + "?sessionId=" + id,"_blank")
-  }
+
   fetchTrayList() {
     const defaultServer = localStorage.getItem("defaultServer") || "";
     const url = prompt("Enter server URL:", defaultServer);
@@ -966,7 +1185,8 @@ function deserialize(data) {
       [],
       data.borderColor, 
       data.labels, 
-      data.isChecked
+      data.isChecked,
+      data.created_dt == null ? new Date() : data.created_dt
     );
   } else {
     tray = new NetworkTray(
@@ -978,7 +1198,9 @@ function deserialize(data) {
       data.labels, 
       data.isChecked,
       data.host_url,
-      data.filename
+      data.filename,
+      data.created_dt == null ? new Date() : data.created_dt
+
     );
   }
   let children = data.children.length ? data.children.map(d => deserialize(d)) : []; 

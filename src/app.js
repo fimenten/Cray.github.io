@@ -67,6 +67,11 @@ function createHamburgerMenu() {
 
 
   `;
+  menu.innerHTML += `
+  <div class="menu-item" data-action="manageLabels">ラベル管理</div>
+  <div class="menu-item" data-action="exportLabels">ラベルをエクスポート</div>
+  <div class="menu-item" data-action="importLabels">ラベルをインポート</div>
+`;
   document.body.appendChild(menu);
 
   // メニュー項目のスタイリング
@@ -107,6 +112,15 @@ function createHamburgerMenu() {
       case "import_network_tray_directly_as_root":
         import_network_tray_directly_as_root();
         break
+      case 'manageLabels':
+        showLabelManager();
+        break;
+      case 'exportLabels':
+        exportLabels();
+        break;
+      case 'importLabels':
+        importLabels();
+        break;
       
     }
     menu.style.display = 'none';
@@ -190,7 +204,7 @@ function loadSavedState() {
 }
 
 function exportData() {
-    const data = localStorage.getItem('trayData');
+    const data = localStorage.getItem(TRAY_DATA_KEY);
     const blob = new Blob([data], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -281,4 +295,89 @@ function downloadData(filename) {
       console.error('Error:', error);
       notifyUser('データのダウンロードに失敗しました。');
   });
+}
+
+
+function showLabelManager() {
+  const labelManager = document.createElement('div');
+  labelManager.classList.add('label-manager');
+  labelManager.innerHTML = `
+    <h2>ラベル管理</h2>
+    <div id="labelList"></div>
+    <button id="addLabelBtn">新しいラベルを追加</button>
+    <button id="closeLabelManagerBtn">閉じる</button>
+  `;
+  document.body.appendChild(labelManager);
+
+  updateLabelList();
+
+  document.getElementById('addLabelBtn').addEventListener('click', () => addNewLabel());
+  document.getElementById('closeLabelManagerBtn').addEventListener('click', () => labelManager.remove());
+}
+
+function updateLabelList() {
+  const labelList = document.getElementById('labelList');
+  labelList.innerHTML = '';
+  const labels = globalLabelManager.getAllLabels();
+  for (const [id, label] of Object.entries(labels)) {
+    const labelElement = document.createElement('div');
+    labelElement.classList.add('label-item');
+    labelElement.innerHTML = `
+      <input type="text" class="label-name" value="${label.name}">
+      <input type="color" class="label-color" value="${label.color}">
+      <button class="deleteLabelBtn">削除</button>
+    `;
+    labelList.appendChild(labelElement);
+
+    const nameInput = labelElement.querySelector('.label-name');
+    const colorInput = labelElement.querySelector('.label-color');
+    const deleteBtn = labelElement.querySelector('.deleteLabelBtn');
+
+    nameInput.addEventListener('change', () => updateLabel(id, nameInput.value, colorInput.value));
+    colorInput.addEventListener('change', () => updateLabel(id, nameInput.value, colorInput.value));
+    deleteBtn.addEventListener('click', () => deleteLabel(id));
+  }
+}
+
+function addNewLabel() {
+  const id = Date.now().toString();
+  globalLabelManager.addLabel(id, 'New Label', '#000000');
+  updateLabelList();
+}
+
+function updateLabel(id, name, color) {
+  globalLabelManager.addLabel(id, name, color);
+}
+
+function deleteLabel(id) {
+  if (confirm('このラベルを削除してもよろしいですか？')) {
+    delete globalLabelManager.labels[id];
+    updateLabelList();
+  }
+}
+function exportLabels() {
+  const labelsJson = globalLabelManager.exportLabels();
+  const blob = new Blob([labelsJson], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'labels.json';
+  a.click();
+}
+
+function importLabels() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = (event) => {
+    const file = event.target.files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target.result;
+      globalLabelManager.importLabels(content);
+      updateLabelList();
+    };
+    reader.readAsText(file);
+  };
+  input.click();
 }

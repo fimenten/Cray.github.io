@@ -3,9 +3,10 @@
   width: 100%;
   max-width: 100%;
   background-color: #e0e0e0;
-  /* border-radius: 5px; */
   cursor: move;
   border: 2px solid #ccc;
+  border-bottom: 3px solid;
+  border-left: 3px solid;
   overflow: hidden;
   transition: order 0.3s;
   position: relative;
@@ -20,16 +21,15 @@
 /* Tray Title Container */
 .tray-title-container {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: space-between;
   width: 100%;
   padding: 10px;
   box-sizing: border-box;
+  min-height: 40px;
+  transition: min-height 0.3s ease;
+}
 
-}
-.tray {
-  border-bottom: 3px solid; /* Remove the color here */
-  border-left: 3px solid; /* Add left border */
-}
 /* Checkbox */
 .tray-checkbox {
   flex: 0 0 auto;
@@ -39,20 +39,22 @@
 
 /* Title */
 .tray-title {
-  flex: 0.5; /* flexを0.5に変更 */
+  flex: 1;
   min-width: 0;
-  /* max-width: 50%; 最大幅を50%に設定 */
-  /* overflow: hidden; */
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  word-wrap: break-word;
+  white-space: normal;
   font-weight: bold;
   outline: none;
   cursor: text;
   color: #333;
+  line-height: 1.2;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
 }
 
 .tray-title:focus {
   background-color: white;
+  max-height: none;
 }
 
 .tray-title:empty::before {
@@ -80,6 +82,7 @@
 .tray-content {
   padding: 10px 5px;
   background-color: #f5f5f5;
+  display: flex;
 }
 
 .tray .tray {
@@ -89,12 +92,15 @@
 
 /* Context Menu and Label Menu */
 .context-menu,
-.label-menu {
-  position: absolute;
+.label-menu,
+.label-selector,
+.label-remover {
+  position: fixed;
   background-color: white;
   border: 1px solid #ccc;
-  padding: 5px;
+  padding: 10px;
   border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   z-index: 1000;
 }
 
@@ -109,12 +115,23 @@
   background-color: #f0f0f0;
 }
 
-/* Tray Label */
+/* Tray Labels */
+.tray-labels {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+}
+
 .tray-label {
   display: inline-block;
   background-color: #f0f0f0;
   border-radius: 3px;
   font-size: 12px;
+  padding: 2px 5px;
+  margin-left: 5px;
+  color: white;
 }
 
 /* Split Tray */
@@ -157,7 +174,6 @@
   left: 0;
   right: 0;
   height: 2px;
-  /* background-color: #000; */
 }
 
 .tray.drag-top::before {
@@ -210,9 +226,8 @@
 .color-option:hover {
   transform: scale(1.2);
 }
-.tray-content {
-  display: flex;
-}
+
+/* Tray Selection Dialog */
 .tray-selection-dialog {
   position: fixed;
   top: 50%;
@@ -245,34 +260,25 @@
 .tray-selection-dialog button:hover {
   background-color: #e0e0e0;
 }
-/* Title */
-.tray-title {
-  flex: 1;
-  min-width: 0;
-  word-wrap: break-word;
-  white-space: normal;
-  font-weight: bold;
-  outline: none;
-  cursor: text;
-  color: #333;
-  line-height: 1.2;
-  /* max-height: 2.4em; 2行分の高さ */
-  overflow: hidden;
-  transition: max-height 0.3s ease;
-}
 
-.tray-title:focus {
+/* Label Manager */
+.label-manager {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   background-color: white;
-  max-height: none; /* フォーカス時に制限を解除 */
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Tray Title Container */
-.tray-title-container {
-  display: flex;
-  align-items: flex-start; /* 上揃えに変更 */
-  width: 100%;
-  padding: 10px;
-  box-sizing: border-box;
-  min-height: 40px; /* 最小の高さを設定 */
-  transition: min-height 0.3s ease;
+.label-selector select,
+.label-selector input,
+.label-selector button,
+.label-remover select,
+.label-remover button {
+  margin: 5px 0;
+  padding: 5px;
+  cursor: pointer;
 }
