@@ -53,7 +53,7 @@ function saveToLocalStorage(key = null) {
     }
     const data = serializeDOM(rootElement.__trayInstance);
     const serializedData = JSON.stringify(data);
-    console.log(serializedData)
+    // console.log(serializedData)
     let keyy;
     if (key != null){keyy = key}
     else{if (sessionId){keyy = sessionId}else{keyy = TRAY_DATA_KEY}}
@@ -104,7 +104,8 @@ function deserializeDOM(data) {
         [],
         data.borderColor, 
         data.labels, 
-        data.isChecked
+        data.isChecked,
+        data.created_dt
       );
     } else {
       tray = new NetworkTray(
@@ -116,11 +117,11 @@ function deserializeDOM(data) {
         data.labels, 
         data.isChecked,
         data.host_url,
-        data.filename
+        data.filename,
       );
       // tray.host_url = data.host_url
     }
-    let children = data.children.length ? data.children.map(d => deserialize(d)) : []; 
+    let children = data.children.map(d => deserialize(d)); 
     children.forEach(childTray => {
       tray.addChild(childTray)
     });
