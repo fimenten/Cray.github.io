@@ -170,6 +170,17 @@ class Tray {
     }
     return tray;
   }
+  outputAsMarkdown(depth = 0) {
+    let markdown = '#'.repeat(depth + 1) + ' ' + this.name + '\n\n';
+    
+    if (this.children.length > 0) {
+      this.children.forEach(child => {
+        markdown += child.outputAsMarkdown(depth + 1);
+      });
+    }
+    
+    return markdown;
+  }
   toggleFlexDirection() {
     this.flexDirection = this.flexDirection === 'column' ? 'row' : 'column';
     this.updateFlexDirection();
@@ -704,7 +715,7 @@ class Tray {
         </div>
       </div>
     `;
-
+    menu.innerHTML += `<div class="menu-item" data-action="outputMarkdown">Output as Markdown</div>`;
     if (!this.isSplit) {
       menu.innerHTML += `<div class="menu-item" data-action="split">Split</div>`;
     }
@@ -766,6 +777,9 @@ class Tray {
         case 'addLabelTray':
           this.addLabelTray();
           break;
+        case 'outputMarkdown':
+            this.showMarkdownOutput();
+            break;
       }
       menu.remove();
       document.removeEventListener('click', handleOutsideClick);
@@ -1268,6 +1282,52 @@ class Tray {
         console.error('Error:', error);
         alert('Failed to add tray from server.');
       });
+  }
+  showMarkdownOutput() {
+    const markdown = this.outputAsMarkdown();
+    const blob = new Blob([markdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    
+    const outputWindow = window.open('', '_blank');
+    outputWindow.document.write(`
+      <html>
+        <head>
+          <title>Tray Structure as Markdown</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
+            pre { background-color: #f4f4f4; padding: 15px; border-radius: 5px; }
+            button { margin: 10px 5px; padding: 10px 15px; cursor: pointer; }
+          </style>
+        </head>
+        <body>
+          <h1>Tray Structure as Markdown</h1>
+          <pre>${markdown}</pre>
+          <button onclick="copyToClipboard()">Copy to Clipboard</button>
+          <button onclick="downloadMarkdown()">Download Markdown</button>
+          <script>
+            function copyToClipboard() {
+              const pre = document.querySelector('pre');
+              const textArea = document.createElement('textarea');
+              textArea.value = pre.textContent;
+              document.body.appendChild(textArea);
+              textArea.select();
+              document.execCommand('copy');
+              document.body.removeChild(textArea);
+              alert('Copied to clipboard!');
+            }
+            
+            function downloadMarkdown() {
+              const link = document.createElement('a');
+              link.href = '${url}';
+              link.download = 'tray_structure.md';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }
+          </script>
+        </body>
+      </html>
+    `);
   }
 
 
