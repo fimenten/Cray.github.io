@@ -1327,10 +1327,11 @@ function deserialize(data) {
 
 
 class NetworkTray extends Tray {
-  constructor(parentId, id, name, children = [], color = null, labels = [], isChecked = false, url = '', filename = '',created_dt) {
-    super(parentId = parentId, id = id, name = name, children = children, color = color, labels = labels, isChecked = isChecked,created_dt = created_dt);
-    this.host_url = url
-    this.filename = filename
+  constructor(parentId, id, name, children = [], color = null, labels = [], isChecked = false, url = '', filename = '', created_dt) {
+    super(parentId, id, name, children, color, labels, isChecked, created_dt);
+    this.host_url = url;
+    this.filename = filename;
+    this.autoUpload = false; 
     if ((url.length == 0) | (filename.length == 0)) {
       this.showNetworkOptions();
     }
@@ -1339,7 +1340,7 @@ class NetworkTray extends Tray {
 
   uploadData() {
     const data = this.serialize();
-
+  
     return fetch(`${this.host_url}/tray/save`, {
       method: 'POST',
       headers: {
@@ -1356,11 +1357,11 @@ class NetworkTray extends Tray {
       })
       .then(result => {
         console.log(result);
-        notifyUser('データのアップロードに成功しました。');
+        this.showUploadNotification('Data uploaded successfully.');
       })
       .catch(error => {
         console.error('Error:', error);
-        // notifyUser('データのアップロードに失敗しました。');
+        this.showUploadNotification('Failed to upload data.', true);
         throw error;
       });
   }
@@ -1412,25 +1413,115 @@ class NetworkTray extends Tray {
 
   createElement() {
     const element = super.createElement();
-
+  
     const networkInfoElement = document.createElement('div');
     networkInfoElement.classList.add('network-tray-info');
     this.updateNetworkInfo(networkInfoElement);
-
+  
+    // Create a container for the buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.classList.add('network-tray-buttons');
+    buttonContainer.style.display = 'flex';
+    buttonContainer.style.flexDirection = 'column';
+    buttonContainer.style.alignItems = 'flex-start';
+    buttonContainer.style.gap = '5px'; // Add some space between buttons
+  
     const uploadButton = document.createElement('button');
     uploadButton.textContent = 'Upload';
     uploadButton.addEventListener('click', () => this.uploadData());
-
+  
     const downloadButton = document.createElement('button');
     downloadButton.textContent = 'Download';
     downloadButton.addEventListener('click', () => this.downloadData());
-
-    element.querySelector('.tray-title-container').appendChild(networkInfoElement);
-    element.querySelector('.tray-title-container').appendChild(uploadButton);
-    element.querySelector('.tray-title-container').appendChild(downloadButton);
-
+  
+    const autoUploadButton = document.createElement('button');
+    autoUploadButton.textContent = `Auto Upload: ${this.autoUpload ? 'On' : 'Off'}`;
+    autoUploadButton.style.backgroundColor = this.autoUpload ? 'green' : '';
+    autoUploadButton.style.color = this.autoUpload ? 'white' : '';
+    autoUploadButton.addEventListener('click', () => this.toggleAutoUpload());
+  
+    // Add buttons to the container
+    buttonContainer.appendChild(uploadButton);
+    buttonContainer.appendChild(downloadButton);
+    buttonContainer.appendChild(autoUploadButton);
+  
+    // Add network info and button container to the tray
+    const titleContainer = element.querySelector('.tray-title-container');
+    titleContainer.appendChild(networkInfoElement);
+    titleContainer.appendChild(buttonContainer);
+  
+    // Adjust the layout of the title container
+    titleContainer.style.display = 'flex';
+    titleContainer.style.alignItems = 'center';
+    titleContainer.style.justifyContent = 'space-between';
+  
     return element;
   }
+  setupAutoUpload() {
+    this.lastSerializedState = JSON.stringify(this.serialize());
+    
+    this.autoUploadInterval = setInterval(() => {
+      const currentState = JSON.stringify(this.serialize());
+      if (currentState !== this.lastSerializedState) {
+        this.uploadData()
+          .then(() => {
+            this.showUploadNotification('Auto-upload successful.');
+            this.lastSerializedState = currentState;
+          })
+          .catch(error => {
+            console.error('Auto-upload failed:', error);
+            this.showUploadNotification('Auto-upload failed. Please check your connection.', true);
+          });
+      }
+    }, 5000); // Check for changes every 5 seconds
+  }
+  showUploadNotification(message, isError = false) {
+    const notification = document.createElement('div');
+    notification.textContent = message;
+    notification.style.position = 'fixed';
+    notification.style.bottom = '20px';
+    notification.style.right = '20px';
+    notification.style.padding = '10px';
+    notification.style.borderRadius = '5px';
+    notification.style.color = 'white';
+    notification.style.backgroundColor = isError ? 'red' : 'green';
+    notification.style.zIndex = '1000';
+  
+    document.body.appendChild(notification);
+  
+    setTimeout(() => {
+      notification.style.transition = 'opacity 0.5s';
+      notification.style.opacity = '0';
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 500);
+    }, 3000);
+  }
+  removeAutoUpload() {
+    if (this.autoUploadInterval) {
+      clearInterval(this.autoUploadInterval);
+      this.autoUploadInterval = null;
+    }
+    this.lastSerializedState = null;
+  }
+  toggleAutoUpload() {
+    this.autoUpload = !this.autoUpload;
+    const autoUploadButton = this.element.querySelector('.network-tray-buttons button:last-child');
+    autoUploadButton.textContent = `Auto Upload: ${this.autoUpload ? 'On' : 'Off'}`;
+    autoUploadButton.style.backgroundColor = this.autoUpload ? 'green' : '';
+    autoUploadButton.style.color = this.autoUpload ? 'white' : '';
+    
+    if (this.autoUpload) {
+      this.setupAutoUpload();
+    } else {
+      this.removeAutoUpload();
+    }
+    
+    saveToLocalStorage();
+  }
+
+
+
 
   onContextMenu(event) {
     super.onContextMenu(event);
