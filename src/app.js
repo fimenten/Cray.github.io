@@ -12,6 +12,15 @@ window.addEventListener('DOMContentLoaded', () => {
   else{
     loadFromLocalStorage();
   }
+  if (sessionId){
+    const savedTitle = localStorage.getItem(sessionId+"_title");
+    if (savedTitle) {
+      document.title = savedTitle;
+    }
+  
+  }
+
+
   hamburgerElements = createHamburgerMenu();
   updateAllTrayDirections();
   window.addEventListener('resize', updateAllTrayDirections);
@@ -72,6 +81,9 @@ function createHamburgerMenu() {
   <div class="menu-item" data-action="exportLabels">ラベルをエクスポート</div>
   <div class="menu-item" data-action="importLabels">ラベルをインポート</div>
 `;
+menu.innerHTML += `
+  <div class="menu-item" data-action="editTitle">ページタイトルを編集</div>
+`;
   document.body.appendChild(menu);
 
   // メニュー項目のスタイリング
@@ -121,7 +133,9 @@ function createHamburgerMenu() {
       case 'importLabels':
         importLabels();
         break;
-      
+        case 'editTitle':
+          editPageTitle();
+          break;
     }
     menu.style.display = 'none';
   });
@@ -137,6 +151,16 @@ function createHamburgerMenu() {
   });
 
   return { hamburger, menu };
+}
+
+function editPageTitle() {
+  const currentTitle = document.title;
+  const newTitle = prompt("新しいページタイトルを入力してください:", currentTitle);
+  if (newTitle !== null && newTitle.trim() !== "") {
+    document.title = newTitle.trim();
+    localStorage.setItem('pageTitle', newTitle.trim());
+    notifyUser('ページタイトルを更新しました。');
+  }
 }
 function import_network_tray_directly_as_root(){
   let url = prompt("server host?",localStorage.getItem("defaultServer"));
