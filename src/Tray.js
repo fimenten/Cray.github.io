@@ -1,7 +1,57 @@
 function getTrayFromId(Id) {
   return document.querySelector(`[data-tray-id="${Id}"]`).__trayInstance;
 }
+class LabelManager {
+  constructor() {
+    this.labels = {};
+    this.initializeDefaultLabels();
+    this.label_tray = new Set();
+  }
 
+  initializeDefaultLabels() {
+    this.addLabel( 'DONE', '#4CAF50');
+    this.addLabel( 'WIP', '#FFC107');
+    this.addLabel( 'PLANNING', '#2196F3');
+    this.addLabel( 'ARCHIVE', '#9E9E9E');
+  }
+
+  addLabel(labelName, color) {
+    // TODO
+    // if (this.labels.k(labelName)){
+    //   notifyUser("duplicated label name not allowed")
+    //   return
+    // }
+    this.labels[labelName] = color};
+
+  getLabel(labelName) {
+    return this.labels[labelName];
+  }
+
+  getAllLabels() {
+    return this.labels;
+  }
+
+  exportLabels() {
+    return JSON.stringify(this.labels);
+  }
+
+  importLabels(jsonString) {
+    this.labels = JSON.parse(jsonString);
+  }
+
+  registLabeledTray(labelName,tray){
+    this.label_tray.add([labelName,tray])
+  }
+
+  unregisterLabeledTray(labelName, tray) {
+    this.label_tray.delete([labelName, tray]);
+  }
+
+
+
+}
+
+const globalLabelManager = new LabelManager();
 class Tray {
   static colorPalette = [
     '#FF6B6B', // Red
@@ -17,19 +67,22 @@ class Tray {
     "#e0e0e0", // Tray color
   ];
 
-  constructor(parentId, id, name,children = [], color = null, labels = [], isChecked = false) {
+  constructor(parentId, id, name, children = [], color = null, labels = [], isChecked = false, created_dt = null) {
     this.id = id;
     this.name = name;
     this.children = []
     this.labels = labels;
+
     this.parentId = parentId;
     this.isSplit = false;
     this.isFolded = true;
     this.isChecked = isChecked;
     this.borderColor = color || Tray.colorPalette[-1];
+    this.created_dt = created_dt || new Date();
     this.element = this.createElement();
-    this.flexDirection = 'column'; 
-    this.isEditing = false; 
+    this.flexDirection = 'column';
+    this.isEditing = false;
+    this.updateLabels();
     this.updateAppearance();
     this.updateBorderColor();
   }
@@ -66,7 +119,9 @@ class Tray {
     contextMenuButton.classList.add('tray-context-menu-button');
     contextMenuButton.textContent = '⋮';
     contextMenuButton.addEventListener('click', this.onContextMenuButtonClick.bind(this));
-
+    const labelsElement = document.createElement('div');
+    labelsElement.classList.add('tray-labels');
+    if (!this.labels) { labelsElement.style.display = "none" }
 
     tray.addEventListener('contextmenu', this.onContextMenu.bind(this));
     title.addEventListener('contextmenu', (event) => {
@@ -84,7 +139,7 @@ class Tray {
 
     const content = document.createElement('div');
     content.classList.add('tray-content');
-    content.style.flexDirection = this.flexDirection; // Add this line
+    content.style.flexDirection = this.flexDirection;
     titleContainer.addEventListener('dblclick', this.onDoubleClick.bind(this));
     const foldButton = document.createElement('button');
     foldButton.classList.add('tray-fold-button');
@@ -94,7 +149,9 @@ class Tray {
     titleContainer.appendChild(contextMenuButton);
     titleContainer.appendChild(checkboxContainer);
     titleContainer.appendChild(title);
-    titleContainer.appendChild(clickArea)
+    titleContainer.appendChild(labelsElement);
+
+    // titleContainer.appendChild(clickArea)
     tray.appendChild(titleContainer);
     tray.append(content);
 
@@ -104,8 +161,25 @@ class Tray {
     content.addEventListener('dblclick', this.onDoubleClick.bind(this));
     tray.__trayInstance = this;
     this.setupKeyboardNavigation(tray);
-
+    if (this.isLabelTrayCopy) {
+      element.classList.add('label-tray-copy');
+      element.setAttribute('draggable', 'false');
+      const titleElement = element.querySelector('.tray-title');
+      titleElement.setAttribute('contenteditable', 'false');
+      titleElement.style.pointerEvents = 'none';
+    }
     return tray;
+  }
+  outputAsMarkdown(depth = 0) {
+    let markdown = '#'.repeat(depth + 1) + ' ' + this.name + '\n\n';
+    
+    if (this.children.length > 0) {
+      this.children.forEach(child => {
+        markdown += child.outputAsMarkdown(depth + 1);
+      });
+    }
+    
+    return markdown;
   }
   toggleFlexDirection() {
     this.flexDirection = this.flexDirection === 'column' ? 'row' : 'column';
@@ -113,13 +187,119 @@ class Tray {
     this.updateChildrenAppearance(); // Add this line
     saveToLocalStorage();
   }
+  addLabel(event) {
+    const labelSelector = document.createElement('div');
+    labelSelector.classList.add('label-selector');
+    console.log(globalLabelManager.getAllLabels())
+    labelSelector.innerHTML = `
+    <select id="existingLabels">
+      <option value="">-- 既存のラベルを選択 --</option>
+      ${Object.entries(globalLabelManager.getAllLabels()).map(([name, color]) =>
+        `<option value="${name}" style="background-color: ${color};">${name}</option>`
+      ).join('')}
+    </select>
+    <button id="selectExistingLabel">選択</button>
+    <div>または</div>
+    <input type="text" id="newLabelName" placeholder="新しいラベル名">
+    <input type="color" id="newLabelColor" value="#000000">
+    <button id="addNewLabel">新しいラベルを追加</button>
+    `;
+
+    // ポップアップの位置を設定
+    const rect = event.target.getBoundingClientRect();
+    labelSelector.style.position = 'absolute';
+    labelSelector.style.top = `${rect.bottom + window.scrollY}px`;
+    labelSelector.style.left = `${rect.left + window.scrollX}px`;
+
+    document.body.appendChild(labelSelector);
+
+    document.getElementById('selectExistingLabel').addEventListener('click', () => {
+      const selectedId = document.getElementById('existingLabels').value;
+      if (selectedId) {
+        this.addExistingLabel(selectedId);
+        labelSelector.remove();
+      }
+    });
+
+    document.getElementById('addNewLabel').addEventListener('click', () => {
+      const name = document.getElementById('newLabelName').value;
+      const color = document.getElementById('newLabelColor').value;
+      if (name) {
+        const newId = this.addNewLabelToManager(name, color);
+        this.addExistingLabel(newId);
+        labelSelector.remove();
+      }
+    });
+
+    // クリックイベントリスナーを追加して、ポップアップの外側をクリックしたら閉じる
+    document.addEventListener('click', (e) => {
+      if (!labelSelector.contains(e.target) && e.target !== event.target) {
+        labelSelector.remove();
+      }
+    }, { once: true });
+  }
+
+  addExistingLabel(labelId) {
+    if (!this.labels.includes(labelId)) {
+      this.labels.push(labelId);
+      this.updateLabels();
+      saveToLocalStorage(); // ラベル追加後に保存
+    }
+  }
+
+  addNewLabelToManager(name, color) {
+    globalLabelManager.addLabel(name, color);
+    this.addExistingLabel(id); // この行を追加
+    saveToLocalStorage(); // ラベル追加後に保存
+    return id;
+  }
+
+  updateLabels() {
+    let labelContainer = this.element.querySelector('.tray-labels');
+    if (!labelContainer) {
+      const titleContainer = this.element.querySelector('.tray-title-container');
+      labelContainer = document.createElement('div');
+      labelContainer.classList.add('tray-labels');
+      titleContainer.appendChild(labelContainer);
+    }
   
+    labelContainer.innerHTML = '';
+    if (this.labels) {
+      this.element.querySelector('.tray-labels').style.display = "block";
+    }
+    this.labels.forEach(labelName => {
+      const labelColor = globalLabelManager.getLabel(labelName);
+      if (labelColor) {
+        const labelElement = document.createElement('span');
+        labelElement.classList.add('tray-label');
+        labelElement.textContent = labelName;
+        labelElement.style.backgroundColor = labelColor;
+        labelElement.addEventListener('click', (event) => this.onLabelClick(event, labelName));
+        labelContainer.appendChild(labelElement);
+        globalLabelManager.registLabeledTray(labelName, this);
+      }
+    });
+    saveToLocalStorage();
+  }
+  onLabelClick(event, labelName) {
+    event.stopPropagation();
+    if (confirm(`Do you want to remove the label "${labelName}"?`)) {
+      this.removeLabel(labelName);
+    }
+  }
+  
+  removeLabel(labelName) {
+    this.labels = this.labels.filter(label => label !== labelName);
+    globalLabelManager.unregisterLabeledTray(labelName, this);
+    this.updateLabels();
+    saveToLocalStorage();
+  }
   updateFlexDirection() {
     const content = this.element.querySelector('.tray-content');
     content.style.flexDirection = this.flexDirection;
     content.style.display = 'flex'; // Ensure flex display is set
   }
-  
+
   updateChildrenAppearance() {
     this.children.forEach(child => {
       if (this.flexDirection === 'row') {
@@ -149,7 +329,17 @@ class Tray {
 
     saveToLocalStorage();
   }
-
+  // updateBorderColor() {
+  //   const trayElement = this.element;
+  //   const titleContainer = trayElement.querySelector('.tray-title-container');
+  //   if (titleContainer && trayElement) {
+  //     titleContainer.style.borderBottomColor = this.borderColor;
+  //     titleContainer.style.borderLeftColor = this.borderColor;
+  //     trayElement.style.borderLeftColor = this.borderColor;
+  //     trayElement.style.borderBottomColor = this.borderColor;
+  //   }
+  //   saveToLocalStorage();
+  // }
   changeBorderColor(color) {
     if (Tray.colorPalette.includes(color)) {
       this.borderColor = color;
@@ -173,15 +363,15 @@ class Tray {
     this.foldChildren();
     this.updateAppearance();
   }
-  
+
   foldChildren() {
     if (this.isFolded) {
-    this.children.forEach(child => {
-      child.isFolded = true;
-      child.updateAppearance();
-      child.foldChildren(true);
-    });
-  }
+      this.children.forEach(child => {
+        child.isFolded = true;
+        child.updateAppearance();
+        child.foldChildren(true);
+      });
+    }
   }
   updateAppearance() {
     const content = this.element.querySelector('.tray-content');
@@ -190,9 +380,9 @@ class Tray {
     if (checkbox) {
       checkbox.checked = this.isChecked;
     }
-    if (!this.children ) {
+    if (!this.children) {
       content.style.display = 'none';
-      
+
       if (this.isFolded) {
         foldButton.textContent = '▶';
       } else {
@@ -206,7 +396,8 @@ class Tray {
       } else {
         content.style.display = 'block';
         foldButton.textContent = '▼';
-      }
+        this.updateFlexDirection();
+  }
     }
   }
 
@@ -237,14 +428,7 @@ class Tray {
   }
 
 
-  finishTitleEdit(titleElement) {
-    this.isEditing = false;
-    titleElement.setAttribute('contenteditable', 'false');
-    this.name = titleElement.textContent.trim() || 'Untitled';
-    titleElement.textContent = this.name;
-    saveToLocalStorage();
-    // titleElement.focus();
-  }
+
 
   cancelTitleEdit(titleElement) {
     this.isEditing = false;
@@ -332,8 +516,8 @@ class Tray {
           this.toggleEditMode();
         } else 
           {event.preventDefault();
-            this.toggleFold(event);
-          }
+          this.toggleFold(event);
+        }
         break;
       case 'Delete':
         event.preventDefault();
@@ -372,16 +556,16 @@ class Tray {
         }
         break;
       case ' ':
-        if (event.ctrlKey){
-        event.preventDefault();
-        this.onContextMenu(event);
-        }break;
+        if (event.ctrlKey) {
+          event.preventDefault();
+          this.onContextMenu(event);
+        } break;
 
     }
   }
 
   moveFocus(direction) {
-    if (this.isEditing){return}
+    if (this.isEditing) { return }
     let nextTray;
     switch (direction) {
       case 'up':
@@ -427,7 +611,7 @@ class Tray {
     } else {
       this.startTitleEdit(titleElement);
     }
-    
+
   }
 
   addNewChild() {
@@ -439,24 +623,14 @@ class Tray {
     const newTitleElement = newTray.element.querySelector('.tray-title');
     newTray.startTitleEdit(newTitleElement);
   }
-  updateBorderColor() {
-    const trayElement = this.element;
-    const titleContainer = trayElement.querySelector('.tray-title-container');
-    if (titleContainer && trayElement) {
-      titleContainer.style.borderBottomColor = this.borderColor;
-      titleContainer.style.borderLeftColor = this.borderColor;
-      trayElement.style.borderLeftColor = this.borderColor;
-      trayElement.style.borderBottomColor = this.borderColor;
-    }
-    saveToLocalStorage();
-  }
+  
   onDrop(event) {
     event.preventDefault();
-    if (this.isFolded){
+    if (this.isFolded) {
       this.toggleFold(event)
     }
     this.updateAppearance();
-    
+
     event.stopPropagation();
 
     const movingId = event.dataTransfer.getData('text/plain');
@@ -486,13 +660,13 @@ class Tray {
     event.stopPropagation()
     if (this.isSplit) return;
     // if (event.target === content || event.target === this.element.querySelector('.tray-title-container')) {
-      const newTray = new Tray(this.id, Date.now().toString(), 'New Tray');
-      this.addChild(newTray);
-      this.isFolded = false;
-      this.updateAppearance()      
-      // newTray.element.focus();
-      const newTitleElement = newTray.element.querySelector('.tray-title');
-      newTray.startTitleEdit(newTitleElement);
+    const newTray = new Tray(this.id, Date.now().toString(), 'New Tray');
+    this.addChild(newTray);
+    this.isFolded = false;
+    this.updateAppearance()
+    // newTray.element.focus();
+    const newTitleElement = newTray.element.querySelector('.tray-title');
+    newTray.startTitleEdit(newTitleElement);
     // }
 
   }
@@ -506,7 +680,15 @@ class Tray {
   onContextMenu(event) {
     event.preventDefault();
     event.stopPropagation();
-  
+    if (this.isLabelTrayCopy) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    const existingMenu = document.querySelector('.context-menu');
+    if (existingMenu) {
+      existingMenu.remove();
+    }
     const menu = document.createElement('div');
     menu.classList.add('context-menu');
     menu.innerHTML = `
@@ -514,14 +696,16 @@ class Tray {
       <div class="menu-item" data-action="rename">Rename</div>
       <div class="menu-item" data-action="cut">Cut</div>
       <div class="menu-item" data-action="paste">Paste</div>
-      <div class="menu-item" data-action="label">Add Label</div>
-      <div class="menu-item" data-action="delete">Delete</div>
+      <div class="menu-item" data-action="addLabel">ラベルを追加</div>
+      <div class="menu-item" data-action="removeLabel">ラベルを削除</div>
+      <div class="menu-item" data-action="delete">Remove</div>
       <div class="menu-item" data-action="toggleFlexDirection">Toggle Flex Direction</div>
       <div class="menu-item" data-action="convertToNetwork">Convert to NetworkTray</div>
       <div class="menu-item" data-action="add_fetch_networkTray_to_child">add_fetch_networkTray_to_child </div>
       <div class="menu-item" data-action="open_this_in_other">open_this_in_other </div>
       <div class="menu-item" data-action="add_child_from_localStorage">add_child_from_localStorage </div>
       <div class="menu-item" data-action="fetchTrayFromServer">Fetch Tray from Server</div>
+      <div class="menu-item" data-action="addLabelTray">Add Label Tray</div>
 
 
       <div class="menu-item color-picker">
@@ -531,7 +715,7 @@ class Tray {
         </div>
       </div>
     `;
-  
+    menu.innerHTML += `<div class="menu-item" data-action="outputMarkdown">Output as Markdown</div>`;
     if (!this.isSplit) {
       menu.innerHTML += `<div class="menu-item" data-action="split">Split</div>`;
     }
@@ -558,8 +742,11 @@ class Tray {
         case 'paste':
           this.pasteTray();
           break;
-        case 'label':
-          this.addLabel(event);
+        case 'addLabel':
+          this.showLabelSelector(event);
+          break;
+        case 'removeLabel':
+          this.showLabelRemover();
           break;
         case 'delete':
           this.deleteTray();
@@ -587,11 +774,17 @@ class Tray {
         case 'fetchTrayFromServer':
           this.fetchTrayList();
           break;
-        }
+        case 'addLabelTray':
+          this.addLabelTray();
+          break;
+        case 'outputMarkdown':
+            this.showMarkdownOutput();
+            break;
+      }
       menu.remove();
       document.removeEventListener('click', handleOutsideClick);
     };
-  
+
 
 
     const handleOutsideClick = (e) => {
@@ -604,7 +797,161 @@ class Tray {
     menu.addEventListener('click', handleMenuClick);
     document.addEventListener('click', handleOutsideClick);
   }
+  addLabelTray() {
+    const labels = Object.keys(globalLabelManager.getAllLabels());
+    const labelSelector = document.createElement('div');
+    labelSelector.classList.add('label-selector');
+    labelSelector.innerHTML = `
+      <h3>Select a label to create a Label Tray:</h3>
+      <select id="labelTraySelect">
+        ${labels.map(label => `<option value="${label}" >${label}</option>`).join('')}
+      </select>
+      <button id="createLabelTrayBtn">Create Label Tray</button>
+    `;
+    document.body.appendChild(labelSelector);
 
+    document.getElementById('createLabelTrayBtn').addEventListener('click', () => {
+      const selectedLabel = document.getElementById('labelTraySelect').value;
+      this.createLabelTray(selectedLabel);
+      labelSelector.remove();
+    });
+
+  }
+  createLabelTray(selectedLabel){
+    const root = this.getRootTray();
+    const serialized =root.serialize();
+    console.log(serialized);
+    let copyied = deserializeDOM(serialized);
+    console.log(copyied)
+    
+    copyied = copyied.labelFilteringWithDestruction(selectedLabel,copyied)
+    console.log(copyied)
+    if (copyied){
+      let ret = new Tray(this.id,"LABEL_"+selectedLabel,selectedLabel + " LABEL_Tray",[],globalLabelManager.getLabel(selectedLabel))
+      copyied.children.map(t => ret.addChild(t))
+      this.addChild(ret)
+      this.updateAppearance()
+    }
+    else{
+      notifyUser("no tray found")
+    }
+  }
+  labelFilteringWithDestruction(labelName, tray) {
+    console.log(tray.labels);
+    console.log(tray.labels.includes(labelName));
+  
+    if (tray.labels.includes(labelName)) {
+      return tray;
+    } else {
+      let children_pre = tray.children;
+      let children_after = [];
+      children_after = children_pre
+        .map(t => this.labelFilteringWithDestruction(labelName, t))
+        .filter(t => t != null);      
+
+      console.log(children_after.length)
+      if (children_after.length != 0) {
+        tray.children = []
+        children_pre.map(t => {
+          t.element.remove()
+        })
+        console.log(tray.children.length)
+        children_after.map(t => tray.addChild(t))
+        tray.updateAppearance()
+        return tray;
+      }
+    }
+    return null;
+
+  }
+
+  getRootTray() {
+    return getRootElement().__trayInstance
+  }
+  showLabelSelector(event) {
+    // 既存のラベルセレクターを削除
+    const existingSelector = document.querySelector('.label-selector');
+    if (existingSelector) {
+      existingSelector.remove();
+    }
+
+    const labelSelector = document.createElement('div');
+    labelSelector.classList.add('label-selector');
+    labelSelector.innerHTML = `
+    <select id="existingLabels">
+      <option value="">-- Select existing label --</option>
+      ${Object.entries(globalLabelManager.getAllLabels()).map(([labelName, color]) =>
+        `<option value="${labelName}" style="background-color: ${color};">${labelName}</option>`
+      ).join('')}
+    </select>
+    <button id="selectExistingLabel">Select</button>
+    <div>or</div>
+    <input type="text" id="newLabelName" placeholder="New label name">
+    <input type="color" id="newLabelColor" value="#000000">
+    <button id="addNewLabel">Add new label</button>
+  `;
+
+    // ポップアップの位置を設定
+    labelSelector.style.position = 'fixed';
+    labelSelector.style.top = `${event.clientY}px`;
+    labelSelector.style.left = `${event.clientX}px`;
+
+    document.body.appendChild(labelSelector);
+
+    document.getElementById('selectExistingLabel').addEventListener('click', () => {
+      const selectedId = document.getElementById('existingLabels').value;
+      if (selectedId) {
+        this.addExistingLabel(selectedId);
+        labelSelector.remove();
+      }
+    });
+
+    document.getElementById('addNewLabel').addEventListener('click', () => {
+      const name = document.getElementById('newLabelName').value;
+      const color = document.getElementById('newLabelColor').value;
+      if (name) {
+        const newId = this.addNewLabelToManager(name, color);
+        this.addExistingLabel(newId);
+        labelSelector.remove();
+      }
+    });
+
+    // クリックイベントリスナーを追加して、ポップアップの外側をクリックしたら閉じる
+    document.addEventListener('click', (e) => {
+      if (!labelSelector.contains(e.target) && !e.target.closest('.context-menu')) {
+        labelSelector.remove();
+      }
+    }, { once: true });
+  }
+
+  showLabelRemover() {
+    const labelRemover = document.createElement('div');
+    labelRemover.classList.add('label-remover');
+    labelRemover.innerHTML = `
+      <h3>Select labels to remove:</h3>
+      ${this.labels.map(label => `
+        <div>
+          <input type="checkbox" id="${label}" value="${label}">
+          <label for="${label}">${label}</label>
+        </div>
+      `).join('')}
+      <button id="removeLabelBtn">Remove Selected Labels</button>
+    `;
+  
+    document.body.appendChild(labelRemover);
+  
+    document.getElementById('removeLabelBtn').addEventListener('click', () => {
+      const checkboxes = labelRemover.querySelectorAll('input[type="checkbox"]:checked');
+      checkboxes.forEach(checkbox => {
+        this.removeLabel(checkbox.value);
+      });
+      labelRemover.remove();
+    });
+  }
+
+
+
+  
   copyTray() {
     const copiedTray = new Tray(Date.now().toString(), this.name + ' (Copy)', [...this.labels]);
     if (this.parent) {
@@ -644,16 +991,7 @@ class Tray {
     }
   }
 
-  addLabel() {
-    const label = prompt('Enter label name:');
-    if (label) {
-      this.labels.push(label);
-      const labelElement = document.createElement('span');
-      labelElement.classList.add('tray-label');
-      labelElement.textContent = label;
-      this.element.titleContainer.appendChild(labelElement);
-    }
-  }
+
 
   deleteTray() {
     if (this.id === '0') {
@@ -745,7 +1083,7 @@ class Tray {
       filename
     );
     this.children.forEach(childTray => {
-      networkTray.addChild(childTray)      
+      networkTray.addChild(childTray)
     });
 
     networkTray.isSplit = this.isSplit;
@@ -753,14 +1091,14 @@ class Tray {
     networkTray.flexDirection = this.flexDirection;
 
 
-    if (this.id=="0"){
+    if (this.id == "0") {
       document.body.innerHTML = '';
       document.body.appendChild(networkTray.element);
-    }else{
-    let parent = getTrayFromId(this.parentId)
-    parent.addChild(networkTray)
-    parent.removeChild(this)
-    parent.updateAppearance()
+    } else {
+      let parent = getTrayFromId(this.parentId)
+      parent.addChild(networkTray)
+      parent.removeChild(this)
+      parent.updateAppearance()
     }
     networkTray.updateAppearance();
     networkTray.updateChildrenAppearance();
@@ -778,7 +1116,7 @@ class Tray {
       ""
     );
     // tmp.showNetworkOptions();
-    tmp.downloadData().then( tray =>{
+    tmp.downloadData().then(tray => {
       this.addChild(tray);
       tray.updateAppearance();
       tray.updateChildrenAppearance();
@@ -792,33 +1130,33 @@ class Tray {
   }
 
   serialize() {
-    console.log(this.children);
     return {
       id: this.id,
       name: this.name,
       labels: this.labels,
       isSplit: this.isSplit,
-      children: this.children.length ? this.children.map(child => child.serialize()) : [],
+      children: this.children.map(child => child.serialize()),
       parentId: this.parentId,
       borderColor: this.borderColor,
-      isChecked: this.isChecked , // Add this line,
+      isChecked: this.isChecked,
       flexDirection: this.flexDirection,
-  
+      created_dt: this.created_dt
+
     };
   }
-  open_this_in_other(){
+  open_this_in_other() {
     const data = JSON.stringify(this.serialize());
     const id = generateUUID();
-    localStorage.setItem(id,data)
-    window.open(window.location.href + "?sessionId=" + id,"_blank")
+    localStorage.setItem(id, data)
+    window.open(window.location.href + "?sessionId=" + id, "_blank")
   }
-  add_child_from_localStorage(){
-    let SessionId = prompt("input the sessionId",null);
+  add_child_from_localStorage() {
+    let SessionId = prompt("input the sessionId", null);
     let data;
-    if (SessionId){
+    if (SessionId) {
       data = localStorage.getItem(SessionId)
-    }else{return}
-    if (data){
+    } else { return }
+    if (data) {
       let tray = deserialize(JSON.parse(data));
       this.addChild(tray);
     }
@@ -835,15 +1173,15 @@ class Tray {
       <button id="add-tray-btn">Add Tray</button>
       <button id="cancel-btn">Cancel</button>
     `;
-  
+
     document.body.appendChild(dialog);
-  
+
     document.getElementById('add-tray-btn').addEventListener('click', () => {
       const selectedFile = document.getElementById('tray-select').value;
       this.addTrayFromServer(url, selectedFile);
       dialog.remove();
     });
-  
+
     document.getElementById('cancel-btn').addEventListener('click', () => {
       dialog.remove();
     });
@@ -855,52 +1193,47 @@ class Tray {
         'filename': filename
       }
     })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.json();
-    })
-    .then(data => {
-      const newTray = deserialize(data);
-      this.addChild(newTray);
-      this.updateAppearance();
-      notifyUser('Tray added successfully.');
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      notifyUser('Failed to add tray from server.');
-    });
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        const newTray = deserialize(data);
+        this.addChild(newTray);
+        this.updateAppearance();
+        notifyUser('Tray added successfully.');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        notifyUser('Failed to add tray from server.');
+      });
   }
-  add_child_(){
-    const data = JSON.stringify(this.serialize());
-    const id = generateUUID();
-    localStorage.setItem(id,data)
-    window.open(window.location.href + "?sessionId=" + id,"_blank")
-  }
+
   fetchTrayList() {
     const defaultServer = localStorage.getItem("defaultServer") || "";
     const url = prompt("Enter server URL:", defaultServer);
     if (!url) return;
-  
+
     fetch(`${url}/tray/list`, {
       method: 'GET',
     })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.json();
-    })
-    .then(data => {
-      this.showTraySelectionDialog(url, data.files);
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('Failed to fetch tray list from server.');
-    });
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        this.showTraySelectionDialog(url, data.files);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to fetch tray list from server.');
+      });
   }
-  
+
   showTraySelectionDialog(url, files) {
     const dialog = document.createElement('div');
     dialog.classList.add('tray-selection-dialog');
@@ -912,20 +1245,20 @@ class Tray {
       <button id="add-tray-btn">Add Tray</button>
       <button id="cancel-btn">Cancel</button>
     `;
-  
+
     document.body.appendChild(dialog);
-  
+
     document.getElementById('add-tray-btn').addEventListener('click', () => {
       const selectedFile = document.getElementById('tray-select').value;
       this.addTrayFromServer(url, selectedFile);
       dialog.remove();
     });
-  
+
     document.getElementById('cancel-btn').addEventListener('click', () => {
       dialog.remove();
     });
   }
-  
+
   addTrayFromServer(url, filename) {
     fetch(`${url}/tray/load`, {
       method: 'GET',
@@ -933,22 +1266,68 @@ class Tray {
         'filename': filename
       }
     })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.json();
-    })
-    .then(data => {
-      const newTray = deserialize(data);
-      this.addChild(newTray);
-      this.updateAppearance();
-      alert('Tray added successfully.');
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('Failed to add tray from server.');
-    });
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        const newTray = deserialize(data);
+        this.addChild(newTray);
+        this.updateAppearance();
+        alert('Tray added successfully.');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to add tray from server.');
+      });
+  }
+  showMarkdownOutput() {
+    const markdown = this.outputAsMarkdown();
+    const blob = new Blob([markdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    
+    const outputWindow = window.open('', '_blank');
+    outputWindow.document.write(`
+      <html>
+        <head>
+          <title>Tray Structure as Markdown</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; padding: 20px; }
+            pre { background-color: #f4f4f4; padding: 15px; border-radius: 5px; }
+            button { margin: 10px 5px; padding: 10px 15px; cursor: pointer; }
+          </style>
+        </head>
+        <body>
+          <h1>Tray Structure as Markdown</h1>
+          <pre>${markdown}</pre>
+          <button onclick="copyToClipboard()">Copy to Clipboard</button>
+          <button onclick="downloadMarkdown()">Download Markdown</button>
+          <script>
+            function copyToClipboard() {
+              const pre = document.querySelector('pre');
+              const textArea = document.createElement('textarea');
+              textArea.value = pre.textContent;
+              document.body.appendChild(textArea);
+              textArea.select();
+              document.execCommand('copy');
+              document.body.removeChild(textArea);
+              alert('Copied to clipboard!');
+            }
+            
+            function downloadMarkdown() {
+              const link = document.createElement('a');
+              link.href = '${url}';
+              link.download = 'tray_structure.md';
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }
+          </script>
+        </body>
+      </html>
+    `);
   }
 
 
@@ -960,31 +1339,34 @@ function deserialize(data) {
   let tray;
   if (data.host_url == null) {
     tray = new Tray(
-      data.parentId, 
-      data.id, 
-      data.name, 
+      data.parentId,
+      data.id,
+      data.name,
       [],
-      data.borderColor, 
-      data.labels, 
-      data.isChecked
+      data.borderColor,
+      data.labels,
+      data.isChecked,
+      data.created_dt == null ? new Date() : data.created_dt
     );
   } else {
     tray = new NetworkTray(
-      data.parentId, 
-      data.id, 
-      data.name, 
+      data.parentId,
+      data.id,
+      data.name,
       [],
-      data.borderColor, 
-      data.labels, 
+      data.borderColor,
+      data.labels,
       data.isChecked,
       data.host_url,
-      data.filename
+      data.filename,
+      data.created_dt == null ? new Date() : data.created_dt
+
     );
   }
-  let children = data.children.length ? data.children.map(d => deserialize(d)) : []; 
+  let children = data.children.map(d => deserialize(d))
   console.log(children)
   children.forEach(childTray => {
-    tray.addChild(childTray)    
+    tray.addChild(childTray)
   });
   tray.isSplit = data.isSplit;
   tray.flexDirection = data.flexDirection || 'column';
@@ -1005,11 +1387,12 @@ function deserialize(data) {
 
 
 class NetworkTray extends Tray {
-  constructor(parentId, id, name,children =[], color = null, labels = [], isChecked = false, url = '', filename = '') {
-    super(parentId=parentId, id = id, name = name,children =children,color= color,labels= labels, isChecked = isChecked);
-    this.host_url = url
-    this.filename = filename
-    if ((url.length==0)|(filename.length==0)){
+  constructor(parentId, id, name, children = [], color = null, labels = [], isChecked = false, url = '', filename = '', created_dt) {
+    super(parentId, id, name, children, color, labels, isChecked, created_dt);
+    this.host_url = url;
+    this.filename = filename;
+    this.autoUpload = false; 
+    if ((url.length == 0) | (filename.length == 0)) {
       this.showNetworkOptions();
     }
     this.updateNetworkInfo();
@@ -1017,7 +1400,7 @@ class NetworkTray extends Tray {
 
   uploadData() {
     const data = this.serialize();
-    
+  
     return fetch(`${this.host_url}/tray/save`, {
       method: 'POST',
       headers: {
@@ -1026,21 +1409,21 @@ class NetworkTray extends Tray {
       },
       body: JSON.stringify({ data: data }),
     })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.text();
-    })
-    .then(result => {
-      console.log(result);
-      notifyUser('データのアップロードに成功しました。');
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      // notifyUser('データのアップロードに失敗しました。');
-      throw error;
-    });
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.text();
+      })
+      .then(result => {
+        console.log(result);
+        this.showUploadNotification('Data uploaded successfully.');
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        this.showUploadNotification('Failed to upload data.', true);
+        throw error;
+      });
   }
 
   downloadData() {
@@ -1050,27 +1433,27 @@ class NetworkTray extends Tray {
         'filename': this.filename
       }
     })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.json();
-    })
-    .then(data => {
-      let tray = this.deserialize(data);
-      // let parent = getTrayFromId(this.parentId);
-      // parent.addChild(tray);
-      // parent.updateAppearance()
-      // this.element = tray.element
-      notifyUser('データのダウンロードに成功しました。');
-      return tray
-      ;
-    })
-    .catch(error => {
-      console.error('Error:', error);
-      notifyUser('データのダウンロードに失敗しました。');
-      throw error;
-    });
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        let tray = this.deserialize(data);
+        // let parent = getTrayFromId(this.parentId);
+        // parent.addChild(tray);
+        // parent.updateAppearance()
+        // this.element = tray.element
+        notifyUser('データのダウンロードに成功しました。');
+        return tray
+          ;
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        notifyUser('データのダウンロードに失敗しました。');
+        throw error;
+      });
   }
 
   serialize() {
@@ -1083,58 +1466,148 @@ class NetworkTray extends Tray {
 
   deserialize(data) {
     let tray = deserialize(data);
-    
+
     // if (tray.host_url){tray.updateNetworkInfo();}
     return tray
   }
 
   createElement() {
     const element = super.createElement();
-    
+  
     const networkInfoElement = document.createElement('div');
     networkInfoElement.classList.add('network-tray-info');
     this.updateNetworkInfo(networkInfoElement);
-    
+  
+    // Create a container for the buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.classList.add('network-tray-buttons');
+    buttonContainer.style.display = 'flex';
+    buttonContainer.style.flexDirection = 'column';
+    buttonContainer.style.alignItems = 'flex-start';
+    buttonContainer.style.gap = '5px'; // Add some space between buttons
+  
     const uploadButton = document.createElement('button');
     uploadButton.textContent = 'Upload';
     uploadButton.addEventListener('click', () => this.uploadData());
-    
+  
     const downloadButton = document.createElement('button');
     downloadButton.textContent = 'Download';
     downloadButton.addEventListener('click', () => this.downloadData());
-    
-    element.querySelector('.tray-title-container').appendChild(networkInfoElement);
-    element.querySelector('.tray-title-container').appendChild(uploadButton);
-    element.querySelector('.tray-title-container').appendChild(downloadButton);
-    
+  
+    const autoUploadButton = document.createElement('button');
+    autoUploadButton.textContent = `Auto Upload: ${this.autoUpload ? 'On' : 'Off'}`;
+    autoUploadButton.style.backgroundColor = this.autoUpload ? 'green' : '';
+    autoUploadButton.style.color = this.autoUpload ? 'white' : '';
+    autoUploadButton.addEventListener('click', () => this.toggleAutoUpload());
+  
+    // Add buttons to the container
+    buttonContainer.appendChild(uploadButton);
+    buttonContainer.appendChild(downloadButton);
+    buttonContainer.appendChild(autoUploadButton);
+  
+    // Add network info and button container to the tray
+    const titleContainer = element.querySelector('.tray-title-container');
+    titleContainer.appendChild(networkInfoElement);
+    titleContainer.appendChild(buttonContainer);
+  
+    // Adjust the layout of the title container
+    titleContainer.style.display = 'flex';
+    titleContainer.style.alignItems = 'center';
+    titleContainer.style.justifyContent = 'space-between';
+  
     return element;
   }
+  setupAutoUpload() {
+    this.lastSerializedState = JSON.stringify(this.serialize());
+    
+    this.autoUploadInterval = setInterval(() => {
+      const currentState = JSON.stringify(this.serialize());
+      if (currentState !== this.lastSerializedState) {
+        this.uploadData()
+          .then(() => {
+            this.showUploadNotification('Auto-upload successful.');
+            this.lastSerializedState = currentState;
+          })
+          .catch(error => {
+            console.error('Auto-upload failed:', error);
+            this.showUploadNotification('Auto-upload failed. Please check your connection.', true);
+          });
+      }
+    }, 5000); // Check for changes every 5 seconds
+  }
+  showUploadNotification(message, isError = false) {
+    const notification = document.createElement('div');
+    notification.textContent = message;
+    notification.style.position = 'fixed';
+    notification.style.bottom = '20px';
+    notification.style.right = '20px';
+    notification.style.padding = '10px';
+    notification.style.borderRadius = '5px';
+    notification.style.color = 'white';
+    notification.style.backgroundColor = isError ? 'red' : 'green';
+    notification.style.zIndex = '1000';
+  
+    document.body.appendChild(notification);
+  
+    setTimeout(() => {
+      notification.style.transition = 'opacity 0.5s';
+      notification.style.opacity = '0';
+      setTimeout(() => {
+        document.body.removeChild(notification);
+      }, 500);
+    }, 3000);
+  }
+  removeAutoUpload() {
+    if (this.autoUploadInterval) {
+      clearInterval(this.autoUploadInterval);
+      this.autoUploadInterval = null;
+    }
+    this.lastSerializedState = null;
+  }
+  toggleAutoUpload() {
+    this.autoUpload = !this.autoUpload;
+    const autoUploadButton = this.element.querySelector('.network-tray-buttons button:last-child');
+    autoUploadButton.textContent = `Auto Upload: ${this.autoUpload ? 'On' : 'Off'}`;
+    autoUploadButton.style.backgroundColor = this.autoUpload ? 'green' : '';
+    autoUploadButton.style.color = this.autoUpload ? 'white' : '';
+    
+    if (this.autoUpload) {
+      this.setupAutoUpload();
+    } else {
+      this.removeAutoUpload();
+    }
+    
+    saveToLocalStorage();
+  }
+
+
+
 
   onContextMenu(event) {
     super.onContextMenu(event);
     const menu = document.querySelector('.context-menu');
-    
+
     const networkOptions = document.createElement('div');
     networkOptions.classList.add('menu-item');
     networkOptions.textContent = 'Network Options';
     networkOptions.addEventListener('click', () => this.showNetworkOptions());
-    
+
     menu.appendChild(networkOptions);
   }
 
   showNetworkOptions() {
-    let d 
-    if (this.host_url){
+    let d
+    if (this.host_url) {
       d = this.host_url
-    }else{
+    } else {
       d = localStorage.getItem("defaultServer")
     }
     const url = prompt('Enter URL:', d);
     const filename = prompt('Enter filename:', this.filename);
-    
+
     if (url) this.host_url = url;
     if (filename) this.filename = filename;
-    
+
     this.updateNetworkInfo();
     saveToLocalStorage();
   }
@@ -1143,7 +1616,7 @@ class NetworkTray extends Tray {
     if (element) {
       // Clear existing content
       element.innerHTML = '';
-  
+
       // Create URL button
       const urlButton = document.createElement('button');
       urlButton.textContent = 'URL';
@@ -1151,7 +1624,7 @@ class NetworkTray extends Tray {
       urlButton.style.padding = '2px 5px';
       urlButton.style.marginBottom = '5px';
       urlButton.style.cursor = 'pointer';
-  
+
       // Set button color based on host_url validity
       if (this.host_url && this.host_url.trim() !== '') {
         urlButton.style.backgroundColor = 'green';
@@ -1160,18 +1633,18 @@ class NetworkTray extends Tray {
         urlButton.style.backgroundColor = 'gray';
         urlButton.style.color = 'white';
       }
-  
+
       // Add tooltip functionality
       urlButton.title = this.host_url || 'No URL set';
-  
+
       // Create filename element
       const filenameElement = document.createElement('div');
       filenameElement.textContent = `Filename: ${this.filename}`;
-  
+
       // Append elements to the container
       element.appendChild(urlButton);
       element.appendChild(filenameElement);
-  
+
       // Add event listeners for custom tooltip (optional, for more control)
       let tooltip;
       urlButton.addEventListener('mouseover', (e) => {
@@ -1184,12 +1657,12 @@ class NetworkTray extends Tray {
         tooltip.style.borderRadius = '3px';
         tooltip.style.zIndex = '1000';
         document.body.appendChild(tooltip);
-  
+
         const rect = e.target.getBoundingClientRect();
         tooltip.style.left = `${rect.left}px`;
         tooltip.style.top = `${rect.bottom + 5}px`;
       });
-  
+
       urlButton.addEventListener('mouseout', () => {
         if (tooltip) {
           document.body.removeChild(tooltip);
@@ -1198,26 +1671,26 @@ class NetworkTray extends Tray {
       });
     }
   }
-fetchTrayList() {
-  const defaultServer = localStorage.getItem("defaultServer") || "";
-  const url = prompt("Enter server URL:", defaultServer);
-  if (!url) return;
+  fetchTrayList() {
+    const defaultServer = localStorage.getItem("defaultServer") || "";
+    const url = prompt("Enter server URL:", defaultServer);
+    if (!url) return;
 
-  fetch(`${url}/tray/list`, {
-    method: 'GET',
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    return response.json();
-  })
-  .then(data => {
-    this.showTraySelectionDialog(url, data.files);
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    notifyUser('Failed to fetch tray list from server.');
-  });
-}
+    fetch(`${url}/tray/list`, {
+      method: 'GET',
+    })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        this.showTraySelectionDialog(url, data.files);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        notifyUser('Failed to fetch tray list from server.');
+      });
+  }
 }

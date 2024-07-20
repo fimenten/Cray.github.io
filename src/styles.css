@@ -1,15 +1,29 @@
+:root {
+  --tray-bg-color: #e0e0e0;
+  --tray-border-color: #ccc;
+  --tray-content-bg-color: #f5f5f5;
+  --title-color: #333;
+  --placeholder-color: #999;
+  --hover-bg-color: #f0f0f0;
+  --menu-bg-color: white;
+  --menu-border-color: #ccc;
+}
+
 /* Base Tray Styles */
 .tray {
   width: 100%;
   max-width: 100%;
-  background-color: #e0e0e0;
-  /* border-radius: 5px; */
+  background-color: var(--tray-bg-color);
   cursor: move;
-  border: 2px solid #ccc;
+  border: 2px solid var(--tray-border-color);
+  border-bottom-width: 3px;
+  border-left-width: 3px;
+  border-right: none;
   overflow: hidden;
   transition: order 0.3s;
   position: relative;
   box-sizing: border-box;
+  margin: 0;
 }
 
 .tray.dragging {
@@ -20,16 +34,15 @@
 /* Tray Title Container */
 .tray-title-container {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  justify-content: space-between;
   width: 100%;
-  padding: 10px;
+  padding: 10px 0 10px 10px;
   box-sizing: border-box;
+  min-height: 30px;
+  transition: min-height 0.3s ease;
+}
 
-}
-.tray {
-  border-bottom: 3px solid; /* Remove the color here */
-  border-left: 3px solid; /* Add left border */
-}
 /* Checkbox */
 .tray-checkbox {
   flex: 0 0 auto;
@@ -39,25 +52,28 @@
 
 /* Title */
 .tray-title {
-  flex: 0.5; /* flexを0.5に変更 */
+  flex: 1;
   min-width: 0;
-  /* max-width: 50%; 最大幅を50%に設定 */
-  /* overflow: hidden; */
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  width: 100px;
+  word-wrap: break-word;
+  white-space: normal;
   font-weight: bold;
   outline: none;
   cursor: text;
-  color: #333;
+  color: var(--title-color);
+  line-height: 1.2;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
 }
 
 .tray-title:focus {
-  background-color: white;
+  background-color: var(--menu-bg-color);
+  max-height: none;
 }
 
 .tray-title:empty::before {
   content: 'Untitled';
-  color: #999;
+  color: var(--placeholder-color);
   font-style: italic;
 }
 
@@ -68,31 +84,33 @@
 /* Context Menu Button */
 .tray-context-menu-button {
   flex: 0 0 auto;
-  margin-left: 5px;
   background: none;
   border: none;
   cursor: pointer;
   font-size: 1.2em;
-  padding: 0 5px;
+  padding: 0;
 }
 
 /* Tray Content */
 .tray-content {
-  padding: 10px 5px;
-  background-color: #f5f5f5;
+  padding: 5px 0 5px 5px;
+  background-color: var(--tray-content-bg-color);
+  display: flex;
 }
 
 .tray .tray {
   margin: 0;
-  width: calc(100% - 10px);
+  width: 100%;
 }
 
-/* Context Menu and Label Menu */
+/* Menu Styles */
 .context-menu,
-.label-menu {
-  position: absolute;
-  background-color: white;
-  border: 1px solid #ccc;
+.label-menu,
+.label-selector,
+.label-remover {
+  position: fixed;
+  background-color: var(--menu-bg-color);
+  border: 1px solid var(--menu-border-color);
   padding: 5px;
   border-radius: 5px;
   z-index: 1000;
@@ -100,21 +118,30 @@
 
 .menu-item,
 .label-item {
-  padding: 5px 10px;
+  padding: 5px;
   cursor: pointer;
 }
 
 .menu-item:hover,
 .label-item:hover {
-  background-color: #f0f0f0;
+  background-color: var(--hover-bg-color);
 }
 
-/* Tray Label */
+/* Tray Labels */
+.tray-labels {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
 .tray-label {
   display: inline-block;
-  background-color: #f0f0f0;
+  background-color: var(--hover-bg-color);
   border-radius: 3px;
   font-size: 12px;
+  padding: 2px 5px;
+  color: white;
 }
 
 /* Split Tray */
@@ -157,7 +184,6 @@
   left: 0;
   right: 0;
   height: 2px;
-  /* background-color: #000; */
 }
 
 .tray.drag-top::before {
@@ -174,7 +200,7 @@
   border: none;
   cursor: pointer;
   font-size: 12px;
-  padding: 0 5px;
+  padding: 0;
 }
 
 /* Color Picker */
@@ -187,8 +213,8 @@
   position: absolute;
   right: 100%;
   top: 0;
-  background: white;
-  border: 1px solid #ccc;
+  background: var(--menu-bg-color);
+  border: 1px solid var(--menu-border-color);
   padding: 5px;
   border-radius: 3px;
 }
@@ -210,69 +236,57 @@
 .color-option:hover {
   transform: scale(1.2);
 }
-.tray-content {
-  display: flex;
-}
+
+/* Tray Selection Dialog */
 .tray-selection-dialog {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: white;
-  padding: 20px;
-  border: 1px solid #ccc;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  background: var(--menu-bg-color);
+  padding: 10px;
+  border: 1px solid var(--menu-border-color);
   z-index: 1000;
   border-radius: 5px;
 }
 
 .tray-selection-dialog select {
   display: block;
-  margin: 10px 0;
+  margin: 5px 0;
   width: 100%;
   padding: 5px;
 }
 
 .tray-selection-dialog button {
-  margin-right: 10px;
-  padding: 5px 10px;
-  background-color: #f0f0f0;
-  border: 1px solid #ccc;
+  margin-right: 5px;
+  padding: 5px;
+  background-color: var(--hover-bg-color);
+  border: 1px solid var(--menu-border-color);
   border-radius: 3px;
   cursor: pointer;
 }
 
 .tray-selection-dialog button:hover {
-  background-color: #e0e0e0;
-}
-/* Title */
-.tray-title {
-  flex: 1;
-  min-width: 0;
-  word-wrap: break-word;
-  white-space: normal;
-  font-weight: bold;
-  outline: none;
-  cursor: text;
-  color: #333;
-  line-height: 1.2;
-  /* max-height: 2.4em; 2行分の高さ */
-  overflow: hidden;
-  transition: max-height 0.3s ease;
+  background-color: var(--tray-bg-color);
 }
 
-.tray-title:focus {
-  background-color: white;
-  max-height: none; /* フォーカス時に制限を解除 */
-}
-
-/* Tray Title Container */
-.tray-title-container {
-  display: flex;
-  align-items: flex-start; /* 上揃えに変更 */
-  width: 100%;
+/* Label Manager */
+.label-manager {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--menu-bg-color);
   padding: 10px;
-  box-sizing: border-box;
-  min-height: 40px; /* 最小の高さを設定 */
-  transition: min-height 0.3s ease;
+  border-radius: 5px;
+}
+
+.label-selector select,
+.label-selector input,
+.label-selector button,
+.label-remover select,
+.label-remover button {
+  margin: 5px 0;
+  padding: 5px;
+  cursor: pointer;
 }
