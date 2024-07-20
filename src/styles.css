@@ -41,6 +41,7 @@
 .tray-title {
   flex: 1;
   min-width: 0;
+  width: 100px;
   word-wrap: break-word;
   white-space: normal;
   font-weight: bold;
