@@ -101,7 +101,12 @@ class Tray {
     clickArea.classList.add('tray-click-area');
     clickArea.style.flexGrow = '1';
     clickArea.style.cursor = 'pointer';
-
+    const createdTime = document.createElement('span');
+    createdTime.classList.add('tray-created-time');
+    createdTime.textContent = this.formatCreatedTime();
+    createdTime.style.fontSize = '0.8em';
+    createdTime.style.color = '#888';
+    createdTime.style.marginLeft = '10px';
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.classList.add('tray-checkbox');
@@ -146,10 +151,12 @@ class Tray {
     foldButton.textContent = '▼';
     foldButton.addEventListener('click', this.toggleFold.bind(this));
     foldButton.style.display = "none";
+
     titleContainer.appendChild(foldButton);
     titleContainer.appendChild(contextMenuButton);
     titleContainer.appendChild(checkboxContainer);
     titleContainer.appendChild(title);
+    titleContainer.appendChild(createdTime);
     titleContainer.appendChild(labelsElement);
 
     // titleContainer.appendChild(clickArea)
@@ -190,9 +197,16 @@ class Tray {
       children: ['1-1', '1-0', '0-1', '0-0'],
     }
     ,
-    
-  };
 
+  };
+formatCreatedTime() {
+  return new Date(this.created_dt).toLocaleString('ja-JP', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })}
   showTemplateSelectionDialog() {
     const dialog = document.createElement('div');
     dialog.classList.add('template-selection-dialog');
