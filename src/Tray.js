@@ -1280,9 +1280,10 @@ formatCreatedTime() {
       tray.updateAppearance();
       tray.updateChildrenAppearance();
 
-    }
+    });
+    this.updateAppearance();
 
-    )
+    
 
 
 
