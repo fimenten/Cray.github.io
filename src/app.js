@@ -84,6 +84,9 @@ function createHamburgerMenu() {
 menu.innerHTML += `
   <div class="menu-item" data-action="editTitle">ページタイトルを編集</div>
 `;
+menu.innerHTML += `
+  <div class="menu-item" data-action="uploadAll">Upload All</div>
+`;
   document.body.appendChild(menu);
 
   // メニュー項目のスタイリング
@@ -136,6 +139,9 @@ menu.innerHTML += `
         case 'editTitle':
           editPageTitle();
           break;
+          case 'uploadAll':
+            uploadAllData();
+            break;
     }
     menu.style.display = 'none';
   });
@@ -151,6 +157,15 @@ menu.innerHTML += `
   });
 
   return { hamburger, menu };
+}
+
+function uploadAllData(tray = getRootElement().__trayInstance){
+  if (tray.uploadData){
+    tray.uploadData();
+  }
+  if (tray.children.length){
+    tray.children.map(t=>uploadAllData(t))
+  }
 }
 
 function editPageTitle() {
