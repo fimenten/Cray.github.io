@@ -171,6 +171,119 @@ class Tray {
     }
     return tray;
   }
+  static templates = {
+    'Task': {
+      name: 'tasker',
+      children: ['PLANNING', 'PLANNED', 'PROGRESS',"DONE"],
+      labels: []
+    },
+    'Project Structure': {
+      name: 'Project Structure',
+      children: [
+        {name: '思索'},
+        {name: '実装方針'},
+        {name: '実装中'},
+      ],
+    },
+    'Meeting Notes': {
+      name: 'Meeting Notes',
+      children: ['Agenda', 'Discussion Points', 'Action Items', 'Next Steps'],
+      labels: ['PLANNING']
+    }
+  };
+
+  showTemplateSelectionDialog() {
+    const dialog = document.createElement('div');
+    dialog.classList.add('template-selection-dialog');
+    dialog.innerHTML = `
+      <h3>Select a Template:</h3>
+      <select id="template-select">
+        ${Object.keys(Tray.templates).map(key => 
+          `<option value="${key}">${Tray.templates[key].name}</option>`
+        ).join('')}
+      </select>
+      <button id="create-template-btn">Create</button>
+      <button id="cancel-btn">Cancel</button>
+    `;
+
+    document.body.appendChild(dialog);
+
+    document.getElementById('create-template-btn').addEventListener('click', () => {
+      const selectedTemplate = document.getElementById('template-select').value;
+      this.addTemplateTray(selectedTemplate);
+      dialog.remove();
+    });
+
+    document.getElementById('cancel-btn').addEventListener('click', () => {
+      dialog.remove();
+    });
+  }
+  showTemplateSelectionPopup(event) {
+    const popup = document.createElement('div');
+    popup.classList.add('template-selection-popup');
+    popup.style.position = 'fixed';
+    popup.style.top = `${event.clientY}px`;
+    popup.style.left = `${event.clientX}px`;
+    popup.style.zIndex = '10000';
+  
+    popup.innerHTML = `
+      <h3>Select a Template:</h3>
+      <div class="template-list">
+        ${Object.keys(Tray.templates).map(key => `
+          <div class="template-item" data-template="${key}">
+            <h4>${Tray.templates[key].name}</h4>
+            <small>${Tray.templates[key].children.length} items</small>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  
+    document.body.appendChild(popup);
+  
+    popup.addEventListener('click', (e) => {
+      const templateItem = e.target.closest('.template-item');
+      if (templateItem) {
+        const selectedTemplate = templateItem.getAttribute('data-template');
+        this.addTemplateTray(selectedTemplate);
+        popup.remove();
+      }
+    });
+  
+    // ポップアップの外側をクリックしたときに閉じる
+    document.addEventListener('click', function closePopup(e) {
+      if (!popup.contains(e.target) && !e.target.closest('.context-menu')) {
+        popup.remove();
+        document.removeEventListener('click', closePopup);
+      }
+    });
+  }
+  createTemplateTray(templateName) {
+    const template = Tray.templates[templateName];
+    if (!template) return null;
+
+    const templateTray = new Tray(this.id, Date.now().toString(), template.name);
+    
+    const createChildren = (parentTray, children) => {
+      children.forEach(child => {
+        if (typeof child === 'string') {
+          const childTray = new Tray(parentTray.id, Date.now().toString(), child);
+          parentTray.addChild(childTray);
+        } else {
+          const childTray = new Tray(parentTray.id, Date.now().toString(), child.name);
+          parentTray.addChild(childTray);
+          if (child.children) {
+            createChildren(childTray, child.children);
+          }
+        }
+      });
+    };
+
+    createChildren(templateTray, template.children);
+    
+
+    
+    return templateTray.children
+  }
   outputAsMarkdown(depth = 0) {
     let markdown = '#'.repeat(depth + 1) + ' ' + this.name + '\n\n';
     
@@ -712,6 +825,8 @@ class Tray {
       </div>
     `;
     menu.innerHTML += `<div class="menu-item" data-action="outputMarkdown">Output as Markdown</div>`;
+    menu.innerHTML += `<div class="menu-item" data-action="addTemplateTray">Add Template Tray</div>`;
+    
     if (!this.isSplit) {
       menu.innerHTML += `<div class="menu-item" data-action="split">Split</div>`;
     }
@@ -799,6 +914,12 @@ class Tray {
         case 'outputMarkdown':
             this.showMarkdownOutput();
             break;
+        case 'addTemplateTray':
+          console.log("Add Template Tray clicked"); // デバッグログ
+
+          this.showTemplateSelectionPopup(event);
+          menu.remove(); // Close the context menu
+          break;
       }
       menu.remove();
       document.removeEventListener('click', handleOutsideClick);
@@ -815,6 +936,15 @@ class Tray {
 
     menu.addEventListener('click', handleMenuClick);
     document.addEventListener('click', handleOutsideClick);
+  }
+  addTemplateTray(templateName) {
+    const templateTrays = this.createTemplateTray(templateName);
+    if (templateTrays) {
+      templateTrays.map(t=>this.addChild(t));
+      this.isFolded = false;
+      this.updateAppearance();
+      saveToLocalStorage();
+    }
   }
   addLabelTray() {
     const labels = Object.keys(globalLabelManager.getAllLabels());

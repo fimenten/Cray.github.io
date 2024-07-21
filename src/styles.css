@@ -296,3 +296,29 @@
   background-color: #f0f0f0;
   outline: none;
 }
+.template-selection-popup {
+  position: fixed;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  z-index: 10000;
+}
+
+.template-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.template-item {
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.template-item:hover {
+  background-color: #f0f0f0;
+}
