@@ -197,6 +197,10 @@ class Tray {
       children: ['1-1', '1-0', '0-1', '0-0'],
     }
     ,
+    "importance":{
+      name:"konsaruImportance",
+      children:["MUST","SHOULD","COULD","WONT"]
+    }
 
   };
 formatCreatedTime() {
