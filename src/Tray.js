@@ -1013,11 +1013,6 @@ class Tray {
 
 
   deleteTray() {
-    if (this.id === '0') {
-      alert('Cannot delete root tray');
-      return;
-    }
-
     const parent = getTrayFromId(this.parentId);
     const indexInParent = parent.children.findIndex(child => child.id === this.id);
 
