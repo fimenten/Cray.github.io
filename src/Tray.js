@@ -1121,12 +1121,9 @@ formatCreatedTime() {
 
   
   copyTray() {
-    const copiedTray = new Tray(Date.now().toString(), this.name + ' (Copy)', [...this.labels]);
-    if (this.parent) {
-      this.parent.addChild(copiedTray);
-      const index = this.parent.children.indexOf(this);
-      this.parent.element.querySelector('.tray-content').insertBefore(copiedTray.element, this.element.nextSibling);
-    }
+    const serialized = serializeDOM(this)
+    serialized.id =  generateUUID()
+    navigator.clipboard.writeText(JSON.stringify(serialized))
   }
 
   renameTray() {
@@ -1137,27 +1134,22 @@ formatCreatedTime() {
   }
 
   cutTray() {
-    if (this.id === '0') {
-      alert('Cannot cut root tray');
-      return;
-    }
-    sessionStorage.setItem('cutTray', JSON.stringify(this.serialize()));
-    if (this.parent) {
-      this.parent.removeChild(this);
-      this.element.remove();
-    }
+    const serialized = serializeDOM(this)
+    navigator.clipboard.writeText(JSON.stringify(serialized))
   }
 
   pasteTray() {
-    const cutTrayData = sessionStorage.getItem('cutTray');
-    if (cutTrayData) {
-      const trayData = JSON.parse(cutTrayData);
-      const newTray = Tray.deserialize(trayData);
+    const serialized = navigator.clipboard.readText().then(str =>
+    {try{
+      let newTray = deserializeDOM(JSON.parse(str))
       this.addChild(newTray);
-      this.element.querySelector('.tray-content').appendChild(newTray.element);
-      sessionStorage.removeItem('cutTray');
+    }catch{
+      const texts = str.split('\n').filter(line => line.trim() !== '');
+      const trays = texts.map(text => new Tray(this.id,generateUUID(),text));
+      trays.map(t => this.addChild(t))
     }
-  }
+  })
+}
 
 
 
