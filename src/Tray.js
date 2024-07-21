@@ -185,11 +185,12 @@ class Tray {
         {name: '実装中'},
       ],
     },
-    'Meeting Notes': {
-      name: 'Meeting Notes',
-      children: ['Agenda', 'Discussion Points', 'Action Items', 'Next Steps'],
-      labels: ['PLANNING']
+    'importance_urgence': {
+      name: 'importance - urgence',
+      children: ['1-1', '1-0', '0-1', '0-0'],
     }
+    ,
+    
   };
 
   showTemplateSelectionDialog() {
