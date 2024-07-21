@@ -692,20 +692,17 @@ class Tray {
     const menu = document.createElement('div');
     menu.classList.add('context-menu');
     menu.innerHTML = `
-      <div class="menu-item" data-action="copy">Copy</div>
-      <div class="menu-item" data-action="rename">Rename</div>
-      <div class="menu-item" data-action="cut">Cut</div>
-      <div class="menu-item" data-action="paste">Paste</div>
-      <div class="menu-item" data-action="addLabel">ラベルを追加</div>
-      <div class="menu-item" data-action="removeLabel">ラベルを削除</div>
-      <div class="menu-item" data-action="delete">Remove</div>
-      <div class="menu-item" data-action="toggleFlexDirection">Toggle Flex Direction</div>
-      <div class="menu-item" data-action="convertToNetwork">Convert to NetworkTray</div>
-      <div class="menu-item" data-action="add_fetch_networkTray_to_child">add_fetch_networkTray_to_child </div>
-      <div class="menu-item" data-action="open_this_in_other">open_this_in_other </div>
-      <div class="menu-item" data-action="add_child_from_localStorage">add_child_from_localStorage </div>
       <div class="menu-item" data-action="fetchTrayFromServer">Fetch Tray from Server</div>
+      <div class="menu-item" data-action="convertToNetwork">Convert to NetworkTray</div>
+      <div class="menu-item" data-action="open_this_in_other">open_this_in_other </div>
+
+      <div class="menu-item" data-action="toggleFlexDirection">Toggle Flex Direction</div>
+      <div class="menu-item" data-action="add_fetch_networkTray_to_child">add_fetch_networkTray_to_child </div>
+      <div class="menu-item" data-action="add_child_from_localStorage">add_child_from_localStorage </div>
       <div class="menu-item" data-action="addLabelTray">Add Label Tray</div>
+      <div class="menu-item" data-action="delete">Remove</div>
+      <div class="menu-item" data-action="addLabel">Add Label</div>
+      <div class="menu-item" data-action="removeLabel">Edit Labels</div>
 
 
       <div class="menu-item color-picker">
