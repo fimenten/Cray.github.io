@@ -145,6 +145,7 @@ class Tray {
     foldButton.classList.add('tray-fold-button');
     foldButton.textContent = '▼';
     foldButton.addEventListener('click', this.toggleFold.bind(this));
+    foldButton.style.display = "none";
     titleContainer.appendChild(foldButton);
     titleContainer.appendChild(contextMenuButton);
     titleContainer.appendChild(checkboxContainer);
@@ -319,33 +320,30 @@ class Tray {
     this.updateAppearance();
   }
 
-  updateBorderColor() {
-    const titleContainer = this.element.querySelector('.tray-title-container');
-    const content = this.element.querySelector(".tray");
-    if (content) {
-      content.style.borderLeftColor = `3px solid ${this.borderColor}`;
-    }
-
-
-    saveToLocalStorage();
-  }
   // updateBorderColor() {
-  //   const trayElement = this.element;
-  //   const titleContainer = trayElement.querySelector('.tray-title-container');
-  //   if (titleContainer && trayElement) {
-  //     titleContainer.style.borderBottomColor = this.borderColor;
-  //     titleContainer.style.borderLeftColor = this.borderColor;
-  //     trayElement.style.borderLeftColor = this.borderColor;
-  //     trayElement.style.borderBottomColor = this.borderColor;
+  //   const titleContainer = this.element.querySelector('.tray-title-container');
+  //   const content = this.element;
+  //   if (content) {
+  //     content.style.borderLeftColor = `3px solid ${this.borderColor}`;
   //   }
+
+
   //   saveToLocalStorage();
   // }
+  updateBorderColor() {
+    const trayElement = this.element;
+    if (trayElement) {
+      trayElement.style.borderLeftColor = this.borderColor;
+      trayElement.style.borderLeftWidth = '3px';
+      trayElement.style.borderLeftStyle = 'solid';
+    }
+    saveToLocalStorage();
+  }
   changeBorderColor(color) {
-    if (Tray.colorPalette.includes(color)) {
       this.borderColor = color;
+      console.log(color)
       this.updateBorderColor();
       saveToLocalStorage();
-    }
   }
 
   setupTitleEditing(titleElement) {
@@ -380,16 +378,18 @@ class Tray {
     if (checkbox) {
       checkbox.checked = this.isChecked;
     }
-    if (!this.children) {
+    if (!this.children.length) {
       content.style.display = 'none';
-
-      if (this.isFolded) {
-        foldButton.textContent = '▶';
-      } else {
-        foldButton.textContent = '▼';
-      }
+      
+      // if (this.isFolded) {
+      //   foldButton.textContent = '▶';
+      // } else {
+      //   foldButton.textContent = '▼';
+      // }
     } else {
       foldButton.style.display = 'inline-block';
+      // foldButton.style.visibility/ = 'visible';
+      
       if (this.isFolded) {
         content.style.display = 'none';
         foldButton.textContent = '▶';
