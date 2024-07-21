@@ -46,7 +46,7 @@
 /* Checkbox */
 .tray-checkbox {
   flex: 0 0 auto;
-  margin: 5px;
+  margin: 0px;
   padding: 0;
   opacity: 0; /* Makes the checkbox invisible */
   /* Alternatively, you could use: visibility: hidden; */
