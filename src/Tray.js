@@ -691,20 +691,19 @@ class Tray {
     }
     const menu = document.createElement('div');
     menu.classList.add('context-menu');
+    menu.setAttribute('tabindex', '-1');
     menu.innerHTML = `
       <div class="menu-item" data-action="fetchTrayFromServer">Fetch Tray from Server</div>
       <div class="menu-item" data-action="convertToNetwork">Convert to NetworkTray</div>
-      <div class="menu-item" data-action="open_this_in_other">open_this_in_other </div>
-
+      <div class="menu-item" data-action="open_this_in_other">open_this_in_other</div>
       <div class="menu-item" data-action="toggleFlexDirection">Toggle Flex Direction</div>
-      <div class="menu-item" data-action="add_fetch_networkTray_to_child">add_fetch_networkTray_to_child </div>
-      <div class="menu-item" data-action="add_child_from_localStorage">add_child_from_localStorage </div>
+      <div class="menu-item" data-action="add_fetch_networkTray_to_child">add_fetch_networkTray_to_child</div>
+      <div class="menu-item" data-action="add_child_from_localStorage">add_child_from_localStorage</div>
       <div class="menu-item" data-action="addLabelTray">Add Label Tray</div>
       <div class="menu-item" data-action="delete">Remove</div>
       <div class="menu-item" data-action="addLabel">Add Label</div>
       <div class="menu-item" data-action="removeLabel">Edit Labels</div>
-
-
+    
       <div class="menu-item color-picker">
         Change Border Color
         <div class="color-options">
@@ -719,7 +718,30 @@ class Tray {
     menu.style.top = `${event.clientY}px`;
     menu.style.left = `${event.clientX}px`;
     document.body.appendChild(menu);
-    menu.focus()
+    
+    // Add keyboard navigation
+    const menuItems = menu.querySelectorAll('.menu-item');
+    let currentFocus = 0;
+    
+    menu.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        menuItems[currentFocus].classList.remove('focused');
+        if (e.key === 'ArrowDown') {
+          currentFocus = (currentFocus + 1) % menuItems.length;
+        } else {
+          currentFocus = (currentFocus - 1 + menuItems.length) % menuItems.length;
+        }
+        menuItems[currentFocus].classList.add('focused');
+        menuItems[currentFocus].focus();
+      } else if (e.key === 'Enter') {
+        menuItems[currentFocus].click();
+      } else if (e.key === 'Escape') {
+        document.body.removeChild(menu);
+      }
+    });
+    
+    menu.focus();
+    menuItems[0].classList.add('focused');
     const handleMenuClick = (e) => {
       const action = e.target.getAttribute('data-action');
       const color = e.target.getAttribute('data-color');
