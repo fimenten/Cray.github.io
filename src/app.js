@@ -87,6 +87,9 @@ menu.innerHTML += `
 menu.innerHTML += `
   <div class="menu-item" data-action="uploadAll">Upload All</div>
 `;
+menu.innerHTML += `
+  <div class="menu-item" data-action="downloadAll">Download All</div>
+`;
   document.body.appendChild(menu);
 
   // メニュー項目のスタイリング
@@ -167,7 +170,14 @@ function uploadAllData(tray = getRootElement().__trayInstance){
     tray.children.map(t=>uploadAllData(t))
   }
 }
-
+function downloadAllData(tray = getRootElement().__trayInstance){
+  if (tray.downloadData){
+    tray.uploadData();
+  }
+  if (tray.children.length){
+    tray.children.map(t=>downloadAllData(t))
+  }
+}
 function editPageTitle() {
   const currentTitle = document.title;
   const newTitle = prompt("新しいページタイトルを入力してください:", currentTitle);
