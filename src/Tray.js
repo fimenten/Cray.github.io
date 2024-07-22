@@ -176,6 +176,8 @@ class Tray {
       titleElement.setAttribute('contenteditable', 'false');
       titleElement.style.pointerEvents = 'none';
     }
+    this.setupEventListeners(tray);
+
     return tray;
   }
   static templates = {
@@ -386,7 +388,34 @@ formatCreatedTime() {
     saveToLocalStorage(); // ラベル追加後に保存
     return id;
   }
+  setupEventListeners(element) {
+    let longPressTimer;
+    let startX, startY;
+    const longPressDuration = 500;
 
+    element.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+
+      longPressTimer = setTimeout(() => {
+        this.showContextMenu(e);
+      }, longPressDuration);
+    });
+
+    element.addEventListener('touchmove', (e) => {
+      const threshold = 10;
+      if (Math.abs(e.touches[0].clientX - startX) > threshold ||
+        Math.abs(e.touches[0].clientY - startY) > threshold) {
+        clearTimeout(longPressTimer);
+      }
+    });
+
+    element.addEventListener('touchend', () => {
+      clearTimeout(longPressTimer);
+    });
+
+    // ... 他のイベントリスナー ...
+  }
   updateLabels() {
     let labelContainer = this.element.querySelector('.tray-labels');
     if (!labelContainer) {
