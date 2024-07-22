@@ -55,7 +55,7 @@
 /* Title */
 .tray-title {
   flex: 1;
-  min-width: 0;
+  min-width: 50%;
   width: 100px;
   word-wrap: break-word;
   white-space: normal;
@@ -321,4 +321,103 @@
 
 .template-item:hover {
   background-color: #f0f0f0;
+}
+/* Network Tray Info Styles */
+.network-tray-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-left: 5px;
+  font-size: 0.7em;
+  max-width: 100px;
+}
+
+.network-tray-info button {
+  font-size: 0.8em;
+  padding: 1px 3px;
+  margin-bottom: 2px;
+  cursor: pointer;
+  border: none;
+  border-radius: 2px;
+}
+
+.network-tray-info button[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-size: 0.8em;
+  white-space: nowrap;
+  z-index: 1000;
+  top: 100%;
+  left: 0;
+}
+
+.network-tray-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-left: 5px;
+  gap: 2px;
+}
+
+.network-tray-buttons button {
+  font-size: 0.7em;
+  padding: 1px 3px;
+  cursor: pointer;
+  border: none;
+  border-radius: 2px;
+  background-color: #f0f0f0;
+  width: 100%;
+  text-align: left;
+}
+
+.network-tray-buttons button:hover {
+  background-color: #e0e0e0;
+}
+
+/* Adjust Tray Title Container for Network Tray */
+.tray.network-tray .tray-title-container {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: nowrap;
+  padding: 3px 5px;
+}
+
+.tray.network-tray .tray-title {
+  flex: 1;
+  min-width: 0;
+  margin-right: 5px;
+  font-size: 0.9em;
+}
+
+.tray.network-tray .tray-context-menu-button {
+  order: -1;
+  margin-right: 2px;
+  font-size: 0.8em;
+}
+
+.tray.network-tray .tray-checkbox-container {
+  order: -2;
+  margin-right: 2px;
+}
+
+.tray.network-tray .tray-created-time {
+  font-size: 0.6em;
+  color: #888;
+  margin-left: auto;
+  align-self: flex-end;
+}
+
+.tray.network-tray .tray-labels {
+  width: 100%;
+  margin-top: 2px;
+  font-size: 0.7em;
+}
+
+.tray.network-tray .network-tray-info,
+.tray.network-tray .network-tray-buttons {
+  flex-shrink: 0;
 }
