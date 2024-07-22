@@ -394,6 +394,7 @@ formatCreatedTime() {
     const longPressDuration = 500;
 
     element.addEventListener('touchstart', (e) => {
+      if (this.isEditing){return}
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
 
@@ -404,6 +405,7 @@ formatCreatedTime() {
 
     element.addEventListener('touchmove', (e) => {
       const threshold = 10;
+      if (this.isEditing){return}
       if (Math.abs(e.touches[0].clientX - startX) > threshold ||
         Math.abs(e.touches[0].clientY - startY) > threshold) {
         clearTimeout(longPressTimer);
@@ -1659,9 +1661,9 @@ class NetworkTray extends Tray {
   createElement() {
     const element = super.createElement();
   
-    const networkInfoElement = document.createElement('div');
-    networkInfoElement.classList.add('network-tray-info');
-    this.updateNetworkInfo(networkInfoElement);
+    // const networkInfoElement = document.createElement('div');
+    // networkInfoElement.classList.add('network-tray-info');
+    // this.updateNetworkInfo(networkInfoElement);
   
     // Create a container for the buttons
     const buttonContainer = document.createElement('div');
@@ -1688,11 +1690,11 @@ class NetworkTray extends Tray {
     // Add buttons to the container
     buttonContainer.appendChild(uploadButton);
     buttonContainer.appendChild(downloadButton);
-    buttonContainer.appendChild(autoUploadButton);
+    // buttonContainer.appendChild(autoUploadButton);
   
     // Add network info and button container to the tray
     const titleContainer = element.querySelector('.tray-title-container');
-    titleContainer.appendChild(networkInfoElement);
+    // titleContainer.appendChild(networkInfoElement);
     titleContainer.appendChild(buttonContainer);
   
     // Adjust the layout of the title container
@@ -1797,7 +1799,7 @@ class NetworkTray extends Tray {
     saveToLocalStorage();
   }
 
-  updateNetworkInfo(element = this.element.querySelector('.network-tray-info')) {
+  updateNetworkInfo(element = this.element.querySelector('.network-tray-buttons')) {
     if (element) {
       // Clear existing content
       element.innerHTML = '';
@@ -1805,10 +1807,19 @@ class NetworkTray extends Tray {
       // Create URL button
       const urlButton = document.createElement('button');
       urlButton.textContent = 'URL';
-      urlButton.style.fontSize = 'small';
-      urlButton.style.padding = '2px 5px';
-      urlButton.style.marginBottom = '5px';
-      urlButton.style.cursor = 'pointer';
+      const uploadButton = document.createElement('button');
+      uploadButton.textContent = 'Upload';
+      uploadButton.addEventListener('click', () => this.uploadData());
+    
+      const downloadButton = document.createElement('button');
+      downloadButton.textContent = 'Download';
+      downloadButton.addEventListener('click', () => this.downloadData());
+    
+      const autoUploadButton = document.createElement('button');
+      autoUploadButton.textContent = `Auto Upload: ${this.autoUpload ? 'On' : 'Off'}`;
+      autoUploadButton.style.backgroundColor = this.autoUpload ? 'green' : '';
+      autoUploadButton.style.color = this.autoUpload ? 'white' : '';
+      autoUploadButton.addEventListener('click', () => this.toggleAutoUpload());
 
       // Set button color based on host_url validity
       if (this.host_url && this.host_url.trim() !== '') {
@@ -1824,12 +1835,14 @@ class NetworkTray extends Tray {
 
       // Create filename element
       const filenameElement = document.createElement('div');
-      filenameElement.textContent = `Filename: ${this.filename}`;
+      filenameElement.textContent = `${this.filename}`;
 
       // Append elements to the container
       element.appendChild(urlButton);
       element.appendChild(filenameElement);
-
+      element.appendChild(uploadButton)
+      element.appendChild(downloadButton)
+      // element.appendChild(autoUploadButton)
       // Add event listeners for custom tooltip (optional, for more control)
       let tooltip;
       urlButton.addEventListener('mouseover', (e) => {
