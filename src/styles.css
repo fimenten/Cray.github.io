@@ -204,6 +204,13 @@
   font-size: 12px;
   padding: 0;
 }
+.tray-fold-button-right {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+}
 
 /* Color Picker */
 .color-picker {

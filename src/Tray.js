@@ -151,10 +151,15 @@ class Tray {
     foldButton.textContent = '▼';
     foldButton.addEventListener('click', this.toggleFold.bind(this));
     foldButton.style.display = "none";
-
+    const rightFoldBotton = document.createElement('button');
+    rightFoldBotton.classList.add('tray-fold-button-right');
+    rightFoldBotton.textContent = '▼';
+    rightFoldBotton.addEventListener('click', this.toggleFold.bind(this));
+    rightFoldBotton.style.display = "none";
     titleContainer.appendChild(foldButton);
-    titleContainer.appendChild(checkboxContainer);
+    // titleContainer.appendChild(checkboxContainer);
     titleContainer.appendChild(title);
+    titleContainer.appendChild(rightFoldBotton);
     titleContainer.appendChild(contextMenuButton);
     titleContainer.appendChild(createdTime);
     titleContainer.appendChild(labelsElement);
@@ -537,6 +542,8 @@ formatCreatedTime() {
   updateAppearance() {
     const content = this.element.querySelector('.tray-content');
     const foldButton = this.element.querySelector('.tray-fold-button');
+    const foldButtonRight = this.element.querySelector('.tray-fold-button-right');
+
     // const checkbox = this.element.querySelector('.tray-checkbox');
 
     if (!this.children.length) {
@@ -545,16 +552,20 @@ formatCreatedTime() {
 
     } else {
       foldButton.style.display = 'inline-block';
-      // foldButton.style.visibility/ = 'visible';
+      foldButtonRight.style.display = 'inline-block';
       
       if (this.isFolded) {
         content.style.display = 'none';
         foldButton.textContent = '▶';
         foldButton.style.display = "inline-block";
+        foldButtonRight.textContent = '▼';
+        foldButtonRight.style.display = "none";
       } else {
         content.style.display = 'block';
         foldButton.textContent = '▼';
         foldButton.style.display = "none";
+        foldButtonRight.textContent = '▶';
+        foldButtonRight.style.display = "inline-block";
         this.updateFlexDirection();
   }
     }
