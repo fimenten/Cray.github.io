@@ -84,6 +84,7 @@ function loadFromLocalStorage(key=TRAY_DATA_KEY) {
     document.body.innerHTML = '';
     document.body.appendChild(rootTray.element);
     rootTray.updateAppearance()
+    rootTray.updateChildrenAppearance()
   } catch (error) {
     console.error('Error loading from localStorage:', error);
     const rootTray = createDefaultRootTray();
