@@ -1680,9 +1680,22 @@ class NetworkTray extends Tray {
     const downloadButton = document.createElement('button');
     downloadButton.textContent = 'Download';
     downloadButton.addEventListener('click', () => {
-      let downloaded = this.downloadData();
-      this.element.__trayInstance = downloaded
-      downloaded.updateAppearance()
+      this.downloadData()
+        .then(downloaded => {
+          // Update the current tray with the downloaded data
+          Object.assign(this, downloaded);
+          this.updateAppearance();
+          this.updateNetworkInfo();
+          // If there are children, recursively update them
+          this.children.forEach((child, index) => {
+            Object.assign(child, downloaded.children[index]);
+            child.updateAppearance();
+          });
+        })
+        .catch(error => {
+          console.error('Download failed:', error);
+          notifyUser('Download failed. Please check your connection.');
+        });
     });
   
     const autoUploadButton = document.createElement('button');
