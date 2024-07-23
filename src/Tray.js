@@ -64,7 +64,7 @@ class Tray {
     '#82E0AA', // Light Green
     '#F8C471', // Light Orange
     '#85C1E9',  // Sky Blue
-    "#e0e0e0", // Tray color
+    "#f5f5f5", // Tray color
   ];
 
   constructor(parentId, id, name, children = [], color = null, labels = [], isChecked = false, created_dt = null) {
