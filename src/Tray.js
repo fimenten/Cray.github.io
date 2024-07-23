@@ -541,17 +541,8 @@ formatCreatedTime() {
 
     if (!this.children.length) {
       content.style.display = 'none';
-      
-      if (this.isFolded) {
-        content.style.display = 'none';
-        foldButton.textContent = '▶';
-        foldButton.style.display = "none";
-      } else {
-        content.style.display = 'block';
-        foldButton.textContent = '▼';
-        foldButton.style.display = "inline-block";
-        this.updateFlexDirection();
-  }
+      foldButton.style.display = "none";
+
     } else {
       foldButton.style.display = 'inline-block';
       // foldButton.style.visibility/ = 'visible';
@@ -559,11 +550,11 @@ formatCreatedTime() {
       if (this.isFolded) {
         content.style.display = 'none';
         foldButton.textContent = '▶';
-        foldButton.style.display = "none";
+        foldButton.style.display = "inline-block";
       } else {
         content.style.display = 'block';
         foldButton.textContent = '▼';
-        foldButton.style.display = "inline-block";
+        foldButton.style.display = "none";
         this.updateFlexDirection();
   }
     }
