@@ -508,10 +508,9 @@ formatCreatedTime() {
     saveToLocalStorage();
   }
   changeBorderColor(color) {
-      this.borderColor = color;
-      console.log(color)
-      this.updateBorderColor();
-      saveToLocalStorage();
+    this.borderColor = color;
+    this.updateBorderColor();
+    saveToLocalStorage();
   }
 
   setupTitleEditing(titleElement) {
@@ -867,23 +866,26 @@ formatCreatedTime() {
       <div class="menu-item" data-action="convertToNetwork">Convert to NetworkTray</div>
       <div class="menu-item" data-action="open_this_in_other">open_this_in_other</div>
       <div class="menu-item" data-action="toggleFlexDirection">Toggle Flex Direction</div>
+      <div class="menu-item" data-action="copy">Copy</div>
+      <div class="menu-item" data-action="paste">Paste</div>
+      <div class="menu-item" data-action="cut">Cut</div>
+      <div class="menu-item" data-action="delete">Remove</div>
       <div class="menu-item" data-action="add_fetch_networkTray_to_child">add_fetch_networkTray_to_child</div>
       <div class="menu-item" data-action="add_child_from_localStorage">add_child_from_localStorage</div>
       <div class="menu-item" data-action="addLabelTray">Add Label Tray</div>
-      <div class="menu-item" data-action="delete">Remove</div>
       <div class="menu-item" data-action="addLabel">Add Label</div>
       <div class="menu-item" data-action="removeLabel">Edit Labels</div>
-    
-      <div class="menu-item color-picker">
-        Change Border Color
-        <div class="color-options">
-          ${Tray.colorPalette.map(color => `<div class="color-option" style="background-color: ${color};" data-color="${color}"></div>`).join('')}
-        </div>
-      </div>
+  
     `;
     menu.innerHTML += `<div class="menu-item" data-action="outputMarkdown">Output as Markdown</div>`;
     menu.innerHTML += `<div class="menu-item" data-action="addTemplateTray">Add Template Tray</div>`;
-    
+    menu.innerHTML += `
+    <div class="menu-item">
+      <label for="borderColorPicker">Change Border Color:</label>
+      <input type="color" id="borderColorPicker" value="${this.borderColor}">
+    </div>
+  `;
+
     if (!this.isSplit) {
       menu.innerHTML += `<div class="menu-item" data-action="split">Split</div>`;
     }
