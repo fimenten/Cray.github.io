@@ -1633,7 +1633,7 @@ class NetworkTray extends Tray {
         // parent.addChild(tray);
         // parent.updateAppearance()
         // this.element = tray.element
-        notifyUser('データのダウンロードに成功しました。');
+        // notifyUser('データのダウンロードに成功しました。');
         return tray
           ;
       })
@@ -1680,28 +1680,7 @@ class NetworkTray extends Tray {
   
     const downloadButton = document.createElement('button');
     downloadButton.textContent = 'Download';
-    downloadButton.addEventListener('click', () => {
-      this.downloadData()
-        .then(downloaded => {
-          // Update the current tray with the downloaded data
-          let parent = this.element.parentElement.__trayInstance
-          this.deleteTray();
-          parent.appendChild(downloaded)
-
-          // Object.assign(this, downloaded);
-          // this.updateAppearance();
-          // this.updateNetworkInfo();
-          // If there are children, recursively update them
-          // this.children.forEach((child, index) => {
-          //   Object.assign(child, downloaded.children[index]);
-          //   child.updateAppearance();
-          // });
-        })
-        .catch(error => {
-          console.error('Download failed:', error);
-          notifyUser('Download failed. Please check your connection.');
-        });
-    });
+    downloadButton.addEventListener('click', () => this.ondownloadBottonPressed());
   
     const autoUploadButton = document.createElement('button');
     autoUploadButton.textContent = `Auto Upload: ${this.autoUpload ? 'On' : 'Off'}`;
@@ -1820,7 +1799,30 @@ class NetworkTray extends Tray {
     this.updateNetworkInfo();
     saveToLocalStorage();
   }
+  ondownloadBottonPressed(){
 
+    this.downloadData()
+    .then(downloaded => {
+      // Update the current tray with the downloaded data
+      let parent = getTrayFromId(this.parentId)
+      this.deleteTray();
+      parent.addChild(downloaded)
+      parent.updateAppearance()
+      // Object.assign(this, downloaded);
+      // this.updateAppearance();
+      // this.updateNetworkInfo();
+      // If there are children, recursively update them
+      // this.children.forEach((child, index) => {
+      //   Object.assign(child, downloaded.children[index]);
+      //   child.updateAppearance();
+      // });
+    })
+    .catch(error => {
+      console.error('Download failed:', error);
+      notifyUser('Download failed. Please check your connection.');
+    });
+};
+  
   updateNetworkInfo(element = this.element.querySelector('.network-tray-buttons')) {
     if (element) {
       // Clear existing content
@@ -1835,7 +1837,7 @@ class NetworkTray extends Tray {
     
       const downloadButton = document.createElement('button');
       downloadButton.textContent = 'Download';
-      downloadButton.addEventListener('click', () => this.downloadData());
+      downloadButton.addEventListener('click', () => this.ondownloadBottonPressed());
     
       const autoUploadButton = document.createElement('button');
       autoUploadButton.textContent = `Auto Upload: ${this.autoUpload ? 'On' : 'Off'}`;
