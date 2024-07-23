@@ -559,6 +559,7 @@ formatCreatedTime() {
       } else {
         content.style.display = 'block';
         foldButton.textContent = '▼';
+        foldButton.style.display = "none";
         this.updateFlexDirection();
   }
     }
