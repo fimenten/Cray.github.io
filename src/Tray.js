@@ -1683,14 +1683,18 @@ class NetworkTray extends Tray {
       this.downloadData()
         .then(downloaded => {
           // Update the current tray with the downloaded data
-          Object.assign(this, downloaded);
-          this.updateAppearance();
-          this.updateNetworkInfo();
+          let parent = this.element.parentElement.__trayInstance
+          this.deleteTray();
+          parent.appendChild(downloaded)
+
+          // Object.assign(this, downloaded);
+          // this.updateAppearance();
+          // this.updateNetworkInfo();
           // If there are children, recursively update them
-          this.children.forEach((child, index) => {
-            Object.assign(child, downloaded.children[index]);
-            child.updateAppearance();
-          });
+          // this.children.forEach((child, index) => {
+          //   Object.assign(child, downloaded.children[index]);
+          //   child.updateAppearance();
+          // });
         })
         .catch(error => {
           console.error('Download failed:', error);
