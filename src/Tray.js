@@ -1387,7 +1387,8 @@ formatCreatedTime() {
         return response.json();
       })
       .then(data => {
-        const newTray = deserialize(data);
+        let newTray = deserialize(data);
+        newTray.isFolded = true;
         this.addChild(newTray);
         this.updateAppearance();
         notifyUser('Tray added successfully.');
