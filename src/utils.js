@@ -80,7 +80,7 @@ function loadFromLocalStorage(key=TRAY_DATA_KEY) {
     } else {
       rootTray = createDefaultRootTray();
     }
-
+    rootTray.isFolded = false;
     document.body.innerHTML = '';
     document.body.appendChild(rootTray.element);
     rootTray.updateAppearance()
