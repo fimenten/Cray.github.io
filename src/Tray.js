@@ -158,7 +158,7 @@ class Tray {
     foldButton.classList.add('tray-fold-button');
     foldButton.textContent = '▼';
     foldButton.addEventListener('click', this.toggleFold.bind(this));
-    foldButton.style.display = "none";
+    // foldButton.style.display = "none";
     const rightFoldBotton = document.createElement('button');
     rightFoldBotton.classList.add('tray-fold-button-right');
     rightFoldBotton.textContent = '▼';
