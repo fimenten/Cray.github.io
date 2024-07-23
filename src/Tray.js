@@ -181,7 +181,7 @@ class Tray {
       titleElement.setAttribute('contenteditable', 'false');
       titleElement.style.pointerEvents = 'none';
     }
-    this.setupEventListeners(tray);
+    // this.setupEventListeners(tray);
 
     return tray;
   }
@@ -418,6 +418,8 @@ formatCreatedTime() {
     });
 
     element.addEventListener('touchend', () => {
+      if (this.isEditing){return}
+      
       clearTimeout(longPressTimer);
     });
 
