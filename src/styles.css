@@ -421,3 +421,52 @@
 .tray.network-tray .network-tray-buttons {
   flex-shrink: 0;
 }
+
+/* Fold Button */
+.tray-fold-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 5px;
+  margin-right: 5px;
+  transition: transform 0.3s ease;
+  color: #555;
+}
+
+.tray-fold-button:hover {
+  color: #000;
+}
+
+.tray-fold-button.folded {
+  transform: rotate(-90deg);
+}
+
+/* Context Menu Button */
+.tray-context-menu-button {
+  flex: 0 0 auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px 5px;
+  color: #555;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.tray-context-menu-button:hover {
+  color: #000;
+  transform: scale(1.1);
+}
+
+/* Tray Title Container */
+.tray-title-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  padding: 5px 10px;
+  box-sizing: border-box;
+  min-height: 30px;
+  transition: min-height 0.3s ease;
+}
