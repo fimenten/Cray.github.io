@@ -77,7 +77,7 @@ class Tray {
     this.isSplit = false;
     this.isFolded = true;
     this.isChecked = isChecked;
-    this.borderColor = color || Tray.colorPalette[-1];
+    this.borderColor = color || "#f5f5f5";
     this.created_dt = created_dt || new Date();
     this.element = this.createElement();
     this.flexDirection = 'column';
