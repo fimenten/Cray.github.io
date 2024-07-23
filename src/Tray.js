@@ -1576,6 +1576,7 @@ function deserialize(data) {
 class NetworkTray extends Tray {
   constructor(parentId, id, name, children = [], color = null, labels = [], isChecked = false, url = '', filename = '', created_dt) {
     super(parentId, id, name, children, color, labels, isChecked, created_dt);
+    if (url.endsWith("/")){url = url.slice(0,-1)}
     this.host_url = url;
     this.filename = filename;
     this.autoUpload = false; 
@@ -1614,7 +1615,7 @@ class NetworkTray extends Tray {
   }
 
   downloadData() {
-    return fetch(`${this.host_url}/tray/load`, {
+    return fetch(`${this.host_url.}/tray/load`, {
       method: 'GET',
       headers: {
         'filename': this.filename
