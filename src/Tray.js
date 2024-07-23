@@ -1615,7 +1615,7 @@ class NetworkTray extends Tray {
   }
 
   downloadData() {
-    return fetch(`${this.host_url.}/tray/load`, {
+    return fetch(`${this.host_url}/tray/load`, {
       method: 'GET',
       headers: {
         'filename': this.filename
