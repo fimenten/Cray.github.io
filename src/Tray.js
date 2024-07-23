@@ -106,7 +106,7 @@ class Tray {
     createdTime.textContent = this.formatCreatedTime();
     createdTime.style.fontSize = '0.8em';
     createdTime.style.color = '#888';
-    createdTime.style.marginLeft = '10px';
+    // createdTime.style.marginLeft = '10px';
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.classList.add('tray-checkbox');
@@ -153,9 +153,9 @@ class Tray {
     foldButton.style.display = "none";
 
     titleContainer.appendChild(foldButton);
-    titleContainer.appendChild(contextMenuButton);
     titleContainer.appendChild(checkboxContainer);
     titleContainer.appendChild(title);
+    titleContainer.appendChild(contextMenuButton);
     titleContainer.appendChild(createdTime);
     titleContainer.appendChild(labelsElement);
 

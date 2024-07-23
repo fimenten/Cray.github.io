@@ -408,7 +408,7 @@
   font-size: 0.6em;
   color: #888;
   margin-left: auto;
-  align-self: flex-end;
+  /* align-self: flex-end; */
 }
 
 .tray.network-tray .tray-labels {
