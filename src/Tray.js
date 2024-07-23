@@ -1,3 +1,11 @@
+function getRandomColor() {
+  const letters = '0123456789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
 function getTrayFromId(Id) {
   return document.querySelector(`[data-tray-id="${Id}"]`).__trayInstance;
 }
@@ -554,7 +562,6 @@ formatCreatedTime() {
     } else {
       foldButton.style.display = 'inline-block';
       foldButtonRight.style.display = 'inline-block';
-      
       if (this.isFolded) {
         content.style.display = 'none';
         foldButton.textContent = '▶';
@@ -847,6 +854,11 @@ formatCreatedTime() {
     childTray.parent = this;
     childTray.parentId = this.id;
     this.element.querySelector('.tray-content').appendChild(childTray.element)
+    if (this.children.length==1){
+      const color = getRandomColor();
+      this.borderColor = color;
+      this.updateBorderColor()
+    }
   }
   onContextMenu(event) {
     event.preventDefault();
