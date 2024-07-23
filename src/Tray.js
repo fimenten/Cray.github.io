@@ -542,11 +542,16 @@ formatCreatedTime() {
     if (!this.children.length) {
       content.style.display = 'none';
       
-      // if (this.isFolded) {
-      //   foldButton.textContent = '▶';
-      // } else {
-      //   foldButton.textContent = '▼';
-      // }
+      if (this.isFolded) {
+        content.style.display = 'none';
+        foldButton.textContent = '▶';
+        foldButton.style.display = "none";
+      } else {
+        content.style.display = 'block';
+        foldButton.textContent = '▼';
+        foldButton.style.display = "inline-block";
+        this.updateFlexDirection();
+  }
     } else {
       foldButton.style.display = 'inline-block';
       // foldButton.style.visibility/ = 'visible';
