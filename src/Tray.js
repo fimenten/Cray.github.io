@@ -1446,30 +1446,30 @@ formatCreatedTime() {
     });
   }
 
-  addTrayFromServer(url, filename) {
-    fetch(`${url}/tray/load`, {
-      method: 'GET',
-      headers: {
-        'filename': filename
-      }
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(data => {
-        const newTray = deserialize(data);
-        this.addChild(newTray);
-        this.updateAppearance();
-        alert('Tray added successfully.');
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('Failed to add tray from server.');
-      });
-  }
+  // addTrayFromServer(url, filename) {
+  //   fetch(`${url}/tray/load`, {
+  //     method: 'GET',
+  //     headers: {
+  //       'filename': filename
+  //     }
+  //   })
+  //     .then(response => {
+  //       if (!response.ok) {
+  //         throw new Error('Network response was not ok');
+  //       }
+  //       return response.json();
+  //     })
+  //     .then(data => {
+  //       const newTray = deserialize(data);
+  //       this.addChild(newTray);
+  //       this.updateAppearance();
+  //       alert('Tray added successfully.');
+  //     })
+  //     .catch(error => {
+  //       console.error('Error:', error);
+  //       alert('Failed to add tray from server.');
+  //     });
+  // }
   showMarkdownOutput() {
     const markdown = this.outputAsMarkdown();
     const blob = new Blob([markdown], { type: 'text/markdown' });
