@@ -172,7 +172,7 @@ function uploadAllData(tray = getRootElement().__trayInstance){
 }
 function downloadAllData(tray = getRootElement().__trayInstance){
   if (tray.downloadData){
-    tray.uploadData();
+    tray.ondownloadBottonPressed();
   }
   if (tray.children.length){
     tray.children.map(t=>downloadAllData(t))
