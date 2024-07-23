@@ -537,10 +537,8 @@ formatCreatedTime() {
   updateAppearance() {
     const content = this.element.querySelector('.tray-content');
     const foldButton = this.element.querySelector('.tray-fold-button');
-    const checkbox = this.element.querySelector('.tray-checkbox');
-    if (checkbox) {
-      checkbox.checked = this.isChecked;
-    }
+    // const checkbox = this.element.querySelector('.tray-checkbox');
+
     if (!this.children.length) {
       content.style.display = 'none';
       
@@ -556,10 +554,11 @@ formatCreatedTime() {
       if (this.isFolded) {
         content.style.display = 'none';
         foldButton.textContent = '▶';
+        foldButton.style.display = "none";
       } else {
         content.style.display = 'block';
         foldButton.textContent = '▼';
-        foldButton.style.display = "none";
+        foldButton.style.display = "inline-block";
         this.updateFlexDirection();
   }
     }
