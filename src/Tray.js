@@ -517,8 +517,8 @@ formatCreatedTime() {
       trayElement.style.borderBottomColor = this.borderColor;
       trayElement.style.borderBottomWidth = '3px';
       trayElement.style.borderBottomStyle = 'solid';
-      trayElement.style.borderTopColor = "#000000";
-      trayElement.style.borderTopWidth = '1px';
+      trayElement.style.borderTopColor = this.borderColor;
+      trayElement.style.borderTopWidth = '3px';
       trayElement.style.borderTopStyle = 'solid';
     }
     saveToLocalStorage();
