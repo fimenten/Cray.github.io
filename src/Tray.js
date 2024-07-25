@@ -514,6 +514,9 @@ formatCreatedTime() {
       trayElement.style.borderLeftColor = this.borderColor;
       trayElement.style.borderLeftWidth = '3px';
       trayElement.style.borderLeftStyle = 'solid';
+      trayElement.style.borderBottomColor = this.borderColor;
+      trayElement.style.borderBottomWidth = '3px';
+      trayElement.style.borderBottomStyle = 'solid';
     }
     saveToLocalStorage();
   }
