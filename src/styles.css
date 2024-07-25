@@ -15,7 +15,7 @@
   max-width: 100%;
   background-color: var(--tray-bg-color);
   cursor: move;
-  border: 2px;
+  border: 0px;
   border-bottom-width: 3px;
   border-left-width: 3px;
   border-right: none;
