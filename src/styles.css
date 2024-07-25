@@ -16,6 +16,8 @@
   background-color: var(--tray-bg-color);
   cursor: move;
   border: 0px;
+  border-top-width: 1px;
+  border-top-color: #000;
   border-bottom-width: 3px;
   border-left-width: 3px;
   border-right: none;
@@ -95,7 +97,9 @@
 
 /* Tray Content */
 .tray-content {
-  padding: 5px 0 5px 5px;
+  padding-left: 1px;
+  padding-top: 0px;
+  padding-right: 0px;
   padding-bottom: 20px;
   background-color: var(--tray-content-bg-color);
   display: flex;
