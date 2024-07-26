@@ -1867,29 +1867,29 @@ class NetworkTray extends Tray {
     this.updateNetworkInfo();
     saveToLocalStorage();
   }
-  ondownloadBottonPressed(){
-
-    this.downloadData()
-    .then(downloaded => {
-      // Update the current tray with the downloaded data
-      let parent = getTrayFromId(this.parentId)
-      this.deleteTray();
-      parent.addChild(downloaded)
-      parent.updateAppearance()
-      // Object.assign(this, downloaded);
-      // this.updateAppearance();
-      // this.updateNetworkInfo();
-      // If there are children, recursively update them
-      // this.children.forEach((child, index) => {
-      //   Object.assign(child, downloaded.children[index]);
-      //   child.updateAppearance();
-      // });
-    })
-    .catch(error => {
-      console.error('Download failed:', error);
-      notifyUser('Download failed. Please check your connection.');
-    });
-};
+  ondownloadButtonPressed() {
+    // First, show a confirmation dialog
+    if (confirm("Are you sure you want to download?")) {
+      this.downloadData()
+        .then(downloaded => {
+          // Update the current tray with the downloaded data
+          let parent = getTrayFromId(this.parentId);
+          this.deleteTray();
+          parent.addChild(downloaded);
+          parent.updateAppearance();
+          
+          // Notify user of successful download
+          notifyUser('Download completed successfully.');
+        })
+        .catch(error => {
+          console.error('Download failed:', error);
+          notifyUser('Download failed. Please check your connection.');
+        });
+    } else {
+      // If user cancels, notify them
+      notifyUser('Download cancelled.');
+    }
+  }
   
   updateNetworkInfo(element = this.element.querySelector('.network-tray-buttons')) {
     if (element) {
