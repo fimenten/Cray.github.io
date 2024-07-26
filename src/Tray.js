@@ -645,7 +645,7 @@ formatCreatedTime() {
 
   finishTitleEdit(titleElement) {
     titleElement.setAttribute('contenteditable', 'false');
-    this.name = titleElement.textContent.trim() || 'Untitled';
+    this.name = titleElement.textContent.trim() || '';
     titleElement.textContent = this.name;
     titleElement.removeEventListener('keydown', this.keyDownHandler);
     titleElement.removeEventListener('blur', this.blurHandler);
