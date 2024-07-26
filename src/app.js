@@ -1,6 +1,7 @@
 let hamburgerElements;
 
 window.addEventListener('DOMContentLoaded', () => {
+
   let sessionId = getUrlParameter("sessionId");
   if (sessionId == "new"){
     let id = generateUUID();
@@ -17,14 +18,15 @@ window.addEventListener('DOMContentLoaded', () => {
     if (savedTitle) {
       document.title = savedTitle;
     }
-  let root = getRootElement();
-    root.querySelector("tray-content").style.paddingBottom = "100px";
-    
+   
   
   }
 
 
-  hamburgerElements = createHamburgerMenu();
+  const { leftBar } = createHamburgerMenu();
+  document.body.insertBefore(leftBar, document.body.firstChild);
+  const actionButtons = createActionButtons();
+  document.body.appendChild(actionButtons);
   updateAllTrayDirections();
   window.addEventListener('resize', updateAllTrayDirections);
   getRootElement().focus();
@@ -46,28 +48,33 @@ function updateAllTrayDirections() {
 }
 
 function createHamburgerMenu() {
+  const leftBar = document.createElement('div');
+  leftBar.classList.add('left-bar');
+  document.body.appendChild(leftBar);  
   const hamburger = document.createElement('div');
   hamburger.classList.add('hamburger-menu');
   hamburger.innerHTML = '☰';
-  hamburger.style.position = 'fixed';
-  hamburger.style.top = '10px';
-  hamburger.style.right = '10px';
-  hamburger.style.fontSize = '24px';
-  hamburger.style.cursor = 'pointer';
-  hamburger.style.zIndex = '1000';
-  document.body.appendChild(hamburger);
+  // hamburger.style.position = 'fixed';
+  // hamburger.style.top = '10px';
+  // hamburger.style.right = '10px';
+  // hamburger.style.fontSize = '24px';
+  // hamburger.style.cursor = 'pointer';
+  // hamburger.style.zIndex = '1000';
+  // document.body.appendChild(hamburger);
+  leftBar.appendChild(hamburger);
 
   const menu = document.createElement('div');
   menu.classList.add('hamburger-menu-items');
   menu.style.display = 'none';
+  leftBar.appendChild(menu);
   menu.style.position = 'fixed';
-  menu.style.top = '40px';
-  menu.style.right = '10px';
-  menu.style.backgroundColor = 'white';
-  menu.style.border = '1px solid #ccc';
-  menu.style.borderRadius = '4px';
-  menu.style.padding = '10px';
-  menu.style.zIndex = '999';
+  // menu.style.top = '40px';
+  // menu.style.right = '10px';
+  // menu.style.backgroundColor = 'white';
+  // menu.style.border = '1px solid #ccc';
+  // menu.style.borderRadius = '4px';
+  // menu.style.padding = '10px';
+  // menu.style.zIndex = '999';
   menu.innerHTML = `
     <div class="menu-item" data-action="reset">トレイをリセット</div>
     <div class="menu-item" data-action="save">現在の状態を保存</div>
@@ -103,8 +110,20 @@ menu.innerHTML += `
       item.style.transition = 'background-color 0.3s';
   });
 
-  hamburger.addEventListener('click', () => {
+  hamburger.addEventListener('click', (event) => {
     menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    if (menu.style.display === 'block') {
+      const rect = leftBar.getBoundingClientRect();
+      menu.style.left = `${rect.right}px`;
+      menu.style.top = `${rect.top}px`;
+    }
+    event.stopPropagation();
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!menu.contains(event.target) && event.target !== hamburger) {
+      menu.style.display = 'none';
+    }
   });
 
   menu.addEventListener('click', (event) => {
@@ -162,7 +181,7 @@ menu.innerHTML += `
       });
   });
 
-  return { hamburger, menu };
+  return { hamburger, menu, leftBar };
 }
 
 function uploadAllData(tray = getRootElement().__trayInstance){
@@ -432,4 +451,58 @@ function importLabels() {
     reader.readAsText(file);
   };
   input.click();
+}
+
+// Add this to the end of the window.addEventListener('DOMContentLoaded', ...) function
+const actionButtons = createActionButtons();
+document.body.appendChild(actionButtons);
+
+// Add this new function
+function createActionButtons() {
+  const buttonContainer = document.createElement('div');
+  buttonContainer.classList.add('action-buttons');
+
+  const addButton = document.createElement('button');
+  addButton.textContent = '+';
+  addButton.classList.add('action-button', 'add-button');
+  addButton.addEventListener('click', addNewTrayToParent);
+
+  const insertButton = document.createElement('button');
+  insertButton.textContent = '←';
+  insertButton.classList.add('action-button', 'insert-button');
+  insertButton.addEventListener('click', addNewTrayToFocused);
+
+  buttonContainer.appendChild(addButton);
+  buttonContainer.appendChild(insertButton);
+
+  return buttonContainer;
+}
+
+function addNewTrayToParent() {
+  const focusedElement = document.activeElement;
+  const focusedTray = focusedElement.closest('.tray').__trayInstance;
+  const parentTray = getTrayFromId(focusedTray.parentId);
+
+  if (parentTray) {
+    const newTray = new Tray(parentTray.id, Date.now().toString(), 'New Tray');
+    parentTray.addChild(newTray);
+    parentTray.isFolded = false;
+    parentTray.updateAppearance();
+    newTray.element.focus();
+    const newTitleElement = newTray.element.querySelector('.tray-title');
+    newTray.startTitleEdit(newTitleElement);
+  }
+}
+
+function addNewTrayToFocused() {
+  const focusedElement = document.activeElement;
+  const focusedTray = focusedElement.closest('tray').__trayInstance;
+
+  const newTray = new Tray(focusedTray.id, Date.now().toString(), 'New Tray');
+  focusedTray.addChild(newTray);
+  focusedTray.isFolded = false;
+  focusedTray.updateAppearance();
+  newTray.element.focus();
+  const newTitleElement = newTray.element.querySelector('.tray-title');
+  newTray.startTitleEdit(newTitleElement);
 }
