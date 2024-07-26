@@ -17,6 +17,9 @@ window.addEventListener('DOMContentLoaded', () => {
     if (savedTitle) {
       document.title = savedTitle;
     }
+  let root = getRootElement();
+    root.querySelector("tray-content").style.paddingBottom = "100px";
+    
   
   }
 
