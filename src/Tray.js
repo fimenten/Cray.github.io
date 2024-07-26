@@ -1,3 +1,6 @@
+function updateLastFocused(tray) {
+  last_focused = tray;
+}
 function getRandomColor() {
   const letters = '0123456789ABCDEF';
   let color = '#';
@@ -93,6 +96,8 @@ class Tray {
     this.updateLabels();
     this.updateAppearance();
     this.updateBorderColor();
+    this.setupFocusTracking();
+
   }
 
   createElement() {
@@ -218,6 +223,15 @@ class Tray {
     }
 
   };
+  setupFocusTracking() {
+    this.element.addEventListener('focus', () => {
+      updateLastFocused(this);
+    }, true);
+  
+    this.element.addEventListener('click', () => {
+      updateLastFocused(this);
+    }, true);
+  }
 formatCreatedTime() {
   return new Date(this.created_dt).toLocaleString('ja-JP', {
     year: 'numeric',

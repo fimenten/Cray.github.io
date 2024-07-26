@@ -1,5 +1,5 @@
 let hamburgerElements;
-
+let last_focused;
 window.addEventListener('DOMContentLoaded', () => {
 
   let sessionId = getUrlParameter("sessionId");
@@ -29,7 +29,9 @@ window.addEventListener('DOMContentLoaded', () => {
   document.body.appendChild(actionButtons);
   updateAllTrayDirections();
   window.addEventListener('resize', updateAllTrayDirections);
-  getRootElement().focus();
+  const root =  getRootElement();
+  last_focused = root.__trayInstance
+  root.focus();
 });
 function getUrlParameter(name) {
   name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
@@ -456,8 +458,6 @@ function importLabels() {
 // Add this to the end of the window.addEventListener('DOMContentLoaded', ...) function
 const actionButtons = createActionButtons();
 document.body.appendChild(actionButtons);
-
-// Add this new function
 function createActionButtons() {
   const buttonContainer = document.createElement('div');
   buttonContainer.classList.add('action-buttons');
@@ -468,7 +468,7 @@ function createActionButtons() {
   addButton.addEventListener('click', addNewTrayToParent);
 
   const insertButton = document.createElement('button');
-  insertButton.textContent = '←';
+  insertButton.textContent = '↩';
   insertButton.classList.add('action-button', 'insert-button');
   insertButton.addEventListener('click', addNewTrayToFocused);
 
@@ -479,9 +479,9 @@ function createActionButtons() {
 }
 
 function addNewTrayToParent() {
-  const focusedElement = document.activeElement;
-  const focusedTray = focusedElement.closest('.tray').__trayInstance;
-  const parentTray = getTrayFromId(focusedTray.parentId);
+  if (!last_focused) return;
+
+  const parentTray = getTrayFromId(last_focused.parentId);
 
   if (parentTray) {
     const newTray = new Tray(parentTray.id, Date.now().toString(), 'New Tray');
@@ -495,13 +495,12 @@ function addNewTrayToParent() {
 }
 
 function addNewTrayToFocused() {
-  const focusedElement = document.activeElement;
-  const focusedTray = focusedElement.closest('tray').__trayInstance;
+  if (!last_focused) return;
 
-  const newTray = new Tray(focusedTray.id, Date.now().toString(), 'New Tray');
-  focusedTray.addChild(newTray);
-  focusedTray.isFolded = false;
-  focusedTray.updateAppearance();
+  const newTray = new Tray(last_focused.id, Date.now().toString(), 'New Tray');
+  last_focused.addChild(newTray);
+  last_focused.isFolded = false;
+  last_focused.updateAppearance();
   newTray.element.focus();
   const newTitleElement = newTray.element.querySelector('.tray-title');
   newTray.startTitleEdit(newTitleElement);
