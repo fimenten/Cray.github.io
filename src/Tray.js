@@ -890,6 +890,7 @@ formatCreatedTime() {
       <div class="menu-item" data-action="paste">Paste</div>
       <div class="menu-item" data-action="cut">Cut</div>
       <div class="menu-item" data-action="delete">Remove</div>
+
       <div class="menu-item" data-action="add_fetch_networkTray_to_child">add_fetch_networkTray_to_child</div>
       <div class="menu-item" data-action="add_child_from_localStorage">add_child_from_localStorage</div>
       <div class="menu-item" data-action="addLabelTray">Add Label Tray</div>
@@ -909,8 +910,31 @@ formatCreatedTime() {
     if (!this.isSplit) {
       menu.innerHTML += `<div class="menu-item" data-action="split">Split</div>`;
     }
-    menu.style.top = `${event.clientY}px`;
-    menu.style.left = `${event.clientX}px`;
+    const menuRect = menu.getBoundingClientRect();
+    const menuWidth = menuRect.width;
+    const menuHeight = menuRect.height;
+  
+    // Calculate available space
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+  
+    // Calculate the position
+    let left = event.clientX;
+    let top = event.clientY;
+  
+    // Adjust horizontal position if necessary
+    if (left + menuWidth > viewportWidth) {
+      left = Math.max(0, viewportWidth - menuWidth);
+    }
+  
+    // Adjust vertical position if necessary
+    if (top + menuHeight > viewportHeight) {
+      top = Math.max(0, viewportHeight - menuHeight);
+    }
+  
+    // Set the menu position and make it visible
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
     document.body.appendChild(menu);
     
     // Add keyboard navigation
