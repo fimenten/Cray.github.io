@@ -1905,7 +1905,7 @@ class NetworkTray extends Tray {
     
       const downloadButton = document.createElement('button');
       downloadButton.textContent = 'Download';
-      downloadButton.addEventListener('click', () => this.ondownloadBottonPressed());
+      downloadButton.addEventListener('click', () => this.ondownloadButtonPressed());
     
       const autoUploadButton = document.createElement('button');
       autoUploadButton.textContent = `Auto Upload: ${this.autoUpload ? 'On' : 'Off'}`;
