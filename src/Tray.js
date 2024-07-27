@@ -7,7 +7,8 @@ function getRandomColor() {
   for (let i = 0; i < 6; i++) {
     color += letters[Math.floor(Math.random() * 16)];
   }
-  return color;
+  return "#f5f5f5"
+  // return color;
 }
 function getTrayFromId(Id) {
   return document.querySelector(`[data-tray-id="${Id}"]`).__trayInstance;
