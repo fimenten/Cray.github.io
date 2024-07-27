@@ -1,36 +1,23 @@
-/* Root Variables */
 :root {
-  --color-bg-tray: #e0e0e0;
-  --color-bg-content: #f5f5f5;
-  --color-bg-hover: #f0f0f0;
-  --color-bg-menu: white;
-  --color-text-title: #333;
-  --color-text-placeholder: #999;
-  --color-border-menu: #ccc;
-  --color-border-top: #000;
+  --tray-bg-color: #e0e0e0;
+  /* --tray-border-color: #ccc; */
+  --tray-content-bg-color: #f5f5f5;
+  --title-color: #333;
+  --placeholder-color: #999;
+  --hover-bg-color: #f0f0f0;
+  --menu-bg-color: white;
+  --menu-border-color: #ccc;
 }
 
-/* Layout */
-html, body {
-  height: 100vh;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
-
-body > .tray {
-  margin-left: 50px;
-  width: calc(100% - 50px);
-}
-
-/* Tray Base Styles */
+/* Base Tray Styles */
 .tray {
   width: 100%;
   max-width: 100%;
-  background-color: var(--color-bg-tray);
+  background-color: var(--tray-bg-color);
   cursor: move;
   border: 5px;
-  border-top: 1px solid var(--color-border-top);
+  border-top-width: 1px;
+  border-top-color: #000;
   border-bottom-width: 3px;
   border-left-width: 3px;
   border-right: none;
@@ -49,16 +36,25 @@ body > .tray {
 /* Tray Title Container */
 .tray-title-container {
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
+  align-items: flex-start;
+  justify-content: space-between;
   width: 100%;
-  padding: 5px 10px;
+  padding: 10px 0 10px 10px;
   box-sizing: border-box;
   min-height: 30px;
   transition: min-height 0.3s ease;
 }
 
-/* Tray Title */
+/* Checkbox */
+.tray-checkbox {
+  flex: 0 0 auto;
+  margin: 0px;
+  padding: 0;
+  opacity: 0; /* Makes the checkbox invisible */
+  /* Alternatively, you could use: visibility: hidden; */
+}
+
+/* Title */
 .tray-title {
   flex: 1;
   min-width: 50%;
@@ -68,20 +64,20 @@ body > .tray {
   font-weight: bold;
   outline: none;
   cursor: text;
-  color: var(--color-text-title);
+  color: var(--title-color);
   line-height: 1.2;
   overflow: hidden;
   transition: max-height 0.3s ease;
 }
 
 .tray-title:focus {
-  background-color: var(--color-bg-menu);
+  background-color: var(--menu-bg-color);
   max-height: none;
 }
 
 .tray-title:empty::before {
   content: 'Untitled';
-  color: var(--color-text-placeholder);
+  color: var(--placeholder-color);
   font-style: italic;
 }
 
@@ -89,10 +85,23 @@ body > .tray {
   text-decoration: underline;
 }
 
+/* Context Menu Button */
+.tray-context-menu-button {
+  flex: 0 0 auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2em;
+  padding: 0;
+}
+
 /* Tray Content */
 .tray-content {
-  padding: 0 0 20px 1px;
-  background-color: var(--color-bg-content);
+  padding-left: 1px;
+  padding-top: 0px;
+  padding-right: 0px;
+  padding-bottom: 20px;
+  background-color: var(--tray-content-bg-color);
   display: flex;
 }
 
@@ -101,47 +110,28 @@ body > .tray {
   width: 100%;
 }
 
-/* Tray Controls */
-.tray-checkbox {
-  flex: 0 0 auto;
-  margin: 0;
-  padding: 0;
-  opacity: 0;
+/* Menu Styles */
+.context-menu,
+.label-menu,
+.label-selector,
+.label-remover {
+  position: fixed;
+  background-color: var(--menu-bg-color);
+  border: 1px solid var(--menu-border-color);
+  padding: 5px;
+  border-radius: 5px;
+  z-index: 1000;
 }
 
-.tray-context-menu-button {
-  flex: 0 0 auto;
-  background: none;
-  border: none;
+.menu-item,
+.label-item {
+  padding: 5px;
   cursor: pointer;
-  font-size: 16px;
-  padding: 2px 5px;
-  color: #555;
-  transition: color 0.3s ease, transform 0.3s ease;
 }
 
-.tray-context-menu-button:hover {
-  color: #000;
-  transform: scale(1.1);
-}
-
-.tray-fold-button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 12px;
-  padding: 2px 5px;
-  margin-right: 5px;
-  transition: transform 0.3s ease;
-  color: #555;
-}
-
-.tray-fold-button:hover {
-  color: #000;
-}
-
-.tray-fold-button.folded {
-  transform: rotate(-90deg);
+.menu-item:hover,
+.label-item:hover {
+  background-color: var(--hover-bg-color);
 }
 
 /* Tray Labels */
@@ -154,7 +144,7 @@ body > .tray {
 
 .tray-label {
   display: inline-block;
-  background-color: var(--color-bg-hover);
+  background-color: var(--hover-bg-color);
   border-radius: 3px;
   font-size: 12px;
   padding: 2px 5px;
@@ -211,33 +201,20 @@ body > .tray {
   bottom: 0;
 }
 
-/* Menu Styles */
-.context-menu,
-.label-menu,
-.label-selector,
-.label-remover {
-  position: fixed;
-  background-color: var(--color-bg-menu);
-  border: 1px solid var(--color-border-menu);
-  padding: 5px;
-  border-radius: 5px;
-  z-index: 1000;
-}
-
-.menu-item,
-.label-item {
-  padding: 5px;
+/* Fold Button */
+.tray-fold-button {
+  background: none;
+  border: none;
   cursor: pointer;
+  font-size: 12px;
+  padding: 0;
 }
-
-.menu-item:hover,
-.label-item:hover {
-  background-color: var(--color-bg-hover);
-}
-
-.context-menu .menu-item.focused {
-  background-color: var(--color-bg-hover);
-  outline: none;
+.tray-fold-button-right {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
 }
 
 /* Color Picker */
@@ -250,8 +227,8 @@ body > .tray {
   position: absolute;
   right: 100%;
   top: 0;
-  background: var(--color-bg-menu);
-  border: 1px solid var(--color-border-menu);
+  background: var(--menu-bg-color);
+  border: 1px solid var(--menu-border-color);
   padding: 5px;
   border-radius: 3px;
 }
@@ -280,9 +257,9 @@ body > .tray {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: var(--color-bg-menu);
+  background: var(--menu-bg-color);
   padding: 10px;
-  border: 1px solid var(--color-border-menu);
+  border: 1px solid var(--menu-border-color);
   z-index: 1000;
   border-radius: 5px;
 }
@@ -297,14 +274,14 @@ body > .tray {
 .tray-selection-dialog button {
   margin-right: 5px;
   padding: 5px;
-  background-color: var(--color-bg-hover);
-  border: 1px solid var(--color-border-menu);
+  background-color: var(--hover-bg-color);
+  border: 1px solid var(--menu-border-color);
   border-radius: 3px;
   cursor: pointer;
 }
 
 .tray-selection-dialog button:hover {
-  background-color: var(--color-bg-tray);
+  background-color: var(--tray-bg-color);
 }
 
 /* Label Manager */
@@ -313,7 +290,7 @@ body > .tray {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background-color: var(--color-bg-menu);
+  background-color: var(--menu-bg-color);
   padding: 10px;
   border-radius: 5px;
 }
@@ -327,8 +304,10 @@ body > .tray {
   padding: 5px;
   cursor: pointer;
 }
-
-/* Template Selection Popup */
+.context-menu .menu-item.focused {
+  background-color: #f0f0f0;
+  outline: none;
+}
 .template-selection-popup {
   position: fixed;
   background-color: white;
@@ -353,10 +332,9 @@ body > .tray {
 }
 
 .template-item:hover {
-  background-color: var(--color-bg-hover);
+  background-color: #f0f0f0;
 }
-
-/* Network Tray Styles */
+/* Network Tray Info Styles */
 .network-tray-info {
   display: flex;
   flex-direction: column;
@@ -403,15 +381,16 @@ body > .tray {
   cursor: pointer;
   border: none;
   border-radius: 2px;
-  background-color: var(--color-bg-hover);
+  background-color: #f0f0f0;
   width: 100%;
   text-align: left;
 }
 
 .network-tray-buttons button:hover {
-  background-color: var(--color-bg-tray);
+  background-color: #e0e0e0;
 }
 
+/* Adjust Tray Title Container for Network Tray */
 .tray.network-tray .tray-title-container {
   display: flex;
   align-items: flex-start;
@@ -441,6 +420,7 @@ body > .tray {
   font-size: 0.6em;
   color: #888;
   margin-left: auto;
+  /* align-self: flex-end; */
 }
 
 .tray.network-tray .tray-labels {
@@ -454,6 +434,79 @@ body > .tray {
   flex-shrink: 0;
 }
 
+/* Fold Button */
+.tray-fold-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 5px;
+  margin-right: 5px;
+  transition: transform 0.3s ease;
+  color: #555;
+}
+
+.tray-fold-button:hover {
+  color: #000;
+}
+
+.tray-fold-button.folded {
+  transform: rotate(-90deg);
+}
+
+/* Context Menu Button */
+.tray-context-menu-button {
+  flex: 0 0 auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px 5px;
+  color: #555;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.tray-context-menu-button:hover {
+  color: #000;
+  transform: scale(1.1);
+}
+
+/* Tray Title Container */
+.tray-title-container {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  padding: 5px 10px;
+  box-sizing: border-box;
+  min-height: 30px;
+  transition: min-height 0.3s ease;
+}
+/* 
+html, body {
+    height: 75vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+body > .tray {
+    height: 75vh;
+    display: flex;
+    flex-direction: column;
+}
+
+body > .tray > .tray-title-container {
+    flex-shrink: 0;
+}
+
+body > .tray > .tray-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 10px;
+    height: 50%;
+
+} */
 /* Left Bar Styles */
 .left-bar {
   position: fixed;
@@ -461,8 +514,8 @@ body > .tray {
   left: 0;
   width: 50px;
   height: 100vh;
-  background-color: var(--color-bg-hover);
-  border-right: 1px solid var(--color-border-menu);
+  background-color: #f0f0f0;
+  border-right: 1px solid #ccc;
   z-index: 1000;
   padding-top: 10px;
 }
@@ -477,14 +530,42 @@ body > .tray {
 .hamburger-menu-items {
   position: fixed;
   background-color: white;
-  border: 1px solid var(--color-border-menu);
+  border: 1px solid #ccc;
   border-radius: 4px;
   padding: 10px;
   z-index: 1001;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
-/* Action Buttons */
+/* Adjust main content to accommodate left bar */
+body > .tray {
+  margin-left: 50px;
+  width: calc(100% - 50px);
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 768px) {
+  .left-bar {
+    width: 40px;
+  }
+
+  body > .tray {
+    margin-left: 40px;
+    width: calc(100% - 40px);
+  }
+}
+
+/* Menu item styles */
+.menu-item {
+  padding: 5px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.menu-item:hover {
+  background-color: #f0f0f0;
+}
+
 .action-buttons {
   position: fixed;
   bottom: 20px;
@@ -519,14 +600,3 @@ body > .tray {
   transform: scale(0.95);
 }
 
-/* Responsive design for smaller screens */
-@media (max-width: 768px) {
-  .left-bar {
-    width: 40px;
-  }
-
-  body > .tray {
-    margin-left: 40px;
-    width: calc(100% - 40px);
-  }
-}
