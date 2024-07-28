@@ -18,8 +18,8 @@
   border: 5px;
   border-top-width: 1px;
   border-top-color: #000;
-  border-bottom-width: 1px;
-  border-left-width: 1px;
+  border-bottom-width: 3px;
+  border-left-width: 3px;
   border-right: none;
   overflow: hidden;
   transition: order 0.3s;
