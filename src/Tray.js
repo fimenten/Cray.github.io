@@ -925,32 +925,54 @@ formatCreatedTime() {
     if (!this.isSplit) {
       menu.innerHTML += `<div class="menu-item" data-action="split">Split</div>`;
     }
-    const menuRect = menu.getBoundingClientRect();
-    const menuWidth = menuRect.width;
-    const menuHeight = menuRect.height;
-  
-    // Calculate available space
+
+    
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
   
-    // Calculate the position
+    // Calculate the initial position
     let left = event.clientX;
     let top = event.clientY;
   
-    // Adjust horizontal position if necessary
-    if (left + menuWidth > viewportWidth) {
-      left = Math.max(0, viewportWidth - menuWidth);
-    }
-  
-    // Adjust vertical position if necessary
-    if (top + menuHeight > viewportHeight) {
-      top = Math.max(0, viewportHeight - menuHeight);
-    }
-  
-    // Set the menu position and make it visible
-    menu.style.left = `${left}px`;
-    menu.style.top = `${top}px`;
+    // Ensure the menu is in the DOM and visible
     document.body.appendChild(menu);
+    menu.style.visibility = 'hidden';
+    menu.style.display = 'block';
+    menu.style.position = 'absolute';
+  
+    // Use setTimeout to allow the browser to render the menu
+    setTimeout(() => {
+      // Get menu dimensions
+      const menuWidth = menu.offsetWidth;
+      const menuHeight = menu.offsetHeight;
+  
+      console.log('Menu dimensions:', menuWidth, menuHeight); // デバッグ用
+  
+      // Determine which quadrant the click occurred in
+      const isRightHalf = left > viewportWidth / 2;
+      const isBottomHalf = top > viewportHeight / 2;
+  
+      // Adjust position based on quadrant and menu size
+      if (isRightHalf) {
+        left -= menuWidth;
+      }
+      if (isBottomHalf) {
+        top -= menuHeight;
+      }
+  
+      // Ensure menu stays within viewport
+      left = Math.max(0, Math.min(left, viewportWidth - menuWidth));
+      top = Math.max(0, Math.min(top, viewportHeight - menuHeight));
+  
+      // Set menu position and display it
+      menu.style.left = `${left}px`;
+      menu.style.top = `${top}px`;
+      menu.style.visibility = 'visible';
+  
+      console.log('Final position:', left, top); // デバッグ用
+    }, 0);
+    
+    // Set the menu position and make it visible
     
     // Add keyboard navigation
     const menuItems = menu.querySelectorAll('.menu-item');
@@ -975,6 +997,8 @@ formatCreatedTime() {
     
     menu.focus();
     menuItems[0].classList.add('focused');
+    console.log(menu.offsetHeight,menu.offsetTop,top)
+
     const handleMenuClick = (e) => {
       const action = e.target.getAttribute('data-action');
       const color = e.target.getAttribute('data-color');
