@@ -536,9 +536,9 @@ formatCreatedTime() {
       trayElement.style.borderBottomColor = color;
       trayElement.style.borderBottomWidth = '3px';
       trayElement.style.borderBottomStyle = 'solid';
-      trayElement.style.borderTopColor = color;
-      trayElement.style.borderTopWidth = '3px';
-      trayElement.style.borderTopStyle = 'solid';
+      // trayElement.style.borderTopColor = color;
+      // trayElement.style.borderTopWidth = '3px';
+      // trayElement.style.borderTopStyle = 'solid';
     }
     saveToLocalStorage();
   }
@@ -595,9 +595,9 @@ formatCreatedTime() {
         foldButtonRight.textContent = '▼';
         foldButtonRight.style.display = "none";
       } else {
-        if (!this.borderColor){
-          this.updateBorderColor(getRandomColor())
-        }
+        // if (!this.borderColor){
+        //   this.updateBorderColor(getRandomColor())
+        // }
         content.style.display = 'block';
         foldButton.textContent = '▼';
         foldButton.style.display = "none";
@@ -883,11 +883,11 @@ formatCreatedTime() {
     childTray.parent = this;
     childTray.parentId = this.id;
     this.element.querySelector('.tray-content').appendChild(childTray.element)
-    if (this.children.length==1){
-      const color = getRandomColor();
-      this.borderColor = color;
-      this.updateBorderColor()
-    }
+    // if (this.children.length==1){
+    //   const color = getRandomColor();
+    //   this.borderColor = color;
+    //   this.updateBorderColor()
+    // }
   }
   onContextMenu(event) {
     event.preventDefault();
