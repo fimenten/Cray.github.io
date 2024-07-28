@@ -7,9 +7,13 @@ function getRandomColor() {
   for (let i = 0; i < 6; i++) {
     color += letters[Math.floor(Math.random() * 16)];
   }
-  return "#f5f5f5"
-  // return color;
+  return color;
 }
+
+function getWhiteColor(){
+  return "#f5f5f5"
+}
+
 function getTrayFromId(Id) {
   return document.querySelector(`[data-tray-id="${Id}"]`).__trayInstance;
 }
@@ -523,24 +527,24 @@ formatCreatedTime() {
 
   //   saveToLocalStorage();
   // }
-  updateBorderColor() {
+  updateBorderColor(color) {
     const trayElement = this.element;
     if (trayElement) {
-      trayElement.style.borderLeftColor = this.borderColor;
+      trayElement.style.borderLeftColor = color;
       trayElement.style.borderLeftWidth = '3px';
       trayElement.style.borderLeftStyle = 'solid';
-      trayElement.style.borderBottomColor = this.borderColor;
+      trayElement.style.borderBottomColor = color;
       trayElement.style.borderBottomWidth = '3px';
       trayElement.style.borderBottomStyle = 'solid';
-      trayElement.style.borderTopColor = this.borderColor;
+      trayElement.style.borderTopColor = color;
       trayElement.style.borderTopWidth = '3px';
       trayElement.style.borderTopStyle = 'solid';
     }
     saveToLocalStorage();
   }
   changeBorderColor(color) {
-    this.borderColor = color;
-    this.updateBorderColor();
+    // this.borderColor = color;
+    this.updateBorderColor(color);
     saveToLocalStorage();
   }
 
@@ -579,17 +583,21 @@ formatCreatedTime() {
     if (!this.children.length) {
       content.style.display = 'none';
       foldButton.style.display = "none";
-
+      
     } else {
       foldButton.style.display = 'inline-block';
       foldButtonRight.style.display = 'inline-block';
       if (this.isFolded) {
+
         content.style.display = 'none';
         foldButton.textContent = '▶';
         foldButton.style.display = "inline-block";
         foldButtonRight.textContent = '▼';
         foldButtonRight.style.display = "none";
       } else {
+        if (!this.borderColor){
+          this.updateBorderColor(getRandomColor())
+        }
         content.style.display = 'block';
         foldButton.textContent = '▼';
         foldButton.style.display = "none";
