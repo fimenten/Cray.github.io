@@ -996,6 +996,7 @@ formatCreatedTime() {
     colorPicker.addEventListener('change', (e) => {
       this.borderColor = e.target.value
       this.changeBorderColor(e.target.value);
+      this.updateAppearance()
       menu.remove();
     });
   
