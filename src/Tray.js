@@ -125,7 +125,7 @@ class Tray {
     const createdTime = document.createElement('span');
     createdTime.classList.add('tray-created-time');
     createdTime.textContent = this.formatCreatedTime();
-    createdTime.style.fontSize = '0.5em';
+    createdTime.style.fontSize = '0.8em';
     createdTime.style.color = '#888';
     // createdTime.style.marginLeft = '10px';
     const checkbox = document.createElement('input');
@@ -240,14 +240,19 @@ class Tray {
       updateLastFocused(this);
     }, true);
   }
-formatCreatedTime() {
-  return new Date(this.created_dt).toLocaleString('ja-JP', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  })}
+  formatCreatedTime() {
+    const date = new Date(this.created_dt);
+    const dateString = date.toLocaleDateString('ja-JP', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+    const timeString = date.toLocaleTimeString('ja-JP', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    return `${dateString}\n${timeString}`;
+  }
   showTemplateSelectionDialog() {
     const dialog = document.createElement('div');
     dialog.classList.add('template-selection-dialog');
