@@ -1089,7 +1089,7 @@ formatCreatedTime() {
       if (!menu.contains(e.target)) {
         menu.remove();
         document.removeEventListener('click', handleOutsideClick);
-        // window.menuOpening = false;
+        menuOpening = false;
 
       }
     };
@@ -1097,7 +1097,7 @@ formatCreatedTime() {
     menu.addEventListener('click', handleMenuClick);
     document.addEventListener('click', handleOutsideClick);
     this.setupKeyboardNavigation(this.element)
-    // window.menuOpening = false;
+    menuOpening = false;
   }
   
   // Add this method to your class if it doesn't exist
