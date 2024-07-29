@@ -17,6 +17,9 @@ function getWhiteColor(){
 function getTrayFromId(Id) {
   return document.querySelector(`[data-tray-id="${Id}"]`).__trayInstance;
 }
+
+var menuOpening = false;
+
 class LabelManager {
   constructor() {
     this.labels = {};
@@ -680,9 +683,13 @@ formatCreatedTime() {
   }
 
   handleKeyDown(event) {
+    if (menuOpening){
+      return;
+    }
     event.stopPropagation();
+
+
     if (this.isEditing) {
-      // 編集モード中は特定のキーのみを処理
       switch (event.key) {
         case 'Enter':
           if (!event.shiftKey) {
@@ -695,8 +702,11 @@ formatCreatedTime() {
           this.cancelTitleEdit(event.target);
           break;
       }
-      return; // 他のキー操作は無視
+      return; 
     }
+    console.log(menuOpening)
+
+
     this.element.focus()
     switch (event.key) {
       case 'ArrowUp':
@@ -773,6 +783,7 @@ formatCreatedTime() {
 
   moveFocus(direction) {
     if (this.isEditing) { return }
+    if (menuOpening){return}
     let nextTray;
     switch (direction) {
       case 'up':
@@ -892,6 +903,7 @@ formatCreatedTime() {
   onContextMenu(event) {
     event.preventDefault();
     event.stopPropagation();
+    menuOpening = true;
     if (this.isLabelTrayCopy) {
       event.preventDefault();
       event.stopPropagation();
@@ -905,72 +917,82 @@ formatCreatedTime() {
     menu.classList.add('context-menu');
     menu.setAttribute('tabindex', '-1');
     menu.innerHTML = `
-      <div class="menu-item" data-action="fetchTrayFromServer">Fetch Tray from Server</div>
-      <div class="menu-item" data-action="convertToNetwork">Convert to NetworkTray</div>
-      <div class="menu-item" data-action="open_this_in_other">open_this_in_other</div>
-      <div class="menu-item" data-action="toggleFlexDirection">Toggle Flex Direction</div>
-      <div class="menu-item" data-action="copy">Copy</div>
-      <div class="menu-item" data-action="paste">Paste</div>
-      <div class="menu-item" data-action="cut">Cut</div>
-      <div class="menu-item" data-action="delete">Remove</div>
-      <div class="menu-item" data-action="add_fetch_networkTray_to_child">add_fetch_networkTray_to_child</div>
-      <div class="menu-item" data-action="add_child_from_localStorage">add_child_from_localStorage</div>
-      <div class="menu-item" data-action="addLabelTray">Add Label Tray</div>
-      <div class="menu-item" data-action="addLabel">Add Label</div>
-      <div class="menu-item" data-action="removeLabel">Edit Labels</div>
-      <div class="menu-item" data-action="outputMarkdown">Output as Markdown</div>
-      <div class="menu-item" data-action="addTemplateTray">Add Template Tray</div>
-      <div class="menu-item">
-        <label for="borderColorPicker">Change Border Color:</label>
-        <input type="color" id="borderColorPicker" value="${this.borderColor}">
-      </div>
-    `;
+    <div class="menu-item" data-action="fetchTrayFromServer" tabindex="0">Fetch Tray from Server</div>
+    <div class="menu-item" data-action="convertToNetwork" tabindex="1">Convert to NetworkTray</div>
+    <div class="menu-item" data-action="open_this_in_other" tabindex="2">open_this_in_other</div>
+    <div class="menu-item" data-action="toggleFlexDirection" tabindex="3">Toggle Flex Direction</div>
+    <div class="menu-item" data-action="copy" tabindex="0">Copy</div>
+    <div class="menu-item" data-action="paste" tabindex="0">Paste</div>
+    <div class="menu-item" data-action="cut" tabindex="0">Cut</div>
+    <div class="menu-item" data-action="delete" tabindex="0">Remove</div>
+    <div class="menu-item" data-action="add_fetch_networkTray_to_child" tabindex="0">add_fetch_networkTray_to_child</div>
+    <div class="menu-item" data-action="add_child_from_localStorage" tabindex="0">add_child_from_localStorage</div>
+    <div class="menu-item" data-action="addLabelTray" tabindex="0">Add Label Tray</div>
+    <div class="menu-item" data-action="addLabel" tabindex="0">Add Label</div>
+    <div class="menu-item" data-action="removeLabel" tabindex="0">Edit Labels</div>
+    <div class="menu-item" data-action="outputMarkdown" tabindex="0">Output as Markdown</div>
+    <div class="menu-item" data-action="addTemplateTray" tabindex="0">Add Template Tray</div>
+    <div class="menu-item" tabindex="0">
+      <label for="borderColorPicker">Change Border Color:</label>
+      <input type="color" id="borderColorPicker" value="${this.borderColor}">
+    </div>
+  `;
   
-    if (!this.isSplit) {
-      menu.innerHTML += `<div class="menu-item" data-action="split">Split</div>`;
-    }
+  if (!this.isSplit) {
+    menu.innerHTML += `<div class="menu-item" data-action="split" tabindex="0">Split</div>`;
+  }
   
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
   
     let left = event.clientX;
     let top = event.clientY;
-  
     document.body.appendChild(menu);
     menu.style.visibility = 'hidden';
     menu.style.display = 'block';
     menu.style.position = 'absolute';
   
     setTimeout(() => {
-      const menuWidth = menu.offsetWidth;
-      const menuHeight = menu.offsetHeight;
-  
-      console.log('Menu dimensions:', menuWidth, menuHeight);
-  
-      const isRightHalf = left > viewportWidth / 2;
-      const isBottomHalf = top > viewportHeight / 2;
-  
-      if (isRightHalf) {
-        left -= menuWidth;
+      if ((left)&(top)){
+        const menuWidth = menu.offsetWidth;
+        const menuHeight = menu.offsetHeight;
+        
+        console.log('Menu dimensions:', menuWidth, menuHeight);
+    
+        const isRightHalf = left > viewportWidth / 2;
+        const isBottomHalf = top > viewportHeight / 2;
+    
+        if (isRightHalf) {
+          left -= menuWidth;
+        }
+        if (isBottomHalf) {
+          top -= menuHeight;
+        }
+    
+        left = Math.max(0, Math.min(left, viewportWidth - menuWidth));
+        top = Math.max(0, Math.min(top, viewportHeight - menuHeight));
+    
+        menu.style.left = `${left}px`;
+        menu.style.top = `${top}px`;
+        menu.style.visibility = 'visible';
       }
-      if (isBottomHalf) {
-        top -= menuHeight;
+      else{
+        menu.style.left = window.offsetWidth - menu.offsetWidth
+        menu.style.top = 0
+        menu.style.visibility = 'visible';
+
       }
-  
-      left = Math.max(0, Math.min(left, viewportWidth - menuWidth));
-      top = Math.max(0, Math.min(top, viewportHeight - menuHeight));
-  
-      menu.style.left = `${left}px`;
-      menu.style.top = `${top}px`;
-      menu.style.visibility = 'visible';
+
+
   
       console.log('Final position:', left, top);
     }, 0);
   
     const menuItems = menu.querySelectorAll('.menu-item');
     let currentFocus = 0;
-  
-    menu.addEventListener('keydown', (e) => {
+    // document.removeEventListener("keydown",this.handleKeyDown.bind(this))
+    const handler = function (e){
+      console.log(e.key)
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         menuItems[currentFocus].classList.remove('focused');
         if (e.key === 'ArrowDown') {
@@ -985,12 +1007,13 @@ formatCreatedTime() {
       } else if (e.key === 'Escape') {
         document.body.removeChild(menu);
       }
-    });
+    }
+    document.addEventListener('keydown', (e) => handler(e).bind(this));
   
-    menu.focus();
+    // menu.focus();
     menuItems[0].classList.add('focused');
     console.log(menu.offsetHeight, menu.offsetTop, top);
-  
+    menuItems[0].focus();
     // Add event listener for color picker
     const colorPicker = menu.querySelector('#borderColorPicker');
     colorPicker.addEventListener('change', (e) => {
@@ -1066,11 +1089,15 @@ formatCreatedTime() {
       if (!menu.contains(e.target)) {
         menu.remove();
         document.removeEventListener('click', handleOutsideClick);
+        // window.menuOpening = false;
+
       }
     };
   
     menu.addEventListener('click', handleMenuClick);
     document.addEventListener('click', handleOutsideClick);
+    this.setupKeyboardNavigation(this.element)
+    // window.menuOpening = false;
   }
   
   // Add this method to your class if it doesn't exist
