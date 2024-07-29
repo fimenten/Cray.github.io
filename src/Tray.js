@@ -603,8 +603,8 @@ formatCreatedTime() {
             this.tempColor = getRandomColor();
           }
           this.borderColor = this.tempColor;
-          this.updateBorderColor(this.tempColor)
         }
+        this.updateBorderColor(this.borderColor)
         content.style.display = 'block';
         foldButton.textContent = '▼';
         foldButton.style.display = "none";
