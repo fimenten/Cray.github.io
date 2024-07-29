@@ -96,7 +96,7 @@ class Tray {
     this.isSplit = false;
     this.isFolded = true;
     this.isChecked = isChecked;
-    this.borderColor = color || "#f5f5f5";
+    this.borderColor = color ;
     this.created_dt = created_dt || new Date();
     this.element = this.createElement();
     this.flexDirection = 'column';
@@ -125,7 +125,7 @@ class Tray {
     const createdTime = document.createElement('span');
     createdTime.classList.add('tray-created-time');
     createdTime.textContent = this.formatCreatedTime();
-    createdTime.style.fontSize = '0.8em';
+    createdTime.style.fontSize = '0.5em';
     createdTime.style.color = '#888';
     // createdTime.style.marginLeft = '10px';
     const checkbox = document.createElement('input');
@@ -598,9 +598,13 @@ formatCreatedTime() {
         foldButtonRight.textContent = '▼';
         foldButtonRight.style.display = "none";
       } else {
-        // if (!this.borderColor){
-        //   this.updateBorderColor(getRandomColor())
-        // }
+        if (!this.borderColor){
+          if (!this.tempColor){
+            this.tempColor = getRandomColor();
+          }
+          this.borderColor = this.tempColor;
+          this.updateBorderColor(this.tempColor)
+        }
         content.style.display = 'block';
         foldButton.textContent = '▼';
         foldButton.style.display = "none";
@@ -913,6 +917,17 @@ formatCreatedTime() {
     if (existingMenu) {
       existingMenu.remove();
     }
+
+    let showColor;
+    if (this.borderColor){
+      showColor = this.borderColor}
+    else if (this.tempColor) {
+      showColor = this.tempColor
+    }
+    else{
+      showColor = getWhiteColor();
+    }
+
     const menu = document.createElement('div');
     menu.classList.add('context-menu');
     menu.setAttribute('tabindex', '-1');
@@ -933,8 +948,7 @@ formatCreatedTime() {
     <div class="menu-item" data-action="outputMarkdown" tabindex="0">Output as Markdown</div>
     <div class="menu-item" data-action="addTemplateTray" tabindex="0">Add Template Tray</div>
     <div class="menu-item" tabindex="0">
-      <label for="borderColorPicker">Change Border Color:</label>
-      <input type="color" id="borderColorPicker" value="${this.borderColor}">
+      <input type="color" id="borderColorPicker" value="${showColor}">
     </div>
   `;
   
