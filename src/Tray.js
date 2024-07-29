@@ -938,9 +938,6 @@ formatCreatedTime() {
     </div>
   `;
   
-  if (!this.isSplit) {
-    menu.innerHTML += `<div class="menu-item" data-action="split" tabindex="0">Split</div>`;
-  }
   
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
