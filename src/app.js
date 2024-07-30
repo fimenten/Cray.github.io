@@ -207,8 +207,10 @@ function editPageTitle() {
   const newTitle = prompt("新しいページタイトルを入力してください:", currentTitle);
   if (newTitle !== null && newTitle.trim() !== "") {
     document.title = newTitle.trim();
-    localStorage.setItem(sessionId + "_title", newTitle.trim());
-    notifyUser('ページタイトルを更新しました。');
+    sessionId = getUrlParameter("sessionId");
+    if (sessionId) {localStorage.setItem( + "_title", newTitle.trim());
+    notifyUser('ページタイトルを更新しました。');}
+    
   }
 }
 function import_network_tray_directly_as_root(){
