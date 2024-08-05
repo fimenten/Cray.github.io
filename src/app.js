@@ -84,6 +84,7 @@ function createHamburgerMenu() {
     <div class="menu-item" data-action="export">データのエクスポート</div>
     <div class="menu-item" data-action="import">データのインポート</div>
     <div class="menu-item" data-action="set_default_server">set_default_server</div>
+    <div class="menu-item" data-action="set_secret">set_secret</div>
     <div class="menu-item" data-action="import_network_tray_directly_as_root">import_network_tray_directly_as_root</div>
 
 
@@ -151,6 +152,8 @@ menu.innerHTML += `
       case "set_default_server":
         set_default_server()
         break;
+      case "set_secret":
+        set_secret()
       case "import_network_tray_directly_as_root":
         import_network_tray_directly_as_root();
         break
@@ -260,6 +263,11 @@ function set_default_server(){
   let url = localStorage.getItem("defaultServer");
   url = prompt("set default URL",url)
   localStorage.setItem("defaultServer",url)
+}
+function set_secret(){
+  let secret = localStorage.getItem("secretKey");
+  secret = prompt("set secretKey",secret)
+  localStorage.setItem("secretKey",secret)
 }
 function saveCurrentState() {
     const currentState = localStorage.getItem('trayData');
