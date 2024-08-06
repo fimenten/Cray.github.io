@@ -1,8 +1,8 @@
 const TRAY_DATA_KEY = 'trayData';
 function generateUUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     var r = Math.random() * 16 | 0,
-        v = c == 'x' ? r : (r & 0x3 | 0x8);
+      v = c == 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);
   });
 }
@@ -55,9 +55,9 @@ function saveToLocalStorage(key = null) {
     const serializedData = JSON.stringify(data);
     // console.log(serializedData)
     let keyy;
-    if (key != null){keyy = key}
-    else{if (sessionId){keyy = sessionId}else{keyy = TRAY_DATA_KEY}}
-    
+    if (key != null) { keyy = key }
+    else { if (sessionId) { keyy = sessionId } else { keyy = TRAY_DATA_KEY } }
+
     localStorage.setItem(keyy, serializedData);
     console.log('Data saved successfully');
   } catch (error) {
@@ -69,8 +69,8 @@ function serializeDOM(tray) {
   return tray.serialize()
 }
 
-function loadFromLocalStorage(key=TRAY_DATA_KEY) {
-  try {    
+function loadFromLocalStorage(key = TRAY_DATA_KEY) {
+  try {
     const savedData = localStorage.getItem(key);
     let rootTray;
     console.log(savedData);
@@ -95,56 +95,56 @@ function loadFromLocalStorage(key=TRAY_DATA_KEY) {
 }
 
 function deserializeDOM(data) {
-    let tray;
+  let tray;
 
-    if (data.host_url == null) {
-      tray = new Tray(
-        data.parentId, 
-        data.id, 
-        data.name, 
-        [],
-        data.borderColor, 
-        data.labels, 
-        data.isChecked,
-        data.created_dt
-      );
-    } else {
-      tray = new NetworkTray(
-        data.parentId, 
-        data.id, 
-        data.name, 
-        [],
-        data.borderColor, 
-        data.labels, 
-        data.isChecked,
-        data.host_url,
-        data.filename,
-      );
-      // tray.host_url = data.host_url
-    }
-    let children = data.children.map(d => deserialize(d)); 
-    children.forEach(childTray => {
-      tray.addChild(childTray)
-    });
-    console.log(children)
+  if (data.host_url == null) {
+    tray = new Tray(
+      data.parentId,
+      data.id,
+      data.name,
+      [],
+      data.borderColor,
+      data.labels,
+      data.isChecked,
+      data.created_dt
+    );
+  } else {
+    tray = new NetworkTray(
+      data.parentId,
+      data.id,
+      data.name,
+      [],
+      data.borderColor,
+      data.labels,
+      data.isChecked,
+      data.host_url,
+      data.filename,
+    );
+    // tray.host_url = data.host_url
+  }
+  let children = data.children.map(d => deserialize(d));
+  children.forEach(childTray => {
+    tray.addChild(childTray)
+  });
+  console.log(children)
 
 
-    tray.foldChildren()
-    tray.updateAppearance()
+  tray.foldChildren()
+  tray.updateAppearance()
 
-    tray.isSplit = data.isSplit;
-    tray.flexDirection = data.flexDirection || 'column';
-    tray.updateFlexDirection();
-  
-    if (tray.isSplit) {
-      tray.element.classList.add('split');
-      tray.updateSplitDirection();
-    }
-    tray.foldChildren()  
-    tray.updateAppearance()
-  
-  
-    return tray;
+  tray.isSplit = data.isSplit;
+  tray.flexDirection = data.flexDirection || 'column';
+  tray.updateFlexDirection();
+
+  if (tray.isSplit) {
+    tray.element.classList.add('split');
+    tray.updateSplitDirection();
+  }
+  tray.foldChildren()
+  tray.updateAppearance()
+
+
+  return tray;
 }
 
 function createDefaultRootTray() {

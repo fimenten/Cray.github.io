@@ -51,7 +51,8 @@
   flex: 0 0 auto;
   margin: 0px;
   padding: 0;
-  opacity: 0; /* Makes the checkbox invisible */
+  opacity: 0;
+  /* Makes the checkbox invisible */
   /* Alternatively, you could use: visibility: hidden; */
 }
 
@@ -165,20 +166,20 @@
   flex-direction: column;
 }
 
-.tray.split > .tray-content {
+.tray.split>.tray-content {
   display: flex;
   flex: 1;
 }
 
-.tray.split-horizontal > .tray-content {
+.tray.split-horizontal>.tray-content {
   flex-direction: row;
 }
 
-.tray.split-vertical > .tray-content {
+.tray.split-vertical>.tray-content {
   flex-direction: column;
 }
 
-.tray.split > .tray-content > .tray {
+.tray.split>.tray-content>.tray {
   flex: 1;
   min-width: 0;
   min-height: 0;
@@ -210,6 +211,7 @@
   font-size: 12px;
   padding: 0;
 }
+
 .tray-fold-button-right {
   background: none;
   border: none;
@@ -305,17 +307,19 @@
   padding: 5px;
   cursor: pointer;
 }
+
 .context-menu .menu-item.focused {
   background-color: #f0f0f0;
   outline: none;
 }
+
 .template-selection-popup {
   position: fixed;
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 5px;
   padding: 10px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
   z-index: 10000;
 }
 
@@ -335,6 +339,7 @@
 .template-item:hover {
   background-color: #f0f0f0;
 }
+
 /* Network Tray Info Styles */
 .network-tray-info {
   display: flex;
@@ -483,6 +488,7 @@
   min-height: 30px;
   transition: min-height 0.3s ease;
 }
+
 /* 
 html, body {
     height: 75vh;
@@ -535,11 +541,11 @@ body > .tray > .tray-content {
   border-radius: 4px;
   padding: 10px;
   z-index: 1001;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 /* Adjust main content to accommodate left bar */
-body > .tray {
+body>.tray {
   margin-left: 50px;
   width: calc(100% - 50px);
 }
@@ -550,7 +556,7 @@ body > .tray {
     width: 40px;
   }
 
-  body > .tray {
+  body>.tray {
     margin-left: 40px;
     width: calc(100% - 40px);
   }
@@ -600,4 +606,3 @@ body > .tray {
 .action-button:active {
   transform: scale(0.95);
 }
-

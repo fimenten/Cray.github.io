@@ -10,7 +10,7 @@ function getRandomColor() {
   return color;
 }
 
-function getWhiteColor(){
+function getWhiteColor() {
   return "#f5f5f5"
 }
 
@@ -28,10 +28,10 @@ class LabelManager {
   }
 
   initializeDefaultLabels() {
-    this.addLabel( 'DONE', '#4CAF50');
-    this.addLabel( 'WIP', '#FFC107');
-    this.addLabel( 'PLANNING', '#2196F3');
-    this.addLabel( 'ARCHIVE', '#9E9E9E');
+    this.addLabel('DONE', '#4CAF50');
+    this.addLabel('WIP', '#FFC107');
+    this.addLabel('PLANNING', '#2196F3');
+    this.addLabel('ARCHIVE', '#9E9E9E');
   }
 
   addLabel(labelName, color) {
@@ -40,7 +40,8 @@ class LabelManager {
     //   notifyUser("duplicated label name not allowed")
     //   return
     // }
-    this.labels[labelName] = color};
+    this.labels[labelName] = color
+  };
 
   getLabel(labelName) {
     return this.labels[labelName];
@@ -58,8 +59,8 @@ class LabelManager {
     this.labels = JSON.parse(jsonString);
   }
 
-  registLabeledTray(labelName,tray){
-    this.label_tray.add([labelName,tray])
+  registLabeledTray(labelName, tray) {
+    this.label_tray.add([labelName, tray])
   }
 
   unregisterLabeledTray(labelName, tray) {
@@ -96,7 +97,7 @@ class Tray {
     this.isSplit = false;
     this.isFolded = true;
     this.isChecked = isChecked;
-    this.borderColor = color ;
+    this.borderColor = color;
     this.created_dt = created_dt || new Date();
     this.element = this.createElement();
     this.flexDirection = 'column';
@@ -209,15 +210,15 @@ class Tray {
   static templates = {
     'Task': {
       name: 'tasker',
-      children: ['PLANNING', 'PLANNED', 'PROGRESS',"DONE"],
+      children: ['PLANNING', 'PLANNED', 'PROGRESS', "DONE"],
       labels: []
     },
     'Project Structure': {
       name: 'Project Structure',
       children: [
-        {name: '思索'},
-        {name: '実装方針'},
-        {name: '実装中'},
+        { name: '思索' },
+        { name: '実装方針' },
+        { name: '実装中' },
       ],
     },
     'importance_urgence': {
@@ -225,9 +226,9 @@ class Tray {
       children: ['1-1', '1-0', '0-1', '0-0'],
     }
     ,
-    "importance":{
-      name:"konsaruImportance",
-      children:["MUST","SHOULD","COULD","WONT"]
+    "importance": {
+      name: "konsaruImportance",
+      children: ["MUST", "SHOULD", "COULD", "WONT"]
     }
 
   };
@@ -235,7 +236,7 @@ class Tray {
     this.element.addEventListener('focus', () => {
       updateLastFocused(this);
     }, true);
-  
+
     this.element.addEventListener('click', () => {
       updateLastFocused(this);
     }, true);
@@ -259,9 +260,9 @@ class Tray {
     dialog.innerHTML = `
       <h3>Select a Template:</h3>
       <select id="template-select">
-        ${Object.keys(Tray.templates).map(key => 
-          `<option value="${key}">${Tray.templates[key].name}</option>`
-        ).join('')}
+        ${Object.keys(Tray.templates).map(key =>
+      `<option value="${key}">${Tray.templates[key].name}</option>`
+    ).join('')}
       </select>
       <button id="create-template-btn">Create</button>
       <button id="cancel-btn">Cancel</button>
@@ -286,7 +287,7 @@ class Tray {
     popup.style.top = `${event.clientY}px`;
     popup.style.left = `${event.clientX}px`;
     popup.style.zIndex = '10000';
-  
+
     popup.innerHTML = `
       <h3>Select a Template:</h3>
       <div class="template-list">
@@ -298,9 +299,9 @@ class Tray {
         `).join('')}
       </div>
     `;
-  
+
     document.body.appendChild(popup);
-  
+
     popup.addEventListener('click', (e) => {
       const templateItem = e.target.closest('.template-item');
       if (templateItem) {
@@ -309,7 +310,7 @@ class Tray {
         popup.remove();
       }
     });
-  
+
     // ポップアップの外側をクリックしたときに閉じる
     document.addEventListener('click', function closePopup(e) {
       if (!popup.contains(e.target) && !e.target.closest('.context-menu')) {
@@ -323,7 +324,7 @@ class Tray {
     if (!template) return null;
 
     const templateTray = new Tray(this.id, Date.now().toString(), template.name);
-    
+
     const createChildren = (parentTray, children) => {
       children.forEach(child => {
         if (typeof child === 'string') {
@@ -340,20 +341,20 @@ class Tray {
     };
 
     createChildren(templateTray, template.children);
-    
 
-    
+
+
     return templateTray.children
   }
   outputAsMarkdown(depth = 0) {
     let markdown = '#'.repeat(depth + 1) + ' ' + this.name + '\n\n';
-    
+
     if (this.children.length > 0) {
       this.children.forEach(child => {
         markdown += child.outputAsMarkdown(depth + 1);
       });
     }
-    
+
     return markdown;
   }
   toggleFlexDirection() {
@@ -370,8 +371,8 @@ class Tray {
     <select id="existingLabels">
       <option value="">-- 既存のラベルを選択 --</option>
       ${Object.entries(globalLabelManager.getAllLabels()).map(([name, color]) =>
-        `<option value="${name}" style="background-color: ${color};">${name}</option>`
-      ).join('')}
+      `<option value="${name}" style="background-color: ${color};">${name}</option>`
+    ).join('')}
     </select>
     <button id="selectExistingLabel">選択</button>
     <div>または</div>
@@ -434,7 +435,7 @@ class Tray {
     const longPressDuration = 500;
 
     element.addEventListener('touchstart', (e) => {
-      if (this.isEditing){return}
+      if (this.isEditing) { return }
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
 
@@ -445,7 +446,7 @@ class Tray {
 
     element.addEventListener('touchmove', (e) => {
       const threshold = 10;
-      if (this.isEditing){return}
+      if (this.isEditing) { return }
       if (Math.abs(e.touches[0].clientX - startX) > threshold ||
         Math.abs(e.touches[0].clientY - startY) > threshold) {
         clearTimeout(longPressTimer);
@@ -453,8 +454,8 @@ class Tray {
     });
 
     element.addEventListener('touchend', () => {
-      if (this.isEditing){return}
-      
+      if (this.isEditing) { return }
+
       clearTimeout(longPressTimer);
     });
 
@@ -468,7 +469,7 @@ class Tray {
       labelContainer.classList.add('tray-labels');
       titleContainer.appendChild(labelContainer);
     }
-  
+
     labelContainer.innerHTML = '';
     if (this.labels) {
       this.element.querySelector('.tray-labels').style.display = "block";
@@ -493,7 +494,7 @@ class Tray {
       this.removeLabel(labelName);
     }
   }
-  
+
   removeLabel(labelName) {
     this.labels = this.labels.filter(label => label !== labelName);
     globalLabelManager.unregisterLabeledTray(labelName, this);
@@ -591,7 +592,7 @@ class Tray {
     if (!this.children.length) {
       content.style.display = 'none';
       foldButton.style.display = "none";
-      
+
     } else {
       foldButton.style.display = 'inline-block';
       foldButtonRight.style.display = 'inline-block';
@@ -603,8 +604,8 @@ class Tray {
         foldButtonRight.textContent = '▼';
         foldButtonRight.style.display = "none";
       } else {
-        if (!this.borderColor){
-          if (!this.tempColor){
+        if (!this.borderColor) {
+          if (!this.tempColor) {
             this.tempColor = getRandomColor();
           }
           this.borderColor = this.tempColor;
@@ -616,7 +617,7 @@ class Tray {
         foldButtonRight.textContent = '▶';
         foldButtonRight.style.display = "inline-block";
         this.updateFlexDirection();
-  }
+      }
     }
   }
 
@@ -692,7 +693,7 @@ class Tray {
   }
 
   handleKeyDown(event) {
-    if (menuOpening){
+    if (menuOpening) {
       return;
     }
     event.stopPropagation();
@@ -711,7 +712,7 @@ class Tray {
           this.cancelTitleEdit(event.target);
           break;
       }
-      return; 
+      return;
     }
     console.log(menuOpening)
 
@@ -740,8 +741,8 @@ class Tray {
           this.addNewChild();
         } else if (event.shiftKey) {
           this.toggleEditMode();
-        } else 
-          {event.preventDefault();
+        } else {
+          event.preventDefault();
           this.toggleFold(event);
         }
         break;
@@ -792,7 +793,7 @@ class Tray {
 
   moveFocus(direction) {
     if (this.isEditing) { return }
-    if (menuOpening){return}
+    if (menuOpening) { return }
     let nextTray;
     switch (direction) {
       case 'up':
@@ -850,7 +851,7 @@ class Tray {
     const newTitleElement = newTray.element.querySelector('.tray-title');
     newTray.startTitleEdit(newTitleElement);
   }
-  
+
   onDrop(event) {
     event.preventDefault();
     if (this.isFolded) {
@@ -924,12 +925,13 @@ class Tray {
     }
 
     let showColor;
-    if (this.borderColor){
-      showColor = this.borderColor}
+    if (this.borderColor) {
+      showColor = this.borderColor
+    }
     else if (this.tempColor) {
       showColor = this.tempColor
     }
-    else{
+    else {
       showColor = getWhiteColor();
     }
 
@@ -956,43 +958,43 @@ class Tray {
       <input type="color" id="borderColorPicker" value="${showColor}">
     </div>
   `;
-  
-  
+
+
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-  
+
     let left = event.clientX;
     let top = event.clientY;
     document.body.appendChild(menu);
     menu.style.visibility = 'hidden';
     menu.style.display = 'block';
     menu.style.position = 'absolute';
-  
+
     setTimeout(() => {
-      if ((left)&(top)){
+      if ((left) & (top)) {
         const menuWidth = menu.offsetWidth;
         const menuHeight = menu.offsetHeight;
-        
+
         console.log('Menu dimensions:', menuWidth, menuHeight);
-    
+
         const isRightHalf = left > viewportWidth / 2;
         const isBottomHalf = top > viewportHeight / 2;
-    
+
         if (isRightHalf) {
           left -= menuWidth;
         }
         if (isBottomHalf) {
           top -= menuHeight;
         }
-    
+
         left = Math.max(0, Math.min(left, viewportWidth - menuWidth));
         top = Math.max(0, Math.min(top, viewportHeight - menuHeight));
-    
+
         menu.style.left = `${left}px`;
         menu.style.top = `${top}px`;
         menu.style.visibility = 'visible';
       }
-      else{
+      else {
         menu.style.left = window.offsetWidth - menu.offsetWidth
         menu.style.top = 0
         menu.style.visibility = 'visible';
@@ -1000,14 +1002,14 @@ class Tray {
       }
 
 
-  
+
       console.log('Final position:', left, top);
     }, 0);
-  
+
     const menuItems = menu.querySelectorAll('.menu-item');
     let currentFocus = 0;
     // document.removeEventListener("keydown",this.handleKeyDown.bind(this))
-    const handler = function (e){
+    const handler = function (e) {
       console.log(e.key)
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
         menuItems[currentFocus].classList.remove('focused');
@@ -1025,7 +1027,7 @@ class Tray {
       }
     }
     document.addEventListener('keydown', (e) => handler(e).bind(this));
-  
+
     // menu.focus();
     menuItems[0].classList.add('focused');
     console.log(menu.offsetHeight, menu.offsetTop, top);
@@ -1038,7 +1040,7 @@ class Tray {
       this.updateAppearance()
       menu.remove();
     });
-  
+
     const handleMenuClick = (e) => {
       const action = e.target.getAttribute('data-action');
       switch (action) {
@@ -1100,7 +1102,7 @@ class Tray {
       menu.remove();
       document.removeEventListener('click', handleOutsideClick);
     };
-  
+
     const handleOutsideClick = (e) => {
       if (!menu.contains(e.target)) {
         menu.remove();
@@ -1109,13 +1111,13 @@ class Tray {
 
       }
     };
-  
+
     menu.addEventListener('click', handleMenuClick);
     document.addEventListener('click', handleOutsideClick);
     this.setupKeyboardNavigation(this.element)
     menuOpening = false;
   }
-  
+
   // Add this method to your class if it doesn't exist
   // changeBorderColor(color) {
   //   this.borderColor = color;
@@ -1125,7 +1127,7 @@ class Tray {
   addTemplateTray(templateName) {
     const templateTrays = this.createTemplateTray(templateName);
     if (templateTrays) {
-      templateTrays.map(t=>this.addChild(t));
+      templateTrays.map(t => this.addChild(t));
       this.isFolded = false;
       this.updateAppearance();
       saveToLocalStorage();
@@ -1151,29 +1153,29 @@ class Tray {
     });
 
   }
-  createLabelTray(selectedLabel){
+  createLabelTray(selectedLabel) {
     const root = this.getRootTray();
-    const serialized =root.serialize();
+    const serialized = root.serialize();
     console.log(serialized);
     let copyied = deserializeDOM(serialized);
     console.log(copyied)
-    
-    copyied = copyied.labelFilteringWithDestruction(selectedLabel,copyied)
+
+    copyied = copyied.labelFilteringWithDestruction(selectedLabel, copyied)
     console.log(copyied)
-    if (copyied){
-      let ret = new Tray(this.id,"LABEL_"+selectedLabel,selectedLabel + " LABEL_Tray",[],globalLabelManager.getLabel(selectedLabel))
+    if (copyied) {
+      let ret = new Tray(this.id, "LABEL_" + selectedLabel, selectedLabel + " LABEL_Tray", [], globalLabelManager.getLabel(selectedLabel))
       copyied.children.map(t => ret.addChild(t))
       this.addChild(ret)
       this.updateAppearance()
     }
-    else{
+    else {
       notifyUser("no tray found")
     }
   }
   labelFilteringWithDestruction(labelName, tray) {
     console.log(tray.labels);
     console.log(tray.labels.includes(labelName));
-  
+
     if (tray.labels.includes(labelName)) {
       return tray;
     } else {
@@ -1181,7 +1183,7 @@ class Tray {
       let children_after = [];
       children_after = children_pre
         .map(t => this.labelFilteringWithDestruction(labelName, t))
-        .filter(t => t != null);      
+        .filter(t => t != null);
 
       console.log(children_after.length)
       if (children_after.length != 0) {
@@ -1215,8 +1217,8 @@ class Tray {
     <select id="existingLabels">
       <option value="">-- Select existing label --</option>
       ${Object.entries(globalLabelManager.getAllLabels()).map(([labelName, color]) =>
-        `<option value="${labelName}" style="background-color: ${color};">${labelName}</option>`
-      ).join('')}
+      `<option value="${labelName}" style="background-color: ${color};">${labelName}</option>`
+    ).join('')}
     </select>
     <button id="selectExistingLabel">Select</button>
     <div>or</div>
@@ -1271,9 +1273,9 @@ class Tray {
       `).join('')}
       <button id="removeLabelBtn">Remove Selected Labels</button>
     `;
-  
+
     document.body.appendChild(labelRemover);
-  
+
     document.getElementById('removeLabelBtn').addEventListener('click', () => {
       const checkboxes = labelRemover.querySelectorAll('input[type="checkbox"]:checked');
       checkboxes.forEach(checkbox => {
@@ -1285,10 +1287,10 @@ class Tray {
 
 
 
-  
+
   copyTray() {
     const serialized = serializeDOM(this)
-    serialized.id =  generateUUID()
+    serialized.id = generateUUID()
     navigator.clipboard.writeText(JSON.stringify(serialized))
   }
 
@@ -1305,17 +1307,17 @@ class Tray {
   }
 
   pasteTray() {
-    const serialized = navigator.clipboard.readText().then(str =>
-    {try{
-      let newTray = deserializeDOM(JSON.parse(str))
-      this.addChild(newTray);
-    }catch{
-      const texts = str.split('\n').filter(line => line.trim() !== '');
-      const trays = texts.map(text => new Tray(this.id,generateUUID(),text));
-      trays.map(t => this.addChild(t))
-    }
-  })
-}
+    const serialized = navigator.clipboard.readText().then(str => {
+      try {
+        let newTray = deserializeDOM(JSON.parse(str))
+        this.addChild(newTray);
+      } catch {
+        const texts = str.split('\n').filter(line => line.trim() !== '');
+        const trays = texts.map(text => new Tray(this.id, generateUUID(), text));
+        trays.map(t => this.addChild(t))
+      }
+    })
+  }
 
 
 
@@ -1445,7 +1447,7 @@ class Tray {
     });
     this.updateAppearance();
 
-    
+
 
 
 
@@ -1610,7 +1612,7 @@ class Tray {
     const markdown = this.outputAsMarkdown();
     const blob = new Blob([markdown], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
-    
+
     const outputWindow = window.open('', '_blank');
     outputWindow.document.write(`
       <html>
@@ -1712,10 +1714,10 @@ function deserialize(data) {
 class NetworkTray extends Tray {
   constructor(parentId, id, name, children = [], color = null, labels = [], isChecked = false, url = '', filename = '', created_dt) {
     super(parentId, id, name, children, color, labels, isChecked, created_dt);
-    if (url.endsWith("/")){url = url.slice(0,-1)}
+    if (url.endsWith("/")) { url = url.slice(0, -1) }
     this.host_url = url;
     this.filename = filename;
-    this.autoUpload = false; 
+    this.autoUpload = false;
     if ((url.length == 0) | (filename.length == 0)) {
       this.showNetworkOptions();
     }
@@ -1724,7 +1726,7 @@ class NetworkTray extends Tray {
 
   uploadData() {
     const data = this.serialize();
-  
+
     return fetch(`${this.host_url}/tray/save`, {
       method: 'POST',
       headers: {
@@ -1797,11 +1799,11 @@ class NetworkTray extends Tray {
 
   createElement() {
     const element = super.createElement();
-  
+
     // const networkInfoElement = document.createElement('div');
     // networkInfoElement.classList.add('network-tray-info');
     // this.updateNetworkInfo(networkInfoElement);
-  
+
     // Create a container for the buttons
     const buttonContainer = document.createElement('div');
     buttonContainer.classList.add('network-tray-buttons');
@@ -1809,41 +1811,41 @@ class NetworkTray extends Tray {
     buttonContainer.style.flexDirection = 'column';
     buttonContainer.style.alignItems = 'flex-start';
     buttonContainer.style.gap = '5px'; // Add some space between buttons
-  
+
     const uploadButton = document.createElement('button');
     uploadButton.textContent = 'Upload';
     uploadButton.addEventListener('click', () => this.uploadData());
-  
+
     const downloadButton = document.createElement('button');
     downloadButton.textContent = 'Download';
     downloadButton.addEventListener('click', () => this.ondownloadButtonPressed());
-  
+
     const autoUploadButton = document.createElement('button');
     autoUploadButton.textContent = `Auto Upload: ${this.autoUpload ? 'On' : 'Off'}`;
     autoUploadButton.style.backgroundColor = this.autoUpload ? 'green' : '';
     autoUploadButton.style.color = this.autoUpload ? 'white' : '';
     autoUploadButton.addEventListener('click', () => this.toggleAutoUpload());
-  
+
     // Add buttons to the container
     buttonContainer.appendChild(uploadButton);
     buttonContainer.appendChild(downloadButton);
     // buttonContainer.appendChild(autoUploadButton);
-  
+
     // Add network info and button container to the tray
     const titleContainer = element.querySelector('.tray-title-container');
     // titleContainer.appendChild(networkInfoElement);
     titleContainer.appendChild(buttonContainer);
-  
+
     // Adjust the layout of the title container
     titleContainer.style.display = 'flex';
     titleContainer.style.alignItems = 'center';
     titleContainer.style.justifyContent = 'space-between';
-  
+
     return element;
   }
   setupAutoUpload() {
     this.lastSerializedState = JSON.stringify(this.serialize());
-    
+
     this.autoUploadInterval = setInterval(() => {
       const currentState = JSON.stringify(this.serialize());
       if (currentState !== this.lastSerializedState) {
@@ -1870,9 +1872,9 @@ class NetworkTray extends Tray {
     notification.style.color = 'white';
     notification.style.backgroundColor = isError ? 'red' : 'green';
     notification.style.zIndex = '1000';
-  
+
     document.body.appendChild(notification);
-  
+
     setTimeout(() => {
       notification.style.transition = 'opacity 0.5s';
       notification.style.opacity = '0';
@@ -1894,13 +1896,13 @@ class NetworkTray extends Tray {
     autoUploadButton.textContent = `Auto Upload: ${this.autoUpload ? 'On' : 'Off'}`;
     autoUploadButton.style.backgroundColor = this.autoUpload ? 'green' : '';
     autoUploadButton.style.color = this.autoUpload ? 'white' : '';
-    
+
     if (this.autoUpload) {
       this.setupAutoUpload();
     } else {
       this.removeAutoUpload();
     }
-    
+
     saveToLocalStorage();
   }
 
@@ -1945,7 +1947,7 @@ class NetworkTray extends Tray {
           this.deleteTray();
           parent.addChild(downloaded);
           parent.updateAppearance();
-          
+
           // Notify user of successful download
           notifyUser('Download completed successfully.');
         })
@@ -1958,7 +1960,7 @@ class NetworkTray extends Tray {
       notifyUser('Download cancelled.');
     }
   }
-  
+
   updateNetworkInfo(element = this.element.querySelector('.network-tray-buttons')) {
     if (element) {
       // Clear existing content
@@ -1970,11 +1972,11 @@ class NetworkTray extends Tray {
       const uploadButton = document.createElement('button');
       uploadButton.textContent = 'Upload';
       uploadButton.addEventListener('click', () => this.uploadData());
-    
+
       const downloadButton = document.createElement('button');
       downloadButton.textContent = 'Download';
       downloadButton.addEventListener('click', () => this.ondownloadButtonPressed());
-    
+
       const autoUploadButton = document.createElement('button');
       autoUploadButton.textContent = `Auto Upload: ${this.autoUpload ? 'On' : 'Off'}`;
       autoUploadButton.style.backgroundColor = this.autoUpload ? 'green' : '';

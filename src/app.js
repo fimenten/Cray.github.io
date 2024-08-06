@@ -3,23 +3,23 @@ let last_focused;
 window.addEventListener('DOMContentLoaded', () => {
 
   let sessionId = getUrlParameter("sessionId");
-  if (sessionId == "new"){
+  if (sessionId == "new") {
     let id = generateUUID();
-    window.location.replace(window.location.href.replace("?sessionId=new","?sessionId="+id))
+    window.location.replace(window.location.href.replace("?sessionId=new", "?sessionId=" + id))
   }
-  if (sessionId){
+  if (sessionId) {
     loadFromLocalStorage(sessionId);
   }
-  else{
+  else {
     loadFromLocalStorage();
   }
-  if (sessionId){
-    const savedTitle = localStorage.getItem(sessionId+"_title");
+  if (sessionId) {
+    const savedTitle = localStorage.getItem(sessionId + "_title");
     if (savedTitle) {
       document.title = savedTitle;
     }
-   
-  
+
+
   }
 
 
@@ -29,7 +29,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.body.appendChild(actionButtons);
   updateAllTrayDirections();
   window.addEventListener('resize', updateAllTrayDirections);
-  const root =  getRootElement();
+  const root = getRootElement();
   last_focused = root.__trayInstance
   root.focus();
 });
@@ -40,19 +40,19 @@ function getUrlParameter(name) {
   return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
 }
 function updateAllTrayDirections() {
-    const allTrays = document.querySelectorAll('.tray');
-    allTrays.forEach(trayElement => {
-        const trayInstance = trayElement.__trayInstance;
-        if (trayInstance && typeof trayInstance.updateSplitDirection === 'function') {
-            trayInstance.updateSplitDirection();
-        }
-    });
+  const allTrays = document.querySelectorAll('.tray');
+  allTrays.forEach(trayElement => {
+    const trayInstance = trayElement.__trayInstance;
+    if (trayInstance && typeof trayInstance.updateSplitDirection === 'function') {
+      trayInstance.updateSplitDirection();
+    }
+  });
 }
 
 function createHamburgerMenu() {
   const leftBar = document.createElement('div');
   leftBar.classList.add('left-bar');
-  document.body.appendChild(leftBar);  
+  document.body.appendChild(leftBar);
   const hamburger = document.createElement('div');
   hamburger.classList.add('hamburger-menu');
   hamburger.innerHTML = '☰';
@@ -94,13 +94,13 @@ function createHamburgerMenu() {
   <div class="menu-item" data-action="exportLabels">ラベルをエクスポート</div>
   <div class="menu-item" data-action="importLabels">ラベルをインポート</div>
 `;
-menu.innerHTML += `
+  menu.innerHTML += `
   <div class="menu-item" data-action="editTitle">ページタイトルを編集</div>
 `;
-menu.innerHTML += `
+  menu.innerHTML += `
   <div class="menu-item" data-action="uploadAll">Upload All</div>
 `;
-menu.innerHTML += `
+  menu.innerHTML += `
   <div class="menu-item" data-action="downloadAll">Download All</div>
 `;
   document.body.appendChild(menu);
@@ -108,9 +108,9 @@ menu.innerHTML += `
   // メニュー項目のスタイリング
   const menuItems = menu.querySelectorAll('.menu-item');
   menuItems.forEach(item => {
-      item.style.padding = '5px 10px';
-      item.style.cursor = 'pointer';
-      item.style.transition = 'background-color 0.3s';
+    item.style.padding = '5px 10px';
+    item.style.cursor = 'pointer';
+    item.style.transition = 'background-color 0.3s';
   });
 
   hamburger.addEventListener('click', (event) => {
@@ -166,43 +166,43 @@ menu.innerHTML += `
       case 'importLabels':
         importLabels();
         break;
-        case 'editTitle':
-          editPageTitle();
-          break;
-          case 'uploadAll':
-            uploadAllData();
-            break;
+      case 'editTitle':
+        editPageTitle();
+        break;
+      case 'uploadAll':
+        uploadAllData();
+        break;
     }
     menu.style.display = 'none';
   });
 
   // ホバー効果の追加
   menuItems.forEach(item => {
-      item.addEventListener('mouseover', () => {
-          item.style.backgroundColor = '#f0f0f0';
-      });
-      item.addEventListener('mouseout', () => {
-          item.style.backgroundColor = 'transparent';
-      });
+    item.addEventListener('mouseover', () => {
+      item.style.backgroundColor = '#f0f0f0';
+    });
+    item.addEventListener('mouseout', () => {
+      item.style.backgroundColor = 'transparent';
+    });
   });
 
   return { hamburger, menu, leftBar };
 }
 
-function uploadAllData(tray = getRootElement().__trayInstance){
-  if (tray.uploadData){
+function uploadAllData(tray = getRootElement().__trayInstance) {
+  if (tray.uploadData) {
     tray.uploadData();
   }
-  if (tray.children.length){
-    tray.children.map(t=>uploadAllData(t))
+  if (tray.children.length) {
+    tray.children.map(t => uploadAllData(t))
   }
 }
-function downloadAllData(tray = getRootElement().__trayInstance){
-  if (tray.downloadData){
+function downloadAllData(tray = getRootElement().__trayInstance) {
+  if (tray.downloadData) {
     tray.ondownloadBottonPressed();
   }
-  if (tray.children.length){
-    tray.children.map(t=>downloadAllData(t))
+  if (tray.children.length) {
+    tray.children.map(t => downloadAllData(t))
   }
 }
 function editPageTitle() {
@@ -211,13 +211,15 @@ function editPageTitle() {
   if (newTitle !== null && newTitle.trim() !== "") {
     document.title = newTitle.trim();
     sessionId = getUrlParameter("sessionId");
-    if (sessionId) {localStorage.setItem( + "_title", newTitle.trim());
-    notifyUser('ページタイトルを更新しました。');}
-    
+    if (sessionId) {
+      localStorage.setItem(+ "_title", newTitle.trim());
+      notifyUser('ページタイトルを更新しました。');
+    }
+
   }
 }
-function import_network_tray_directly_as_root(){
-  let url = prompt("server host?",localStorage.getItem("defaultServer"));
+function import_network_tray_directly_as_root() {
+  let url = prompt("server host?", localStorage.getItem("defaultServer"));
   let name = prompt("name?")
   let tray_data;
   fetch(`${url}/tray/load`, {
@@ -226,158 +228,158 @@ function import_network_tray_directly_as_root(){
       'filename': name
     }
   })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    return response.json();
-  })
-  .then(data => {
-    console.log(data);
-    localStorage.setItem("downloaded_data", JSON.stringify(data));
-    notifyUser('データのダウンロードに成功しました。');
-    return data;
-  })
-  .catch(error => {
-    console.error('Error:', error);
-    notifyUser('データのダウンロードに失敗しました。');
-  });
-    document.body.innerHTML = "";
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log(data);
+      localStorage.setItem("downloaded_data", JSON.stringify(data));
+      notifyUser('データのダウンロードに成功しました。');
+      return data;
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      notifyUser('データのダウンロードに失敗しました。');
+    });
+  document.body.innerHTML = "";
 
-    loadFromLocalStorage("downloaded_data")
-    saveToLocalStorage()
-    hamburgerElements = createHamburgerMenu();
-    updateAllTrayDirections();
-    window.addEventListener('resize', updateAllTrayDirections);
-  }
+  loadFromLocalStorage("downloaded_data")
+  saveToLocalStorage()
+  hamburgerElements = createHamburgerMenu();
+  updateAllTrayDirections();
+  window.addEventListener('resize', updateAllTrayDirections);
+}
 
 
 function resetAllTrays() {
-    localStorage.removeItem('trayData');
-    const rootTray = createDefaultRootTray();
-    document.body.innerHTML = '';
-    document.body.appendChild(rootTray.element);
-    hamburgerElements = createHamburgerMenu();
+  localStorage.removeItem('trayData');
+  const rootTray = createDefaultRootTray();
+  document.body.innerHTML = '';
+  document.body.appendChild(rootTray.element);
+  hamburgerElements = createHamburgerMenu();
 }
-function set_default_server(){
+function set_default_server() {
   let url = localStorage.getItem("defaultServer");
-  url = prompt("set default URL",url)
-  localStorage.setItem("defaultServer",url)
+  url = prompt("set default URL", url)
+  localStorage.setItem("defaultServer", url)
 }
-function set_secret(){
+function set_secret() {
   let secret = localStorage.getItem("secretKey");
-  secret = prompt("set secretKey",secret)
-  localStorage.setItem("secretKey",secret)
+  secret = prompt("set secretKey", secret)
+  localStorage.setItem("secretKey", secret)
 }
 function saveCurrentState() {
-    const currentState = localStorage.getItem('trayData');
-    localStorage.setItem('savedTrayState', currentState);
-    alert('現在の状態を保存しました。');
+  const currentState = localStorage.getItem('trayData');
+  localStorage.setItem('savedTrayState', currentState);
+  alert('現在の状態を保存しました。');
 }
 
 function loadSavedState() {
-    const savedState = localStorage.getItem('savedTrayState');
-    if (savedState) {
-      localStorage.setItem('trayData', savedState);
-      loadFromLocalStorage();
-      alert('保存した状態を読み込みました。');
-    } else {
-      alert('保存された状態がありません。');
-    }
+  const savedState = localStorage.getItem('savedTrayState');
+  if (savedState) {
+    localStorage.setItem('trayData', savedState);
+    loadFromLocalStorage();
+    alert('保存した状態を読み込みました。');
+  } else {
+    alert('保存された状態がありません。');
+  }
 }
 
 function exportData() {
-    const data = localStorage.getItem(TRAY_DATA_KEY);
-    const blob = new Blob([data], {type: 'application/json'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'tray_data.json';
-    a.click();
-    URL.revokeObjectURL(url);
+  const data = localStorage.getItem(TRAY_DATA_KEY);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'tray_data.json';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function importData() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.json';
-    input.onchange = e => {
-        const file = e.target.files[0];
-        const reader = new FileReader();
-        reader.onload = readerEvent => {
-            try {
-                const content = readerEvent.target.result;
-                JSON.parse(content); // Validate JSON
-                localStorage.setItem("imported_tray", content);
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = readerEvent => {
+      try {
+        const content = readerEvent.target.result;
+        JSON.parse(content); // Validate JSON
+        localStorage.setItem("imported_tray", content);
 
 
 
-                notifyUser('データのインポートに成功しました。');
-            } catch (error) {
-                console.error('Invalid JSON file:', error);
-                notifyUser('無効なJSONファイルです。');
-            }
-            try{
-              document.body.innerHTML = "";
-              loadFromLocalStorage("imported_tray")
-              saveToLocalStorage()
-              hamburgerElements = createHamburgerMenu();
-              updateAllTrayDirections();
-              window.addEventListener('resize', updateAllTrayDirections);
-            } catch {console.error("failed to draw")}
+        notifyUser('データのインポートに成功しました。');
+      } catch (error) {
+        console.error('Invalid JSON file:', error);
+        notifyUser('無効なJSONファイルです。');
+      }
+      try {
+        document.body.innerHTML = "";
+        loadFromLocalStorage("imported_tray")
+        saveToLocalStorage()
+        hamburgerElements = createHamburgerMenu();
+        updateAllTrayDirections();
+        window.addEventListener('resize', updateAllTrayDirections);
+      } catch { console.error("failed to draw") }
 
-        }
-        reader.readAsText(file,'UTF-8');
     }
-    input.click();
+    reader.readAsText(file, 'UTF-8');
+  }
+  input.click();
 }
 
 function uploadData(data, filename) {
   fetch('http://host.com:8080/tray/save', {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json',
-          'filename': filename
-      },
-      body: JSON.stringify({ data: JSON.parse(data) })
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'filename': filename
+    },
+    body: JSON.stringify({ data: JSON.parse(data) })
   })
-  .then(response => {
+    .then(response => {
       if (!response.ok) {
-          throw new Error('Network response was not ok');
+        throw new Error('Network response was not ok');
       }
       return response.text();
-  })
-  .then(result => {
+    })
+    .then(result => {
       console.log(result);
       notifyUser('データのアップロードに成功しました。');
-  })
-  .catch(error => {
+    })
+    .catch(error => {
       console.error('Error:', error);
       notifyUser('データのアップロードに失敗しました。');
-  });
+    });
 }
 
 function downloadData(filename) {
   fetch('http://host.com:8080/tray/load', {
-      method: 'GET',
-      headers: {
-          'filename': filename
-      }
+    method: 'GET',
+    headers: {
+      'filename': filename
+    }
   })
-  .then(response => {
+    .then(response => {
       if (!response.ok) {
-          throw new Error('Network response was not ok');
+        throw new Error('Network response was not ok');
       }
       return response.json();
-  })
-  .then(data => {
-    // notifyUser('データのダウンロードに成功しました。');
-    return data;
-  })
-  .catch(error => {
+    })
+    .then(data => {
+      // notifyUser('データのダウンロードに成功しました。');
+      return data;
+    })
+    .catch(error => {
       console.error('Error:', error);
       notifyUser('データのダウンロードに失敗しました。');
-  });
+    });
 }
 
 
