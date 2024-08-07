@@ -100,9 +100,9 @@
 /* Tray Content */
 .tray-content {
   padding-left: 1px;
-  padding-top: 0px;
+  padding-top: 20px;
   padding-right: 0px;
-  padding-bottom: 20px;
+  padding-bottom: 10px;
   background-color: var(--tray-content-bg-color);
   display: flex;
 }

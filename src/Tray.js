@@ -900,10 +900,11 @@ class Tray {
   }
 
   addChild(childTray) {
-    this.children.push(childTray);
+    this.children.unshift(childTray);
     childTray.parent = this;
     childTray.parentId = this.id;
-    this.element.querySelector('.tray-content').appendChild(childTray.element)
+    const trayContent = this.element.querySelector('.tray-content');
+    trayContent.insertBefore(childTray.element, trayContent.firstChild);
     // if (this.children.length==1){
     //   const color = getRandomColor();
     //   this.borderColor = color;
