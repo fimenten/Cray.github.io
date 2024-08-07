@@ -86,8 +86,6 @@ function createHamburgerMenu() {
     <div class="menu-item" data-action="set_default_server">set_default_server</div>
     <div class="menu-item" data-action="set_secret">set_secret</div>
     <div class="menu-item" data-action="import_network_tray_directly_as_root">import_network_tray_directly_as_root</div>
-
-
   `;
   menu.innerHTML += `
   <div class="menu-item" data-action="manageLabels">ラベル管理</div>
@@ -154,6 +152,7 @@ function createHamburgerMenu() {
         break;
       case "set_secret":
         set_secret()
+        break
       case "import_network_tray_directly_as_root":
         import_network_tray_directly_as_root();
         break
@@ -267,9 +266,9 @@ function set_default_server() {
   localStorage.setItem("defaultServer", url)
 }
 function set_secret() {
-  let secret = localStorage.getItem("secretKey");
+  let secret = localStorage.getItem("secret");
   secret = prompt("set secretKey", secret)
-  localStorage.setItem("secretKey", secret)
+  localStorage.setItem("secret", secret)
 }
 function saveCurrentState() {
   const currentState = localStorage.getItem('trayData');

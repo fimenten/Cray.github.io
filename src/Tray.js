@@ -1,3 +1,6 @@
+/** @type {import('crypto-js')} */
+const CryptoJS = window.CryptoJS;
+
 function updateLastFocused(tray) {
   last_focused = tray;
 }
@@ -1511,30 +1514,42 @@ class Tray {
     });
   }
   addTrayFromServer(url, filename) {
-    fetch(`${url}/tray/load`, {
-      method: 'GET',
-      headers: {
-        'filename': filename
-      }
+    
+    let retray = new NetworkTray(this.id,generateUUID(),"tmp",url = url,filename = filename)
+    retray.downloadData()
+    .then(tray => {
+      this.addChild(tray)
+      this.updateAppearance()
     })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(data => {
-        let newTray = deserialize(data);
-        newTray.isFolded = true;
-        this.addChild(newTray);
-        this.updateAppearance();
-        notifyUser('Tray added successfully.');
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        notifyUser('Failed to add tray from server.');
-      });
+
   }
+    // addTrayFromServer(url, filename) {
+
+  //   fetch(`${url}/tray/load`, {
+  //     method: 'GET',
+  //     headers: {
+  //       'filename': filename
+  //     }
+  //   })
+  //     .then(response => {
+  //       if (!response.ok) {
+  //         throw new Error('Network response was not ok');
+  //       }
+
+  //       return response.json();
+  //     })
+  //     .then(data => {
+  //       let newTray = deserialize(data);
+  //       newTray.isFolded = true;
+  //       this.addChild(newTray);
+  //       this.updateAppearance();
+  //       notifyUser('Tray added successfully.');
+  //     })
+  //     .catch(error => {
+  //       console.error('Error:', error);
+  //       notifyUser('Failed to add tray from server.');
+  //     });
+  // }
 
   fetchTrayList() {
     const defaultServer = localStorage.getItem("defaultServer") || "";
@@ -1701,9 +1716,6 @@ function deserialize(data) {
     tray.element.classList.add('split');
     tray.updateSplitDirection();
   }
-
-
-
   return tray;
 }
 
@@ -1726,14 +1738,18 @@ class NetworkTray extends Tray {
 
   uploadData() {
     const data = this.serialize();
-
+    const secret = localStorage.getItem("secret");
+    
+    // Encrypt the data
+    const encryptedData = this.encryptData(data, secret);
+  
     return fetch(`${this.host_url}/tray/save`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'filename': this.filename
       },
-      body: JSON.stringify({ data: data }),
+      body: JSON.stringify({ data: encryptedData }),
     })
       .then(response => {
         if (!response.ok) {
@@ -1751,8 +1767,22 @@ class NetworkTray extends Tray {
         throw error;
       });
   }
+  encryptData(data, secret) {
+    // Convert the data to a string if it's not already
+    const dataString = typeof data === 'string' ? data : JSON.stringify(data);
+    
+    // Use AES encryption
+    const encryptedData = CryptoJS.AES.encrypt(dataString, secret).toString(CryptoJS.enc.Utf8);
+    
+    return encryptedData;
+  }
+  
+  // You might also want to add a decryption method
+
 
   downloadData() {
+    const secret = localStorage.getItem("secret");
+  
     return fetch(`${this.host_url}/tray/load`, {
       method: 'GET',
       headers: {
@@ -1763,23 +1793,51 @@ class NetworkTray extends Tray {
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
-        return response.json();
+        return response.text(); // Change to text() as we expect encrypted string
       })
-      .then(data => {
+      .then(encryptedData => {
+        // Decrypt the data
+        console.log(encryptedData)
+        console.log(secret)
+
+
+        const decryptedData = this.decryptData(encryptedData, secret);
+        console.log(decryptedData)
+        
+        const data = JSON.parse(decryptedData);
+        console.log(data)
         let tray = this.deserialize(data);
+        // Uncomment and modify these lines as needed for your application
         // let parent = getTrayFromId(this.parentId);
         // parent.addChild(tray);
         // parent.updateAppearance()
         // this.element = tray.element
-        // notifyUser('データのダウンロードに成功しました。');
-        return tray
-          ;
+        this.showDownloadNotification('データのダウンロードに成功しました。');
+        return tray;
       })
       .catch(error => {
         console.error('Error:', error);
-        notifyUser('データのダウンロードに失敗しました。');
+        this.showDownloadNotification('データのダウンロードに失敗しました。', true);
         throw error;
       });
+  }
+  
+  decryptData(encryptedData, secret) {
+    const bytes = CryptoJS.AES.decrypt(encryptedData, secret);
+    const decryptedData = bytes.toString(CryptoJS.enc.Utf8);
+    return decryptedData;
+  }
+
+  showDownloadNotification(message, isError = false) {
+    // Implement this method to show notifications to the user
+    // You can use alert() for a simple implementation, or a more sophisticated notification system
+    if (isError) {
+      console.error(message);
+    } else {
+      console.log(message);
+    }
+    // Replace this with your preferred notification method
+    alert(message);
   }
 
   serialize() {
