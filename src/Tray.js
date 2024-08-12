@@ -1512,29 +1512,8 @@ class Tray {
     });
   }
   addTrayFromServer(url, filename) {
-    fetch(`${url}/tray/load`, {
-      method: 'GET',
-      headers: {
-        'filename': filename
-      }
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(data => {
-        let newTray = deserialize(data);
-        newTray.isFolded = true;
-        this.addChild(newTray);
-        this.updateAppearance();
-        notifyUser('Tray added successfully.');
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        notifyUser('Failed to add tray from server.');
-      });
+    const temp = new NetworkTray(parentId = this.parentId,url = url,filename = filename,name="",id="")
+    temp.updateDataByDownload()
   }
 
   fetchTrayList() {
@@ -1768,17 +1747,13 @@ class NetworkTray extends Tray {
       })
       .then(data => {
         let tray = this.deserialize(data);
-        // let parent = getTrayFromId(this.parentId);
-        // parent.addChild(tray);
-        // parent.updateAppearance()
-        // this.element = tray.element
-        // notifyUser('データのダウンロードに成功しました。');
+        this.showUploadNotification('Data downloaded successfully.', true);
         return tray
           ;
       })
       .catch(error => {
         console.error('Error:', error);
-        notifyUser('データのダウンロードに失敗しました。');
+        this.showUploadNotification('Failed to Download data.', true);
         throw error;
       });
   }
@@ -1793,8 +1768,6 @@ class NetworkTray extends Tray {
 
   deserialize(data) {
     let tray = deserialize(data);
-
-    // if (tray.host_url){tray.updateNetworkInfo();}
     return tray
   }
 
@@ -1941,26 +1914,31 @@ class NetworkTray extends Tray {
   ondownloadButtonPressed() {
     // First, show a confirmation dialog
     if (confirm("Are you sure you want to download?")) {
-      this.downloadData()
-        .then(downloaded => {
-          // Update the current tray with the downloaded data
-          let parent = getTrayFromId(this.parentId);
-          this.deleteTray();
-          parent.addChild(downloaded);
-          parent.updateAppearance();
-
-          // Notify user of successful download
-          notifyUser('Download completed successfully.');
-        })
-        .catch(error => {
-          console.error('Download failed:', error);
-          notifyUser('Download failed. Please check your connection.');
-        });
-    } else {
-      // If user cancels, notify them
-      notifyUser('Download cancelled.');
+      this.updateDataByDownload()
     }
   }
+
+  updateDataByDownload(){
+    this.downloadData()
+    .then(downloaded => {
+      // Update the current tray with the downloaded data
+      let parent = getTrayFromId(this.parentId);
+      this.deleteTray();
+      parent.addChild(downloaded);
+      parent.updateAppearance();
+
+      // Notify user of successful download
+      notifyUser('Download completed successfully.');
+    })
+    .catch(error => {
+      console.error('Download failed:', error);
+      notifyUser('Download failed. Please check your connection.');
+    });
+}
+  
+
+
+
 
   updateNetworkInfo(element = this.element.querySelector('.network-tray-buttons')) {
     if (element) {
