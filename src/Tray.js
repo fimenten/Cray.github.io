@@ -898,6 +898,9 @@ class Tray {
     // }
 
   }
+  onMouseOver(event){
+    
+  }
 
   addChild(childTray) {
     this.children.unshift(childTray);

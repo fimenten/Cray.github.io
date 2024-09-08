@@ -100,7 +100,7 @@
 /* Tray Content */
 .tray-content {
   padding-left: 1px;
-  padding-top: 20px;
+  padding-top: 10px;
   padding-right: 0px;
   padding-bottom: 10px;
   background-color: var(--tray-content-bg-color);
