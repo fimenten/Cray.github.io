@@ -1531,6 +1531,7 @@ class Tray {
         let newTray = deserialize(data);
         newTray.isFolded = true;
         this.addChild(newTray);
+        newTray.foldChildren()
         this.updateAppearance();
         notifyUser('Tray added successfully.');
       })
@@ -1721,10 +1722,10 @@ function deserialize(data) {
   tray.flexDirection = data.flexDirection || 'column';
   tray.updateFlexDirection();
 
-  if (tray.isSplit) {
-    tray.element.classList.add('split');
-    tray.updateSplitDirection();
-  }
+  // if (tray.isSplit) {
+  //   tray.element.classList.add('split');
+  //   tray.updateSplitDirection();
+  // }
 
   // `childrenProxy`で遅延評価されたプロパティを参照する
   childrenProxy.children;
