@@ -1664,8 +1664,10 @@ class Tray {
 
 
 }
+
 function deserialize(data) {
   let tray;
+
   if (data.host_url == null) {
     tray = new Tray(
       data.parentId,
@@ -1689,17 +1691,32 @@ function deserialize(data) {
       data.host_url,
       data.filename,
       data.created_dt == null ? new Date() : data.created_dt
-
     );
   }
-  let children = data.children
-  .map(d => deserialize(d))
-  .sort((a, b) => new Date(a.created_dt) - new Date(b.created_dt));
 
-  console.log(children)
-  children.forEach(childTray => {
-    tray.addChild(childTray)
+  // 遅延評価のためのクロージャを定義
+  const lazyDeserializeChildren = () => {
+    let children = data.children
+      .map(d => deserialize(d))
+      .sort((a, b) => new Date(a.created_dt) - new Date(b.created_dt));
+
+    console.log(children);
+    children.forEach(childTray => {
+      tray.addChild(childTray);
+    });
+    return children;
+  };
+
+  // Proxyを使用してchildrenプロパティのアクセス時にのみ評価する
+  let childrenProxy = new Proxy({}, {
+    get: function (target, prop, receiver) {
+      if (prop === 'children') {
+        return lazyDeserializeChildren();
+      }
+      return Reflect.get(target, prop, receiver);
+    }
   });
+
   tray.isSplit = data.isSplit;
   tray.flexDirection = data.flexDirection || 'column';
   tray.updateFlexDirection();
@@ -1709,10 +1726,61 @@ function deserialize(data) {
     tray.updateSplitDirection();
   }
 
-
+  // `childrenProxy`で遅延評価されたプロパティを参照する
+  childrenProxy.children;
 
   return tray;
 }
+
+// function deserialize(data) {
+//   let tray;
+//   if (data.host_url == null) {
+//     tray = new Tray(
+//       data.parentId,
+//       data.id,
+//       data.name,
+//       [],
+//       data.borderColor,
+//       data.labels,
+//       data.isChecked,
+//       data.created_dt == null ? new Date() : data.created_dt
+//     );
+//   } else {
+//     tray = new NetworkTray(
+//       data.parentId,
+//       data.id,
+//       data.name,
+//       [],
+//       data.borderColor,
+//       data.labels,
+//       data.isChecked,
+//       data.host_url,
+//       data.filename,
+//       data.created_dt == null ? new Date() : data.created_dt
+
+//     );
+//   }
+//   let children = data.children
+//   .map(d => deserialize(d))
+//   .sort((a, b) => new Date(a.created_dt) - new Date(b.created_dt));
+
+//   console.log(children)
+//   children.forEach(childTray => {
+//     tray.addChild(childTray)
+//   });
+//   tray.isSplit = data.isSplit;
+//   tray.flexDirection = data.flexDirection || 'column';
+//   tray.updateFlexDirection();
+
+//   if (tray.isSplit) {
+//     tray.element.classList.add('split');
+//     tray.updateSplitDirection();
+//   }
+
+
+
+//   return tray;
+// }
 
 
 
