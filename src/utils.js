@@ -122,7 +122,8 @@ function deserializeDOM(data) {
     );
     // tray.host_url = data.host_url
   }
-  let children = data.children.map(d => deserialize(d));
+  let children = data.children.map(d => deserialize(d)).sort((a, b) => new Date(a.created_dt) - new Date(b.created_dt));
+  ;
   children.forEach(childTray => {
     tray.addChild(childTray)
   });
