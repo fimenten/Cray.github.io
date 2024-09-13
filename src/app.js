@@ -1,5 +1,7 @@
 let hamburgerElements;
 let last_focused;
+
+
 window.addEventListener('DOMContentLoaded', () => {
 
   let sessionId = getUrlParameter("sessionId");

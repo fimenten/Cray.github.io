@@ -1,4 +1,6 @@
 const TRAY_DATA_KEY = 'trayData';
+let AUTO_SYNC = false;
+
 function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
     var r = Math.random() * 16 | 0,
@@ -7,8 +9,7 @@ function generateUUID() {
   });
 }
 
-// Usage
-console.log(generateUUID());
+
 function getRootElement() {
   const rootTrayElement = document.querySelector('body > div.tray');
   if (rootTrayElement) {
@@ -42,6 +43,14 @@ function observeWindowResize() {
     saveToLocalStorage();
   });
 }
+function uploadAllData(tray = getRootElement().__trayInstance) {
+  if (tray.uploadData) {
+    tray.uploadData();
+  }
+  if (tray.children.length) {
+    tray.children.map(t => uploadAllData(t))
+  }
+}
 
 function saveToLocalStorage(key = null) {
   try {
@@ -58,8 +67,13 @@ function saveToLocalStorage(key = null) {
     if (key != null) { keyy = key }
     else { if (sessionId) { keyy = sessionId } else { keyy = TRAY_DATA_KEY } }
 
+    const savedData  = localStorage.getItem(keyy)
+    if (savedData!=serializedData){
     localStorage.setItem(keyy, serializedData);
-    console.log('Data saved successfully');
+    if (AUTO_SYNC){
+    uploadAllData();}
+    console.log('Data saved successfully');  
+  }
   } catch (error) {
     console.error('Error saving to localStorage:', error);
   }
