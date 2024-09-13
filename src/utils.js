@@ -147,14 +147,10 @@ function deserializeDOM(data) {
   tray.foldChildren()
   tray.updateAppearance()
 
-  tray.isSplit = data.isSplit;
   tray.flexDirection = data.flexDirection || 'column';
   tray.updateFlexDirection();
 
-  if (tray.isSplit) {
-    tray.element.classList.add('split');
-    tray.updateSplitDirection();
-  }
+
   tray.foldChildren()
   tray.updateAppearance()
 
@@ -173,10 +169,6 @@ function createDefaultRootTray() {
   rootTray.addChild(tray1);
   rootTray.addChild(tray2);
   rootTray.addChild(tray3);
-
-  // content.appendChild(tray1.element);
-  // content.appendChild(tray2.element);
-  // content.appendChild(tray3.element);
 
   return rootTray;
 }

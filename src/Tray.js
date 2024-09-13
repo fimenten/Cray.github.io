@@ -1355,48 +1355,6 @@ class Tray {
     }
   }
 
-  updateSplitDirection() {
-    if (this.isSplit) {
-      if (window.innerWidth > window.innerHeight) {
-        this.element.classList.remove('split-vertical');
-        this.element.classList.add('split-horizontal');
-      } else {
-        this.element.classList.remove('split-horizontal');
-        this.element.classList.add('split-vertical');
-      }
-    }
-  }
-
-  split() {
-    if (this.isSplit) return;
-
-    const newTray1 = new Tray(this.id, Date.now().toString(), 'N');
-    const newTray2 = new Tray(this.id, Date.now().toString(), 'S');
-
-    this.element.classList.add('split');
-    this.isSplit = true;
-    this.updateSplitDirection();
-
-    const content = this.element.querySelector('.tray-content');
-    const existingChildTrays = Array.from(this.children);
-
-    content.innerHTML = '';
-    this.children = [];
-
-    this.addChild(newTray1);
-    this.addChild(newTray2);
-    // content.appendChild(newTray1.element);
-    // content.appendChild(newTray2.element);
-
-    if (existingChildTrays.length > 0) {
-      existingChildTrays.forEach(childTray => {
-        newTray1.addChild(childTray);
-        newTray1.element.querySelector('.tray-content').appendChild(childTray.element);
-      });
-    }
-
-    this.element.classList.add('no-new-tray');
-  }
   convertToNetworkTray(url = '', filename = '') {
     const networkTray = new NetworkTray(
       this.parentId,
