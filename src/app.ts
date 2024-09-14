@@ -5,7 +5,7 @@ import { getUrlParameter } from "./utils";
 import { saveToLocalStorage,loadFromLocalStorage,serialize,deserialize } from "./io";
 import { createHamburgerMenu } from "./humberger";
 import { LabelManager } from "./label";
-import { downloadData,showUploadNotification,uploadData,fetchTrayList } from "./networks";
+import { downloadData,showUploadNotification,uploadData,fetchTrayList, setNetworkOption } from "./networks";
 // export let hamburgerElements;
 let last_focused: Tray;
 
@@ -1155,7 +1155,7 @@ export class Tray {
     menu.setAttribute("tabindex", "-1");
     menu.innerHTML = `
       <div class="menu-item" data-action="fetchTrayFromServer" tabindex="0">Fetch Tray from Server</div>
-      <div class="menu-item" data-action="convertToNetwork" tabindex="1">Convert to NetworkTray</div>
+      <div class="menu-item" data-action="networkSetting" tabindex="1">networkSetting</div>
       <div class="menu-item" data-action="open_this_in_other" tabindex="2">Open This in Other</div>
       <div class="menu-item" data-action="toggleFlexDirection" tabindex="3">Toggle Flex Direction</div>
       <div class="menu-item" data-action="copy" tabindex="0">Copy</div>
@@ -1311,9 +1311,10 @@ export class Tray {
       case "toggleFlexDirection":
         this.toggleFlexDirection();
         break;
-      //   case "convertToNetwork":
-      //     this.convertToNetworkTray();
-      //     break;
+      case "networkSetting":
+        setNetworkOption(this);
+        saveToLocalStorage()
+        break;
       //   case "add_fetch_networkTray_to_child":
       // this.add_fetch_networkTray_to_child();
       // break;
@@ -1323,9 +1324,9 @@ export class Tray {
       case "add_child_from_localStorage":
         this.add_child_from_localStorage();
         break;
-        case "fetchTrayFromServer":
-          fetchTrayList(this)
-          break;
+      case "fetchTrayFromServer":
+        fetchTrayList(this)
+        break;
       //   case "addLabelTray":
       //     this.addLabelTray();
       //     break;

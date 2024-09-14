@@ -173,3 +173,11 @@ export function showUploadNotification(message:string, isError = false) {
       }, 500);
     }, 3000);
   }
+
+export function setNetworkOption(tray: Tray) {
+  const hostUrl = prompt('ホストURLを入力してください (空欄の場合、nullになります):', tray.host_url || "");
+  const filename = prompt('ファイル名を入力してください (空欄の場合、nullになります):', tray.filename || "");
+
+  tray.host_url = hostUrl? (hostUrl.trim() === "" ? null : hostUrl) : null;
+  tray.filename = filename? (filename.trim() === "" ? null : filename) : null
+}
