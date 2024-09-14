@@ -71,15 +71,13 @@ export function saveToLocalStorage(key: string | null = null): void {
 
     let keyToUse: string;
 
-    if (key){
-      keyToUse = key as string
-    }
-    else{
-      if (sessionId){
-        keyToUse = sessionId
-      } 
-      else{
-        keyToUse = TRAY_DATA_KEY
+    if (key) {
+      keyToUse = key as string;
+    } else {
+      if (sessionId) {
+        keyToUse = sessionId;
+      } else {
+        keyToUse = TRAY_DATA_KEY;
       }
     }
 
@@ -91,7 +89,7 @@ export function saveToLocalStorage(key: string | null = null): void {
       // if (AUTO_SYNC) {
       //   uploadAllData();
       // }
-      console.log(keyToUse)
+      console.log(keyToUse);
       console.log("Data saved successfully");
     }
   } catch (error) {
@@ -103,10 +101,10 @@ export function loadFromLocalStorage(key: string = TRAY_DATA_KEY): void {
   try {
     const savedDataString = localStorage.getItem(key);
     let savedData;
-    if (savedDataString){
-      savedData = JSON.parse(savedDataString)
-    }else{
-      savedData = createDefaultRootTray
+    if (savedDataString) {
+      savedData = JSON.parse(savedDataString);
+    } else {
+      savedData = createDefaultRootTray;
     }
 
     console.log(savedData);
@@ -137,10 +135,10 @@ export function serialize(tray: Tray) {
 
 function ddo(the_data: any) {
   let url;
-  if (the_data.host_url){
-    url = the_data.host_url
-  }else{
-    url = the_data.url
+  if (the_data.host_url) {
+    url = the_data.host_url;
+  } else {
+    url = the_data.url;
   }
   let tray = new Tray(
     the_data.parentId,
@@ -154,12 +152,16 @@ function ddo(the_data: any) {
     the_data.filename
   );
   let children = the_data.children as [];
-  if (children.length > 0){
-  children
-  .map((d) => ddo(d))
-  // .sort((a, b) => a.created_dt.getTime() - b.created_dt.getTime())
-  .sort((a, b) => new Date(a.created_dt).getTime() - new Date(b.created_dt).getTime())
-  .map(t => tray.addChild(t))}
+  if (children.length > 0) {
+    children
+      .map((d) => ddo(d))
+      // .sort((a, b) => a.created_dt.getTime() - b.created_dt.getTime())
+      .sort(
+        (a, b) =>
+          new Date(a.created_dt).getTime() - new Date(b.created_dt).getTime()
+      )
+      .map((t) => tray.addChild(t));
+  }
   return tray;
 }
 
