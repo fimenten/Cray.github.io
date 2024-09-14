@@ -1,0 +1,20 @@
+{
+  "name": "cray",
+  "version": "1.0.0",
+  "description": "https://fimenten.github.io/Cray.github.io/",
+  "main": "dist/index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.6.2",
+    "webpack": "^5.94.0",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.1.0"
+  },
+  "scripts": {
+    "build": "webpack",
+    "start": "webpack serve --open"
+  }
+}
