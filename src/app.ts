@@ -1132,6 +1132,7 @@ export class Tray {
       console.log(this.borderColor===getWhiteColor(),color,this.borderColor)
       this.borderColor = color;
       this.updateBorderColor(this.borderColor);
+      this.updateAppearance()
     }
   }
 
