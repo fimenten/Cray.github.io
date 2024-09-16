@@ -39,11 +39,10 @@ export function importData(): void {
       try {
         const content = readerEvent.target?.result as string;
         JSON.parse(content); // Validate JSON
-        saveToIndexedDB(content)
-        saveToIndexedDB(content)
-
-        alert("データのインポートに成功しました。");
-        location.reload();
+        saveToIndexedDB("imported",content)
+        initializeTray(deserialize(content))
+        // saveToIndexedDB(TRAY_DATA_KEY,content)
+        // location.reload();
       } catch (error) {
         console.error("Invalid JSON file:", error);
         alert("無効なJSONファイルです。");
@@ -55,7 +54,7 @@ export function importData(): void {
 
   input.click();
 }
-export function saveToIndexedDB(key: string | null = null): void {
+export function saveToIndexedDB(key: string | null = null,content:string|null = null): void {
   const request = indexedDB.open("TrayDatabase", 1); // Open a database named "TrayDatabase"
   let db: IDBDatabase;
 
@@ -77,7 +76,7 @@ export function saveToIndexedDB(key: string | null = null): void {
     }
 
     const tray = element2TrayMap.get(rootElement as HTMLElement) as Tray;
-    const data = serialize(tray);
+    const data = content?content: serialize(tray)
 
     let keyToUse: string;
     if (key) {
