@@ -40,9 +40,10 @@ export function importData(): void {
         const content = readerEvent.target?.result as string;
         JSON.parse(content); // Validate JSON
         saveToIndexedDB("imported",content)
-        initializeTray(deserialize(content))
-        // saveToIndexedDB(TRAY_DATA_KEY,content)
+        saveToIndexedDB(TRAY_DATA_KEY,content)
+        // initializeTray(deserialize(content))
         // location.reload();
+        return 
       } catch (error) {
         console.error("Invalid JSON file:", error);
         alert("無効なJSONファイルです。");
@@ -76,7 +77,7 @@ export function saveToIndexedDB(key: string | null = null,content:string|null = 
     }
 
     const tray = element2TrayMap.get(rootElement as HTMLElement) as Tray;
-    const data = content?content: serialize(tray)
+    const data = content? content: serialize(tray)
 
     let keyToUse: string;
     if (key) {
@@ -87,64 +88,40 @@ export function saveToIndexedDB(key: string | null = null,content:string|null = 
 
     const transaction = db.transaction("trays", "readwrite");
     const store = transaction.objectStore("trays");
-    const getRequest = store.get(keyToUse);
 
-    getRequest.onsuccess = () => {
-      const savedData = getRequest.result;
 
-      if (!savedData || savedData !== data) {
-        const putRequest = store.put({ id: keyToUse, data: data });
+    const putRequest = store.put({ id: keyToUse, value: data });
 
-        putRequest.onsuccess = () => {
-          console.log(keyToUse);
-          console.log("Data saved successfully");
+    putRequest.onsuccess = () => {
+      console.log(keyToUse);
+      console.log("Data saved successfully");
 
-          // Uncomment if auto-sync functionality is needed
-          // if (AUTO_SYNC) {
-          //   uploadAllData();
-          // }
-        };
-
-        putRequest.onerror = (event) => {
-          console.error("Error saving to IndexedDB:", putRequest.error);
-        };
-      }
+      // Uncomment if auto-sync functionality is needed
+      // if (AUTO_SYNC) {
+      //   uploadAllData();
+      // }
     };
 
-    getRequest.onerror = (event) => {
-      console.error("Error retrieving data from IndexedDB:", getRequest.error);
+    putRequest.onerror = (event) => {
+      console.error("Error saving to IndexedDB:", putRequest.error);
     };
+    };
+
+
   };
 
-  request.onerror = (event) => {
-    console.error("Error opening IndexedDB:", request.error);
-  };
-}
 
-export function loadFromIndexedDB(key: string = TRAY_DATA_KEY): void {
-  const request = indexedDB.open("TrayDatabase", 1); // Open a database named "TrayDatabase"
-  let db: IDBDatabase;
-  let rootTray: Tray;
-  console.log(key)
-  request.onupgradeneeded = (event) => {
-    db = request.result;
-    if (!db.objectStoreNames.contains("trays")) {
-      db.createObjectStore("trays", { keyPath: "id" }); // Create an object store for trays
-    }
-  };
 
-  request.onsuccess = () => {
-    db = request.result;
-    const transaction = db.transaction("trays", "readonly");
-    const store = transaction.objectStore("trays");
-    const getRequest = store.get(key); // Fetch data using the key
 
-    getRequest.onsuccess = (event) => {
-      const savedData = getRequest.result;
-
+  export async function loadFromIndexedDB(key: string = TRAY_DATA_KEY): Promise<void> {
+    try {
+      const db = await openDatabase(); // Open the database
+      const savedData = await fetchDataFromStore(db, key); // Fetch data using the key
+  
+      let rootTray: Tray;
       if (savedData) {
         try {
-          rootTray = deserialize(savedData.data) as Tray; // Ensure the deserialized data is of type Tray
+          rootTray = deserialize(savedData.value as string) as Tray;
         } catch (error) {
           console.error("Error deserializing data:", error);
           rootTray = createDefaultRootTray();
@@ -152,33 +129,65 @@ export function loadFromIndexedDB(key: string = TRAY_DATA_KEY): void {
       } else {
         rootTray = createDefaultRootTray();
       }
-
+  
       initializeTray(rootTray);
-    };
-
-    getRequest.onerror = (event) => {
-      console.error("Error loading from IndexedDB:", getRequest.error);
-      rootTray = createDefaultRootTray();
+    } catch (error) {
+      console.error("Error loading from IndexedDB:", error);
+      const rootTray = createDefaultRootTray();
       initializeTray(rootTray);
-    };
-  };
-
-  request.onerror = (event) => {
-    console.error("Error opening IndexedDB:", request.error);
-    rootTray = createDefaultRootTray();
-    initializeTray(rootTray);
-  };
-}
-
-function initializeTray(rootTray: Tray) {
-  rootTray.isFolded = false;
-  rootTray.updateAppearance();
-  rootTray.updateChildrenAppearance();
-
-  document.body.innerHTML = "";
-  document.body.appendChild(rootTray.element);
-  createHamburgerMenu();
-}
+    }
+  }
+  
+  function openDatabase(): Promise<IDBDatabase> {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open("TrayDatabase", 1);
+      request.onupgradeneeded = (event) => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains("trays")) {
+          db.createObjectStore("trays", { keyPath: "id" });
+        }
+      };
+  
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+  
+      request.onerror = () => {
+        reject(request.error);
+      };
+    });
+  }
+  
+  function fetchDataFromStore(db: IDBDatabase, key: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction("trays", "readonly");
+      const store = transaction.objectStore("trays");
+      const getRequest = store.get(key);
+  
+      getRequest.onsuccess = () => {
+        resolve(getRequest.result);
+      };
+  
+      getRequest.onerror = () => {
+        reject(getRequest.error);
+      };
+    });
+  }
+  
+  function initializeTray(rootTray: Tray) {
+    // rootTray.isFolded = false;
+  
+    // Minimize DOM manipulation
+    // const trayContainer = document.createElement("div");
+    // trayContainer.appendChild(rootTray.element);
+  
+    // Update only when necessary
+    document.body.innerHTML = "";
+    document.body.appendChild(rootTray.element);
+  
+    createHamburgerMenu();
+  }
+  
 
 
 export function serialize(tray: Tray) {
@@ -187,6 +196,7 @@ export function serialize(tray: Tray) {
 }
 
 function ddo(the_data: any) {
+  console.log("help")
   let url;
   if (the_data.host_url) {
     url = the_data.host_url;
@@ -202,7 +212,8 @@ function ddo(the_data: any) {
     the_data.created_dt,
     the_data.flexDirection,
     url,
-    the_data.filename
+    the_data.filename,
+    the_data.isFolded instanceof Boolean ? the_data.isFolded:true
   );
   let children = the_data.children as [];
   if (children.length > 0) {

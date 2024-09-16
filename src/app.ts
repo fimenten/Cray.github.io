@@ -92,7 +92,8 @@ export class Tray {
     created_dt:Date|null = null,
     flexDirection:"column"|"row" = "column",
     host_url:string|null = null,
-    filename:string|null = null
+    filename:string|null = null,
+    isFold:boolean = true
   ) {
     this.id = id;
     this.name = name;
@@ -100,7 +101,7 @@ export class Tray {
     this.labels = labels;
 
     this.parentId = parentId;
-    this.isFolded = true;
+    this.isFolded = isFold;
     this.borderColor = color ? color: getWhiteColor();
     this.created_dt = created_dt? new Date(created_dt) : new Date();
     this.host_url = host_url
@@ -703,7 +704,7 @@ export class Tray {
         }
       });
 
-      saveToIndexedDB();
+      // saveToIndexedDB();
     }
   }
 
@@ -772,7 +773,7 @@ export class Tray {
       // trayElement.style.borderTopWidth = '3px';
       // trayElement.style.borderTopStyle = 'solid';
     }
-    saveToIndexedDB();
+    // saveToIndexedDB();
   }
   changeBorderColor(color: string) {
     // this.borderColor = color;
@@ -1694,6 +1695,7 @@ window.addEventListener("DOMContentLoaded", () => {
   } else {
     loadFromIndexedDB();
   }
+  console.log("loaded")
   if (sessionId) {
     const savedTitle = localStorage.getItem(sessionId + "_title");
     if (savedTitle) {
