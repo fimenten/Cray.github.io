@@ -192,11 +192,11 @@ export class Tray {
     rightFoldBotton.addEventListener("click", this.toggleFold.bind(this));
     rightFoldBotton.style.display = "none";
     titleContainer.appendChild(foldButton);
-    titleContainer.appendChild(checkboxContainer);
     titleContainer.appendChild(title);
     titleContainer.appendChild(rightFoldBotton);
     titleContainer.appendChild(contextMenuButton);
     titleContainer.appendChild(createdTime);
+    titleContainer.appendChild(checkboxContainer);
     titleContainer.appendChild(labelsElement);
 
     // titleContainer.appendChild(clickArea)
