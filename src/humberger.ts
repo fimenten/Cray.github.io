@@ -1,8 +1,10 @@
-import { createDefaultRootTray, getRootElement } from "./utils";
+import { cloneTray, createDefaultRootTray, generateUUID, getRootElement } from "./utils";
 import { exportData, importData } from "./io";
 import { getUrlParameter } from "./utils";
-import { element2TrayMap, Tray } from "./app";
+import { element2TrayMap, Tray} from "./app";
 import { downloadData, uploadData } from "./networks";
+export let selected_trays:Tray[] = []
+
 function resetAllTrays() {
   localStorage.removeItem("trayData");
   const rootTray = createDefaultRootTray();
@@ -64,6 +66,12 @@ export function createHamburgerMenu() {
   menu.innerHTML += `
       <div class="menu-item" data-action="downloadAll">Download All</div>
     `;
+    menu.innerHTML += `
+    <div class="menu-item" data-action="copySelected">Copy selected</div>
+    <div class="menu-item" data-action="cutSelected">Cut selected</div>
+
+  `;
+
   document.body.appendChild(menu);
 
   // メニュー項目のスタイリング
@@ -145,6 +153,13 @@ export function createHamburgerMenu() {
       case "downloadAll":
         downloadAllData();
         break;
+      case "cutSelected":
+        cutSelected()
+        break
+      case "copySelected":
+        copySelected()
+        break
+      
     }
     menu.style.display = "none";
   });
@@ -261,3 +276,44 @@ function set_default_server() {
 //   secret = prompt("set secretKey", secret);
 //   localStorage.setItem("secretKey", secret);
 // }
+function cutSelected(): void {
+  if (selected_trays.length !== 0) {
+    // Copy the selected trays
+    const t = new Tray(generateUUID(), generateUUID(), "selected Trays");
+    selected_trays.map(tt => t.children.push(cloneTray(tt)))
+    t.copyTray();
+
+    selected_trays.map(t => t.deleteTray())
+
+
+    // Clear the selected_trays array
+    selected_trays = [];
+
+    // Uncheck all checkboxes
+    const checkboxes: NodeListOf<HTMLInputElement> = document.querySelectorAll(".tray-checkbox");
+    checkboxes.forEach((checkbox: HTMLInputElement) => {
+      checkbox.checked = false;
+    });
+  }
+}
+
+
+
+
+function copySelected(): void {
+  if (selected_trays.length !== 0) {
+    // Copy the selected trays
+    const t = new Tray(generateUUID(), generateUUID(), "selected Trays");
+    selected_trays.map(tt => t.children.push(cloneTray(tt)))
+    t.copyTray();
+
+    // Clear the selected_trays array
+    selected_trays = [];
+
+    // Uncheck all checkboxes
+    const checkboxes: NodeListOf<HTMLInputElement> = document.querySelectorAll(".tray-checkbox");
+    checkboxes.forEach((checkbox: HTMLInputElement) => {
+      checkbox.checked = false;
+    });
+  }
+}

@@ -3,7 +3,7 @@ import {getTrayFromId,getRandomColor,getWhiteColor} from "./utils"
 import { generateUUID,getRootElement,cloneTray} from "./utils";
 import { getUrlParameter } from "./utils";
 import { saveToLocalStorage,loadFromLocalStorage,serialize,deserialize } from "./io";
-import { createHamburgerMenu } from "./humberger";
+import { createHamburgerMenu,selected_trays } from "./humberger";
 import { LabelManager } from "./label";
 import { downloadData,showUploadNotification,uploadData,fetchTrayList, setNetworkOption } from "./networks";
 // export let hamburgerElements;
@@ -16,7 +16,6 @@ export const id2TrayData = new Map<TrayId, Tray>();
 const TRAY_DATA_KEY = "trayData";
 let AUTO_SYNC = false;
 type TrayId = string;
-
 
 
 // function labelFilteringWithDestruction(labelName:string, tray:Tray) {
@@ -81,6 +80,7 @@ export class Tray {
   isFolded: boolean;
 
   isEditing: boolean;
+  isSelected:boolean;
   element: HTMLDivElement;
 
   constructor(
@@ -108,6 +108,7 @@ export class Tray {
     this.flexDirection = flexDirection;
     this.element = this.createElement();
     this.isEditing = false;
+    this.isSelected = false;
     this.updateLabels();
     this.updateAppearance();
     this.updateBorderColor(this.borderColor);
@@ -134,13 +135,13 @@ export class Tray {
     createdTime.style.fontSize = "0.8em";
     createdTime.style.color = "#888";
     // createdTime.style.marginLeft = '10px';
-    // const checkbox = document.createElement("input");
-    // checkbox.type = "checkbox";
-    // checkbox.classList.add("tray-checkbox");
-    // checkbox.checked = this.isChecked;
-    // checkbox.addEventListener("change", this.onCheckboxChange.bind(this));
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.classList.add("tray-checkbox");
+    checkbox.checked = this.isSelected;
+    checkbox.addEventListener("change", this.onCheckboxChange.bind(this));
 
-    // checkboxContainer.appendChild(checkbox);
+    checkboxContainer.appendChild(checkbox);
 
     const title = document.createElement("div");
     title.classList.add("tray-title");
@@ -190,7 +191,7 @@ export class Tray {
     rightFoldBotton.addEventListener("click", this.toggleFold.bind(this));
     rightFoldBotton.style.display = "none";
     titleContainer.appendChild(foldButton);
-    // titleContainer.appendChild(checkboxContainer);
+    titleContainer.appendChild(checkboxContainer);
     titleContainer.appendChild(title);
     titleContainer.appendChild(rightFoldBotton);
     titleContainer.appendChild(contextMenuButton);
@@ -337,6 +338,29 @@ export class Tray {
     });
     return `${dateString}\n${timeString}`;
   }
+  onCheckboxChange(event: Event): void {
+    const isChecked = (event.target as HTMLInputElement).checked;
+
+    // 一時的なコピーを作成
+    let updated_trays = [...selected_trays]; // 配列のコピー
+
+    if (isChecked) {
+      // チェックボックスがチェックされた場合、現在のTrayを追加
+      updated_trays.push(this);
+    } else {
+      // チェックボックスが外された場合、現在のTrayを削除
+      updated_trays = updated_trays.filter(t => t.id !== this.id);
+    }
+
+    // グローバルな selected_trays 配列を更新
+    selected_trays.length = 0; // 配列を空にする
+    selected_trays.push(...updated_trays); // 更新した配列を再度追加
+
+    this.isSelected = isChecked; // isSelectedの状態を更新
+  }
+
+  
+  
   // showTemplateSelectionDialog(): void {
   //   // Create the dialog element
   //   const dialog = document.createElement("div");
@@ -1307,7 +1331,6 @@ export class Tray {
       case "delete":
         this.deleteTray();
         break;
-        break;
       case "toggleFlexDirection":
         this.toggleFlexDirection();
         break;
@@ -1315,7 +1338,8 @@ export class Tray {
         setNetworkOption(this);
         saveToLocalStorage()
         break;
-      //   case "add_fetch_networkTray_to_child":
+
+        //   case "add_fetch_networkTray_to_child":
       // this.add_fetch_networkTray_to_child();
       // break;
       // case "open_this_in_other":
@@ -1742,3 +1766,5 @@ function addNewTrayToFocused() {
   ) as HTMLDivElement;
   newTray.startTitleEdit(newTitleElement);
 }
+
+

@@ -48,13 +48,29 @@
 
 /* Checkbox */
 .tray-checkbox {
-  flex: 0 0 auto;
-  margin: 0px;
-  padding: 0;
-  opacity: 0;
-  /* Makes the checkbox invisible */
-  /* Alternatively, you could use: visibility: hidden; */
+  appearance: none; /* Remove default browser styles */
+  width: 20px; /* Set a specific width */
+  height: 20px; /* Set a specific height */
+  border: 2px solid #555; /* Add a border to define the checkbox shape */
+  border-radius: 3px; /* Optional: add rounded corners */
+  background-color: #fff; /* Background color for the checkbox */
+  margin-left: 1px;
+  margin-right: 1px;
+  padding-left: 1px;
+  padding-right: 1px;
+  cursor: pointer; /* Change the cursor to a pointer when hovering */
+  display: inline-block; /* Ensure it displays inline with other elements */
 }
+.tray-checkbox:checked {
+  background-color: #007bff; /* Color for when the checkbox is checked */
+  border-color: #007bff; /* Border color for checked state */
+}
+
+.tray-checkbox:focus {
+  outline: none; /* Remove default focus outline */
+  box-shadow: 0 0 2px 2px rgba(0, 123, 255, 0.25); /* Custom focus indicator */
+}
+
 
 /* Title */
 .tray-title {
