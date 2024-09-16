@@ -79,6 +79,10 @@ export function saveToIndexedDB(key: string | null = null,content:string|null = 
     const tray = element2TrayMap.get(rootElement as HTMLElement) as Tray;
     const data = content? content: serialize(tray)
 
+    if (!data){
+      console.log("serialize failed")
+      return}
+
     let keyToUse: string;
     if (key) {
       keyToUse = key as string;
