@@ -2,7 +2,7 @@
 import {getTrayFromId,getRandomColor,getWhiteColor} from "./utils"
 import { generateUUID,getRootElement,cloneTray} from "./utils";
 import { getUrlParameter } from "./utils";
-import { saveToLocalStorage,loadFromLocalStorage,serialize,deserialize } from "./io";
+import { serialize,deserialize, loadFromIndexedDB, saveToIndexedDB } from "./io";
 import { createHamburgerMenu,selected_trays } from "./humberger";
 import { LabelManager } from "./label";
 import { downloadData,showUploadNotification,uploadData,fetchTrayList, setNetworkOption } from "./networks";
@@ -528,7 +528,7 @@ export class Tray {
     this.flexDirection = this.flexDirection === "column" ? "row" : "column";
     this.updateFlexDirection();
     this.updateChildrenAppearance(); // Add this line
-    saveToLocalStorage();
+    saveToIndexedDB();
   }
   addLabel(event: MouseEvent): void {
     const labelSelector = document.createElement("div");
@@ -614,7 +614,7 @@ export class Tray {
     if (!this.labels.includes(labelId)) {
       this.labels.push(labelId);
       this.updateLabels();
-      saveToLocalStorage(); // Save to local storage after adding the label
+      saveToIndexedDB(); // Save to local storage after adding the label
     }
   }
 
@@ -622,7 +622,7 @@ export class Tray {
     globalLabelManager.addLabel(name, color);
     const id = name; // Assuming the name is used as the ID
     this.addExistingLabel(id); // Add the new label to the local list
-    saveToLocalStorage(); // Save to local storage after adding the label
+    saveToIndexedDB(); // Save to local storage after adding the label
     return id;
   }
 
@@ -703,7 +703,7 @@ export class Tray {
         }
       });
 
-      saveToLocalStorage();
+      saveToIndexedDB();
     }
   }
 
@@ -718,7 +718,7 @@ export class Tray {
     this.labels = this.labels.filter((label: string) => label !== labelName);
     globalLabelManager.unregisterLabeledTray(labelName, this);
     this.updateLabels();
-    saveToLocalStorage();
+    saveToIndexedDB();
   }
 
   updateFlexDirection(): void {
@@ -742,7 +742,7 @@ export class Tray {
   }
   //   onCheckboxChange(event) {
   //     this.isChecked = event.target.checked;
-  //     saveToLocalStorage();
+  //     saveToIndexedDB();
   //   }
 
   removeChild(childId: TrayId) {
@@ -757,7 +757,7 @@ export class Tray {
   //     content.style.borderLeftColor = `3px solid ${this.borderColor}`;
   //   }
 
-  //   saveToLocalStorage();
+  //   saveToIndexedDB();
   // }
   updateBorderColor(color: string) {
     const trayElement = this.element;
@@ -772,19 +772,19 @@ export class Tray {
       // trayElement.style.borderTopWidth = '3px';
       // trayElement.style.borderTopStyle = 'solid';
     }
-    saveToLocalStorage();
+    saveToIndexedDB();
   }
   changeBorderColor(color: string) {
     // this.borderColor = color;
     this.updateBorderColor(color);
-    saveToLocalStorage();
+    saveToIndexedDB();
   }
 
   setupTitleEditing(titleElement: HTMLDivElement) {
     titleElement.addEventListener("dblclick", (event) => {
       event.stopPropagation();
       this.startTitleEdit(titleElement);
-      saveToLocalStorage();
+      saveToIndexedDB();
     });
   }
 
@@ -898,7 +898,7 @@ export class Tray {
     // titleElement.removeEventListener("keydown", this.keyDownHandler);
     // titleElement.removeEventListener("blur", this.blurHandler);
     this.isEditing = false;
-    saveToLocalStorage();
+    saveToIndexedDB();
   }
 
   onDragStart(event: DragEvent): void {
@@ -1111,7 +1111,7 @@ export class Tray {
     this.isFolded = false;
     this.updateAppearance();
 
-    saveToLocalStorage();
+    saveToIndexedDB();
   }
 
   onDragEnd(event: DragEvent): void {
@@ -1336,7 +1336,7 @@ export class Tray {
         break;
       case "networkSetting":
         setNetworkOption(this);
-        saveToLocalStorage()
+        saveToIndexedDB()
         break;
 
         //   case "add_fetch_networkTray_to_child":
@@ -1513,7 +1513,7 @@ export class Tray {
     }
     title.setAttribute("contenteditable", "true");
     // title.focus();
-    saveToLocalStorage();
+    saveToIndexedDB();
   }
 
   cutTray() {
@@ -1550,7 +1550,7 @@ export class Tray {
 
     this.moveFocusAfterDelete(parent, indexInParent);
 
-    saveToLocalStorage();
+    saveToIndexedDB();
   }
 
   moveFocusAfterDelete(parent:Tray, deletedIndex:number) {
@@ -1601,7 +1601,7 @@ export class Tray {
     if (url) this.host_url = url;
     if (filename) this.filename = filename;
 
-    saveToLocalStorage();
+    saveToIndexedDB();
   }
 
   //   showMarkdownOutput() {
@@ -1690,9 +1690,9 @@ window.addEventListener("DOMContentLoaded", () => {
     );
   }
   if (sessionId) {
-    loadFromLocalStorage(sessionId);
+    loadFromIndexedDB(sessionId);
   } else {
-    loadFromLocalStorage();
+    loadFromIndexedDB();
   }
   if (sessionId) {
     const savedTitle = localStorage.getItem(sessionId + "_title");

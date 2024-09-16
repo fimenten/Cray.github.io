@@ -39,8 +39,8 @@ export function importData(): void {
       try {
         const content = readerEvent.target?.result as string;
         JSON.parse(content); // Validate JSON
-        localStorage.setItem("imported_tray", content);
-        localStorage.setItem(TRAY_DATA_KEY, content);
+        saveToIndexedDB(content)
+        saveToIndexedDB(content)
 
         alert("データのインポートに成功しました。");
         location.reload();
@@ -55,8 +55,19 @@ export function importData(): void {
 
   input.click();
 }
-export function saveToLocalStorage(key: string | null = null): void {
-  try {
+export function saveToIndexedDB(key: string | null = null): void {
+  const request = indexedDB.open("TrayDatabase", 1); // Open a database named "TrayDatabase"
+  let db: IDBDatabase;
+
+  request.onupgradeneeded = (event) => {
+    db = request.result;
+    if (!db.objectStoreNames.contains("trays")) {
+      db.createObjectStore("trays", { keyPath: "id" }); // Create an object store for trays
+    }
+  };
+
+  request.onsuccess = () => {
+    db = request.result;
     const sessionId: string | null = getUrlParameter("sessionId");
     const rootElement = getRootElement();
 
@@ -67,66 +78,109 @@ export function saveToLocalStorage(key: string | null = null): void {
 
     const tray = element2TrayMap.get(rootElement as HTMLElement) as Tray;
     const data = serialize(tray);
-    // const serializedData = JSON.stringify(data);
 
     let keyToUse: string;
-
     if (key) {
       keyToUse = key as string;
     } else {
-      if (sessionId) {
-        keyToUse = sessionId;
-      } else {
-        keyToUse = TRAY_DATA_KEY;
+      keyToUse = sessionId ? sessionId : TRAY_DATA_KEY;
+    }
+
+    const transaction = db.transaction("trays", "readwrite");
+    const store = transaction.objectStore("trays");
+    const getRequest = store.get(keyToUse);
+
+    getRequest.onsuccess = () => {
+      const savedData = getRequest.result;
+
+      if (!savedData || savedData !== data) {
+        const putRequest = store.put({ id: keyToUse, data: data });
+
+        putRequest.onsuccess = () => {
+          console.log(keyToUse);
+          console.log("Data saved successfully");
+
+          // Uncomment if auto-sync functionality is needed
+          // if (AUTO_SYNC) {
+          //   uploadAllData();
+          // }
+        };
+
+        putRequest.onerror = (event) => {
+          console.error("Error saving to IndexedDB:", putRequest.error);
+        };
       }
-    }
+    };
 
-    const savedData = localStorage.getItem(keyToUse);
+    getRequest.onerror = (event) => {
+      console.error("Error retrieving data from IndexedDB:", getRequest.error);
+    };
+  };
 
-    if (savedData !== data) {
-      localStorage.setItem(keyToUse, data);
-
-      // if (AUTO_SYNC) {
-      //   uploadAllData();
-      // }
-      console.log(keyToUse);
-      console.log("Data saved successfully");
-    }
-  } catch (error) {
-    console.error("Error saving to localStorage:", error);
-  }
+  request.onerror = (event) => {
+    console.error("Error opening IndexedDB:", request.error);
+  };
 }
-export function loadFromLocalStorage(key: string = TRAY_DATA_KEY): void {
+
+export function loadFromIndexedDB(key: string = TRAY_DATA_KEY): void {
+  const request = indexedDB.open("TrayDatabase", 1); // Open a database named "TrayDatabase"
+  let db: IDBDatabase;
   let rootTray: Tray;
-  try {
-    const savedDataString = localStorage.getItem(key);
-    let savedData;
-    if (savedDataString) {
-      savedData = JSON.parse(savedDataString);
-    } else {
-      savedData = createDefaultRootTray;
+  console.log(key)
+  request.onupgradeneeded = (event) => {
+    db = request.result;
+    if (!db.objectStoreNames.contains("trays")) {
+      db.createObjectStore("trays", { keyPath: "id" }); // Create an object store for trays
     }
+  };
 
-    console.log(savedData);
-    if (savedData) {
-      rootTray = deserialize(JSON.stringify(savedData)) as Tray; // Ensure the deserialized data is of type Tray
-    } else {
+  request.onsuccess = () => {
+    db = request.result;
+    const transaction = db.transaction("trays", "readonly");
+    const store = transaction.objectStore("trays");
+    const getRequest = store.get(key); // Fetch data using the key
+
+    getRequest.onsuccess = (event) => {
+      const savedData = getRequest.result;
+
+      if (savedData) {
+        try {
+          rootTray = deserialize(savedData.data) as Tray; // Ensure the deserialized data is of type Tray
+        } catch (error) {
+          console.error("Error deserializing data:", error);
+          rootTray = createDefaultRootTray();
+        }
+      } else {
+        rootTray = createDefaultRootTray();
+      }
+
+      initializeTray(rootTray);
+    };
+
+    getRequest.onerror = (event) => {
+      console.error("Error loading from IndexedDB:", getRequest.error);
       rootTray = createDefaultRootTray();
-    }
+      initializeTray(rootTray);
+    };
+  };
 
-    rootTray.isFolded = false;
-
-    rootTray.updateAppearance();
-    rootTray.updateChildrenAppearance();
-  } catch (error) {
-    console.error("Error loading from localStorage:", error);
-
+  request.onerror = (event) => {
+    console.error("Error opening IndexedDB:", request.error);
     rootTray = createDefaultRootTray();
-  }
+    initializeTray(rootTray);
+  };
+}
+
+function initializeTray(rootTray: Tray) {
+  rootTray.isFolded = false;
+  rootTray.updateAppearance();
+  rootTray.updateChildrenAppearance();
+
   document.body.innerHTML = "";
   document.body.appendChild(rootTray.element);
   createHamburgerMenu();
 }
+
 
 export function serialize(tray: Tray) {
   // let tmp = tray;
@@ -168,4 +222,35 @@ function ddo(the_data: any) {
 export function deserialize(data: string) {
   let the_data = JSON.parse(data);
   return ddo(the_data);
+}
+export function loadFromLocalStorage(key: string = TRAY_DATA_KEY): void {
+  let rootTray: Tray;
+  try {
+    const savedDataString = localStorage.getItem(key);
+    let savedData;
+    if (savedDataString) {
+      savedData = JSON.parse(savedDataString);
+    } else {
+      savedData = createDefaultRootTray;
+    }
+
+    console.log(savedData);
+    if (savedData) {
+      rootTray = deserialize(JSON.stringify(savedData)) as Tray; // Ensure the deserialized data is of type Tray
+    } else {
+      rootTray = createDefaultRootTray();
+    }
+
+    rootTray.isFolded = false;
+
+    rootTray.updateAppearance();
+    rootTray.updateChildrenAppearance();
+  } catch (error) {
+    console.error("Error loading from localStorage:", error);
+
+    rootTray = createDefaultRootTray();
+  }
+  document.body.innerHTML = "";
+  document.body.appendChild(rootTray.element);
+  createHamburgerMenu();
 }
