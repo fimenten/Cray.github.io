@@ -31,12 +31,13 @@ export function getUrlParameter(name:string) {
       ? ""
       : decodeURIComponent(results[1].replace(/\+/g, " ")).trim();
   }
-  export function getRootElement(): HTMLElement | null {
-    // Selects a 'div' with class 'tray' inside an element with ID 'tray-container'
-    return document.querySelector("body > div:nth-child(1) > div") as HTMLElement | null;
+export  function getRootElement() {
+    const rootTrayElement = document.querySelector("body > div.tray");
+    if (rootTrayElement) {
+      return rootTrayElement;
+    }
+    return null;
   }
-  
-  
   
 export function createDefaultRootTray() {
     const rootTray = new Tray("0", "0", "Root Tray");
