@@ -6,6 +6,7 @@ import { serialize,deserialize, loadFromIndexedDB, saveToIndexedDB } from "./io"
 import { createHamburgerMenu,selected_trays } from "./humberger";
 import { LabelManager } from "./label";
 import { downloadData,showUploadNotification,uploadData,fetchTrayList, setNetworkOption } from "./networks";
+import { meltTray } from "./functions";
 // export let hamburgerElements;
 let last_focused: Tray;
 
@@ -1183,6 +1184,7 @@ export class Tray {
       <div class="menu-item" data-action="networkSetting" tabindex="1">networkSetting</div>
       <div class="menu-item" data-action="open_this_in_other" tabindex="2">Open This in Other</div>
       <div class="menu-item" data-action="toggleFlexDirection" tabindex="3">Toggle Flex Direction</div>
+      <div class="menu-item" data-action="meltTray" tabindex="0">Melt this tray</div>
       <div class="menu-item" data-action="copy" tabindex="0">Copy</div>
       <div class="menu-item" data-action="paste" tabindex="0">Paste</div>
       <div class="menu-item" data-action="cut" tabindex="0">Cut</div>
@@ -1339,6 +1341,10 @@ export class Tray {
         setNetworkOption(this);
         saveToIndexedDB()
         break;
+      case "meltTray":
+        meltTray(this);
+        saveToIndexedDB()
+        break
 
         //   case "add_fetch_networkTray_to_child":
       // this.add_fetch_networkTray_to_child();
@@ -1707,18 +1713,16 @@ window.addEventListener("DOMContentLoaded", () => {
   document.body.insertBefore(leftBar, document.body.firstChild);
   const actionButtons = createActionButtons();
   document.body.appendChild(actionButtons);
-  //   updateAllTrayDirections();
-  //   window.addEventListener("resize", updateAllTrayDirections);
   const root = getRootElement() as HTMLDivElement;
   last_focused = element2TrayMap.get(root) as Tray;
   root.focus();
+
 });
 
 
 
 
-const actionButtons = createActionButtons();
-document.body.appendChild(actionButtons);
+
 function createActionButtons() {
   const buttonContainer = document.createElement("div");
   buttonContainer.classList.add("action-buttons");
