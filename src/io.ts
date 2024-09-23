@@ -8,7 +8,7 @@ import {
 import { createHamburgerMenu } from "./humberger";
 import { Tray } from "./tray";
 export function exportData(): void {
-  const data = localStorage.getItem(TRAY_DATA_KEY);
+  const data = serialize(element2TrayMap.get(getRootElement() as HTMLDivElement) as Tray);
 
   if (!data) {
     console.error("No data found to export.");
