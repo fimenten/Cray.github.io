@@ -1,12 +1,12 @@
 import { TRAY_DATA_KEY } from "./const";
-import { Tray, element2TrayMap } from "./app";
+import { element2TrayMap } from "./app";
 import {
   getRootElement,
   getUrlParameter,
   createDefaultRootTray,
 } from "./utils";
 import { createHamburgerMenu } from "./humberger";
-
+import { Tray } from "./tray";
 export function exportData(): void {
   const data = localStorage.getItem(TRAY_DATA_KEY);
 

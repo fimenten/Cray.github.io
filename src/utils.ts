@@ -1,4 +1,5 @@
-import {element2TrayMap,Tray} from "./app"
+import {element2TrayMap} from "./app"
+import { Tray } from "./tray";
 
 export function getTrayFromId(Id: string): Tray | undefined {
     const element = document.querySelector(
@@ -65,4 +66,14 @@ export function cloneTray(tray:Tray){
     let ret = JSON.parse(JSON.stringify(tray)) as Tray
     ret.id = generateUUID()
     return ret
+}
+export function getEventCoordinates(
+  event: MouseEvent | TouchEvent
+): [number, number] {
+  if (event instanceof MouseEvent) {
+    return [event.clientX, event.clientY];
+  } else if (event instanceof TouchEvent && event.touches.length > 0) {
+    return [event.touches[0].clientX, event.touches[0].clientY];
+  }
+  return [0, 0];
 }

@@ -1,8 +1,10 @@
 import { cloneTray, createDefaultRootTray, generateUUID, getRootElement } from "./utils";
 import { exportData, importData } from "./io";
 import { getUrlParameter } from "./utils";
-import { element2TrayMap, Tray} from "./app";
+import { element2TrayMap} from "./app";
+import { Tray } from "./tray";
 import { downloadData, uploadData } from "./networks";
+import { copyTray, deleteTray } from "./contextMenu";
 export let selected_trays:Tray[] = []
 
 function resetAllTrays() {
@@ -281,9 +283,9 @@ function cutSelected(): void {
     // Copy the selected trays
     const t = new Tray(generateUUID(), generateUUID(), "selected Trays");
     selected_trays.map(tt => t.children.push(cloneTray(tt)))
-    t.copyTray();
+    copyTray(t);
 
-    selected_trays.map(t => t.deleteTray())
+    selected_trays.map(t => deleteTray(t))
 
 
     // Clear the selected_trays array
@@ -305,7 +307,7 @@ function copySelected(): void {
     // Copy the selected trays
     const t = new Tray(generateUUID(), generateUUID(), "selected Trays");
     selected_trays.map(tt => t.children.push(cloneTray(tt)))
-    t.copyTray();
+    copyTray(t);
 
     // Clear the selected_trays array
     selected_trays = [];

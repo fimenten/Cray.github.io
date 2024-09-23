@@ -1,4 +1,4 @@
-import {Tray} from "./app"
+import {Tray} from "./tray"
 import {getTrayFromId} from "./utils"
 // export function addNewTrayToParent(last_focused:Tray) {
 

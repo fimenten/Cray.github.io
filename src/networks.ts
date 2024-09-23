@@ -1,5 +1,7 @@
-import { Tray } from "./app";
+import { Tray } from "./tray";
 import { deserialize, serialize } from "./io";
+import { getTrayFromId } from "./utils";
+import { deleteTray } from "./contextMenu";
 export function fetchTrayList(tray: Tray) {
   const defaultServer = localStorage.getItem("defaultServer") || "";
   const url = prompt("Enter server URL:", defaultServer);
@@ -180,4 +182,45 @@ export function setNetworkOption(tray: Tray) {
 
   tray.host_url = hostUrl? (hostUrl.trim() === "" ? null : hostUrl) : null;
   tray.filename = filename? (filename.trim() === "" ? null : filename) : null
+}
+
+
+export function showNetworkOptions(tray:Tray) {
+  let d;
+  if (tray.host_url) {
+    d = tray.host_url;
+  } else {
+    d = localStorage.getItem("defaultServer");
+    }
+  
+  const url = prompt("Enter URL:", d? d:"");
+  const filename = prompt("Enter filename:", tray.filename ? tray.filename : "");
+
+  if (url) tray.host_url = url;
+  if (filename) tray.filename = filename;
+
+}
+
+export function ondownloadButtonPressed(tray:Tray) {
+  // First, show a confirmation dialog
+  if (confirm("Are you sure you want to download?")) {
+    downloadData(tray)
+      .then((downloaded) => {
+        // Update the current tray with the downloaded data
+        let parent = getTrayFromId(tray.parentId) as Tray;
+        deleteTray(tray);
+        parent.addChild(downloaded as Tray);
+        parent.updateAppearance();
+
+        // Notify user of successful download
+        showUploadNotification("Download completed successfully.");
+      })
+      .catch((error) => {
+        console.error("Download failed:", error);
+        showUploadNotification("Download failed. Please check your connection.");
+      });
+  } else {
+    // If user cancels, notify them
+    showUploadNotification("Download cancelled.");
+  }
 }
