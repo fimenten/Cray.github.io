@@ -3,7 +3,7 @@ import { Tray } from "./tray";
 import { deserialize, saveToIndexedDB, serialize } from "./io";
 import { showLabelRemover, showLabelSelector } from "./label";
 import { fetchTrayList, setNetworkOption } from "./networks";
-import { meltTray } from "./functions";
+import { meltTray, showMarkdownOutput } from "./functions";
 
 export function onContextMenu(tray:Tray,event: MouseEvent | TouchEvent): void {
     event.preventDefault();
@@ -216,6 +216,7 @@ export function executeMenuAction(
         break;
       case "paste":
         pasteTray(tray);
+        saveToIndexedDB()
         break;
       case "addLabel":
         showLabelSelector(tray, event);
@@ -251,9 +252,9 @@ export function executeMenuAction(
       //   case "addLabelTray":
       //     this.addLabelTray();
       //     break;
-      //   case "outputMarkdown":
-      //     this.showMarkdownOutput();
-      //     break;
+        case "outputMarkdown":
+          showMarkdownOutput(tray);
+          break;
       // case "addTemplateTray":
       //   console.log("Add Template Tray clicked");
       //   this.showTemplateSelectionPopup(event);

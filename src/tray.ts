@@ -150,9 +150,9 @@ export class Tray {
       tray.appendChild(titleContainer);
       tray.append(content);
   
-      tray.addEventListener("dragstart", this.onDragStart.bind(this));
-      tray.addEventListener("dragover", this.onDragOver.bind(this));
-      tray.addEventListener("drop", this.onDrop.bind(this));
+      // tray.addEventListener("dragstart", this.onDragStart.bind(this));
+      // tray.addEventListener("dragover", this.onDragOver.bind(this));
+      // tray.addEventListener("drop", this.onDrop.bind(this));
       content.addEventListener("dblclick", this.onDoubleClick.bind(this));
       element2TrayMap.set(tray, this);
   

@@ -31,21 +31,17 @@ export const getChildren = <T extends Vertex>(state: DiGraph<T>, action: T) => {
 export const moveNode = <T extends Vertex>(state: DiGraph<T>, action: PayloadAction<{ newParent: T, dropped: T }>) => {
     const { newParent, dropped } = action.payload;
 
-    // `getParent`関数が返す親ノードのIDを取得
     const parentOfDropped = getParent(state, dropped)[0];
 
-    // 1. `dropped`ノードを現在の親から削除する
     if (parentOfDropped) {
         state.fromTo[parentOfDropped] = state.fromTo[parentOfDropped].filter(childId => childId !== dropped.id);
     }
 
-    // 2. `dropped`ノードを新しい親ノードの子として追加する
     if (!state.fromTo[newParent.id]) {
         state.fromTo[newParent.id] = [];
     }
     state.fromTo[newParent.id].push(dropped.id);
 
-    // 3. `toFrom`の更新 - `dropped`ノードの親情報を更新
     state.toFrom[dropped.id] = [newParent.id];
 
 };
