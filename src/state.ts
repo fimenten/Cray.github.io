@@ -4,11 +4,13 @@ import { Tray } from "./tray";
 interface AppState {
     lastFocused: string|null;
     menuOpening: boolean;
+    autoUpload:boolean
   }
   
   const initialState: AppState = {
     lastFocused: null,
     menuOpening: false,
+    autoUpload:false
   };
   
   const appSlice = createSlice({
@@ -27,8 +29,11 @@ interface AppState {
       closeMenu(state) {
         state.menuOpening = false;
       },
+      toggleAutoUpload(state){
+        state.autoUpload = !state.autoUpload;
+      }
     },
   });
   
-  export const { setLastFocused, toggleMenuOpening, openMenu, closeMenu } = appSlice.actions;
+  export const { setLastFocused, toggleMenuOpening, openMenu, closeMenu,toggleAutoUpload } = appSlice.actions;
   export default appSlice.reducer;

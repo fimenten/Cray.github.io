@@ -4,6 +4,7 @@ import { deserialize, saveToIndexedDB, serialize } from "./io";
 import { showLabelRemover, showLabelSelector } from "./label";
 import { fetchTrayList, setNetworkOption } from "./networks";
 import { meltTray, showMarkdownOutput } from "./functions";
+import { toggleFold } from "./data/tray2";
 
 export function onContextMenu(tray:Tray,event: MouseEvent | TouchEvent): void {
     event.preventDefault();
@@ -27,6 +28,8 @@ export function onContextMenu(tray:Tray,event: MouseEvent | TouchEvent): void {
       <div class="menu-item" data-action="open_this_in_other" tabindex="2">Open This in Other</div>
       <div class="menu-item" data-action="toggleFlexDirection" tabindex="3">Toggle Flex Direction</div>
       <div class="menu-item" data-action="meltTray" tabindex="0">Melt this tray</div>
+      <div class="menu-item" data-action="expandAll" tabindex="0">Expand All</div>
+
       <div class="menu-item" data-action="copy" tabindex="0">Copy</div>
       <div class="menu-item" data-action="paste" tabindex="0">Paste</div>
       <div class="menu-item" data-action="cut" tabindex="0">Cut</div>
@@ -238,7 +241,9 @@ export function executeMenuAction(
         meltTray(tray);
         saveToIndexedDB()
         break
-
+      case "expandAll":
+        expandAll(tray)
+        break
         //   case "add_fetch_networkTray_to_child":
       // this.add_fetch_networkTray_to_child();
       // break;
@@ -276,3 +281,9 @@ export function toggleEditMode(tray:Tray) {
       tray.startTitleEdit(titleElement);
     }
   }
+export function expandAll(tray:Tray){
+  tray.isFolded = false;
+  tray.children.map(t=>expandAll(t))
+  tray.updateAppearance()
+
+}

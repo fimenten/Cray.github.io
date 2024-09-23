@@ -74,10 +74,6 @@ export class Tray {
       titleContainer.classList.add("tray-title-container");
       const checkboxContainer = document.createElement("div");
       checkboxContainer.classList.add("tray-checkbox-container");
-      const clickArea = document.createElement("div");
-      clickArea.classList.add("tray-click-area");
-      clickArea.style.flexGrow = "1";
-      clickArea.style.cursor = "pointer";
       const createdTime = document.createElement("span");
       createdTime.classList.add("tray-created-time");
       createdTime.textContent = this.formatCreatedTime();
