@@ -54,7 +54,7 @@ export class LabelManager {
     this.label_tray.delete([labelName, tray]);
   }
 }
-export function addLabel(tray:Tray, event: MouseEvent): void {
+export function addLabel(tray: Tray, event: MouseEvent): void {
   const labelSelector = document.createElement("div");
   labelSelector.classList.add("label-selector");
   console.log(globalLabelManager.getAllLabels());
@@ -65,7 +65,7 @@ export function addLabel(tray:Tray, event: MouseEvent): void {
       ${Object.entries(globalLabelManager.getAllLabels())
         .map(
           ([name, color]) =>
-            `<option value="${name}" style="background-color: ${color};">${name}</option>`
+            `<option value="${name}" style="background-color: ${color};">${name}</option>`,
         )
         .join("")}
     </select>
@@ -85,23 +85,23 @@ export function addLabel(tray:Tray, event: MouseEvent): void {
   document.body.appendChild(labelSelector);
 
   const selectExistingLabelButton = document.getElementById(
-    "selectExistingLabel"
+    "selectExistingLabel",
   );
   const existingLabels = document.getElementById(
-    "existingLabels"
+    "existingLabels",
   ) as HTMLSelectElement | null;
   const newLabelName = document.getElementById(
-    "newLabelName"
+    "newLabelName",
   ) as HTMLInputElement | null;
   const newLabelColor = document.getElementById(
-    "newLabelColor"
+    "newLabelColor",
   ) as HTMLInputElement | null;
 
   if (selectExistingLabelButton && existingLabels) {
     selectExistingLabelButton.addEventListener("click", () => {
       const selectedId = existingLabels.value;
       if (selectedId) {
-        addExistingLabel(tray,selectedId);
+        addExistingLabel(tray, selectedId);
         labelSelector.remove();
       }
     });
@@ -114,8 +114,8 @@ export function addLabel(tray:Tray, event: MouseEvent): void {
       const name = newLabelName.value;
       const color = newLabelColor.value;
       if (name) {
-        const newId = addNewLabelToManager(tray,name, color);
-        addExistingLabel(tray,newId);
+        const newId = addNewLabelToManager(tray, name, color);
+        addExistingLabel(tray, newId);
         labelSelector.remove();
       }
     });
@@ -130,28 +130,35 @@ export function addLabel(tray:Tray, event: MouseEvent): void {
         labelSelector.remove();
       }
     },
-    { once: true }
+    { once: true },
   );
 }
 
-export function addExistingLabel(tray:Tray,labelId: string): void {
+export function addExistingLabel(tray: Tray, labelId: string): void {
   if (!tray.labels.includes(labelId)) {
     tray.labels.push(labelId);
     // tray.updateLabels();
   }
 }
 
-export function addNewLabelToManager(tray:Tray,name: string, color: string): string {
+export function addNewLabelToManager(
+  tray: Tray,
+  name: string,
+  color: string,
+): string {
   globalLabelManager.addLabel(name, color);
   const id = name; // Assuming the name is used as the ID
   addExistingLabel(tray, id); // Add the new label to the local list
   return id;
 }
 
-export function showLabelSelector(tray:Tray, event: MouseEvent | TouchEvent): void {
+export function showLabelSelector(
+  tray: Tray,
+  event: MouseEvent | TouchEvent,
+): void {
   // Remove existing label selector
   const existingSelector = document.querySelector(
-    ".label-selector"
+    ".label-selector",
   ) as HTMLElement | null;
   existingSelector?.remove();
 
@@ -163,7 +170,7 @@ export function showLabelSelector(tray:Tray, event: MouseEvent | TouchEvent): vo
       ${Object.entries(globalLabelManager.getAllLabels())
         .map(
           ([labelName, color]) =>
-            `<option value="${labelName}" style="background-color: ${color};">${labelName}</option>`
+            `<option value="${labelName}" style="background-color: ${color};">${labelName}</option>`,
         )
         .join("")}
     </select>
@@ -183,26 +190,26 @@ export function showLabelSelector(tray:Tray, event: MouseEvent | TouchEvent): vo
   document.body.appendChild(labelSelector);
 
   const selectButton = document.getElementById(
-    "selectExistingLabel"
+    "selectExistingLabel",
   ) as HTMLButtonElement | null;
   const existingLabels = document.getElementById(
-    "existingLabels"
+    "existingLabels",
   ) as HTMLSelectElement | null;
   const newLabelNameInput = document.getElementById(
-    "newLabelName"
+    "newLabelName",
   ) as HTMLInputElement | null;
   const newLabelColorInput = document.getElementById(
-    "newLabelColor"
+    "newLabelColor",
   ) as HTMLInputElement | null;
   const addButton = document.getElementById(
-    "addNewLabel"
+    "addNewLabel",
   ) as HTMLButtonElement | null;
 
   if (selectButton && existingLabels) {
     selectButton.addEventListener("click", () => {
       const selectedId = existingLabels.value;
       if (selectedId) {
-        addExistingLabel(tray,selectedId);
+        addExistingLabel(tray, selectedId);
         labelSelector.remove();
       }
     });
@@ -214,7 +221,7 @@ export function showLabelSelector(tray:Tray, event: MouseEvent | TouchEvent): vo
       const color = newLabelColorInput.value;
       if (name) {
         const newId = addNewLabelToManager(tray, name, color);
-        addExistingLabel(tray,newId);
+        addExistingLabel(tray, newId);
         labelSelector.remove();
       }
     });
@@ -225,19 +232,15 @@ export function showLabelSelector(tray:Tray, event: MouseEvent | TouchEvent): vo
     "click",
     (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (
-        !labelSelector.contains(target) &&
-        !target.closest(".context-menu")
-      ) {
+      if (!labelSelector.contains(target) && !target.closest(".context-menu")) {
         labelSelector.remove();
       }
     },
-    { once: true }
+    { once: true },
   );
 }
 
-
-export function showLabelRemover(tray:Tray): void {
+export function showLabelRemover(tray: Tray): void {
   const labelRemover = document.createElement("div");
   labelRemover.classList.add("label-remover");
   labelRemover.innerHTML = `
@@ -249,7 +252,7 @@ export function showLabelRemover(tray:Tray): void {
           <input type="checkbox" id="${label}" value="${label}">
           <label for="${label}">${label}</label>
         </div>
-      `
+      `,
       )
       .join("")}
     <button id="removeLabelBtn">Remove Selected Labels</button>
@@ -258,22 +261,22 @@ export function showLabelRemover(tray:Tray): void {
   document.body.appendChild(labelRemover);
 
   const removeButton = document.getElementById(
-    "removeLabelBtn"
+    "removeLabelBtn",
   ) as HTMLButtonElement | null;
 
   if (removeButton) {
     removeButton.addEventListener("click", () => {
       const checkboxes = labelRemover.querySelectorAll(
-        'input[type="checkbox"]:checked'
+        'input[type="checkbox"]:checked',
       ) as NodeListOf<HTMLInputElement>;
       checkboxes.forEach((checkbox) => {
-        removeLabel(tray,checkbox.value);
+        removeLabel(tray, checkbox.value);
       });
       labelRemover.remove();
     });
   }
 }
-export function removeLabel(tray:Tray,labelName: string): void {
+export function removeLabel(tray: Tray, labelName: string): void {
   tray.labels = tray.labels.filter((label: string) => label !== labelName);
   globalLabelManager.unregisterLabeledTray(labelName, tray);
   // tray.updateLabels();

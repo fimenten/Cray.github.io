@@ -1,18 +1,27 @@
 // import {exportData,importData} from "./io"
-import {getTrayFromId,getRandomColor,getWhiteColor} from "./utils"
-import { generateUUID,getRootElement,cloneTray} from "./utils";
+import { getTrayFromId, getRandomColor, getWhiteColor } from "./utils";
+import { generateUUID, getRootElement, cloneTray } from "./utils";
 import { getUrlParameter } from "./utils";
-import { serialize,deserialize, loadFromIndexedDB, saveToIndexedDB } from "./io";
-import { createHamburgerMenu,selected_trays } from "./humberger";
+import {
+  serialize,
+  deserialize,
+  loadFromIndexedDB,
+  saveToIndexedDB,
+} from "./io";
+import { createHamburgerMenu, selected_trays } from "./humberger";
 import { LabelManager } from "./label";
-import { downloadData,showUploadNotification,uploadData,fetchTrayList, setNetworkOption } from "./networks";
+import {
+  downloadData,
+  showUploadNotification,
+  uploadData,
+  fetchTrayList,
+  setNetworkOption,
+} from "./networks";
 import { meltTray } from "./functions";
-import {Tray,TrayId} from "./tray"
-import { createSlice,PayloadAction } from "@reduxjs/toolkit";
+import { Tray, TrayId } from "./tray";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import store from "./store";
 import { setLastFocused } from "./state";
-
-
 
 export const element2TrayMap = new WeakMap<HTMLElement, Tray>();
 export const id2TrayData = new Map<TrayId, Tray>();
@@ -21,21 +30,12 @@ const TRAY_DATA_KEY = "trayData";
 
 export const globalLabelManager = new LabelManager();
 
-
-
-
-
-
-
-
-
-
 window.addEventListener("DOMContentLoaded", () => {
   let sessionId = getUrlParameter("sessionId");
   if (sessionId == "new") {
     let id = generateUUID();
     window.location.replace(
-      window.location.href.replace("?sessionId=new", "?sessionId=" + id)
+      window.location.href.replace("?sessionId=new", "?sessionId=" + id),
     );
   }
   if (sessionId) {
@@ -43,7 +43,7 @@ window.addEventListener("DOMContentLoaded", () => {
   } else {
     loadFromIndexedDB();
   }
-  console.log("loaded")
+  console.log("loaded");
   if (sessionId) {
     const savedTitle = localStorage.getItem(sessionId + "_title");
     if (savedTitle) {
@@ -58,12 +58,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const root = getRootElement() as HTMLDivElement;
   setLastFocused(element2TrayMap.get(root) as Tray);
   root.focus();
-
 });
-
-
-
-
 
 function createActionButtons() {
   const buttonContainer = document.createElement("div");
@@ -77,7 +72,7 @@ function createActionButtons() {
   const insertButton = document.createElement("button");
   insertButton.textContent = "↩";
   insertButton.classList.add("action-button", "insert-button");
-  insertButton.addEventListener("click", addNewTrayToFocused)
+  insertButton.addEventListener("click", addNewTrayToFocused);
 
   buttonContainer.appendChild(addButton);
   buttonContainer.appendChild(insertButton);
@@ -86,7 +81,9 @@ function createActionButtons() {
 }
 
 function addNewTrayToParent() {
-  const lastFocusedTray = getTrayFromId(store.getState().app.lastFocused as string) as Tray;
+  const lastFocusedTray = getTrayFromId(
+    store.getState().app.lastFocused as string,
+  ) as Tray;
   const parentTray = getTrayFromId(lastFocusedTray.parentId);
 
   if (parentTray) {
@@ -96,31 +93,36 @@ function addNewTrayToParent() {
     parentTray.updateAppearance();
     newTray.element.focus();
     const newTitleElement = newTray.element.querySelector(
-      ".tray-title"
+      ".tray-title",
     ) as HTMLDivElement;
     newTray.startTitleEdit(newTitleElement);
   }
 }
 
 function addNewTrayToFocused() {
-  const lastFocusedId = store.getState().app.lastFocused
-  if (!lastFocusedId){return}
+  const lastFocusedId = store.getState().app.lastFocused;
+  if (!lastFocusedId) {
+    return;
+  }
   const lastFocusedTray = getTrayFromId(lastFocusedId);
-  if (!lastFocusedTray){return}
+  if (!lastFocusedTray) {
+    return;
+  }
 
-  
-  
-  const newTray = new Tray(lastFocusedTray.id, Date.now().toString(), "New Tray");
+  const newTray = new Tray(
+    lastFocusedTray.id,
+    Date.now().toString(),
+    "New Tray",
+  );
   lastFocusedTray.addChild(newTray);
   lastFocusedTray.isFolded = false;
   lastFocusedTray.updateAppearance();
   newTray.element.focus();
   const newTitleElement = newTray.element.querySelector(
-    ".tray-title"
+    ".tray-title",
   ) as HTMLDivElement;
   newTray.startTitleEdit(newTitleElement);
 }
-
 
 // function labelFilteringWithDestruction(labelName:string, tray:Tray) {
 //     console.log(tray.labels);
@@ -149,4 +151,3 @@ function addNewTrayToFocused() {
 //     }
 //     return null;
 //   }
-

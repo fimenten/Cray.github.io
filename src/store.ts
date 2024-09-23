@@ -1,5 +1,5 @@
-import { configureStore } from '@reduxjs/toolkit';
-import state from './state';
+import { configureStore } from "@reduxjs/toolkit";
+import state from "./state";
 
 // Configure the store with your reducers
 const store = configureStore({

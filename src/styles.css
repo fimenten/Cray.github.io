@@ -168,8 +168,6 @@
   color: white;
 }
 
-
-
 /* Drag Indicators */
 .tray.drag-top::before,
 .tray.drag-bottom::after {
@@ -454,7 +452,9 @@
   font-size: 16px;
   padding: 2px 5px;
   color: #555;
-  transition: color 0.3s ease, transform 0.3s ease;
+  transition:
+    color 0.3s ease,
+    transform 0.3s ease;
 }
 
 .tray-context-menu-button:hover {
@@ -580,7 +580,9 @@ body > .tray {
   align-items: center;
   justify-content: center;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  transition: background-color 0.3s, transform 0.3s;
+  transition:
+    background-color 0.3s,
+    transform 0.3s;
 }
 
 .action-button:hover {

@@ -88,7 +88,7 @@ const trayGraphSlice = createSlice({
     updateNodeInfo,
     mergeGraph: (
       state,
-      action: PayloadAction<{ pastedGraph: TrayVisualGraph }>
+      action: PayloadAction<{ pastedGraph: TrayVisualGraph }>,
     ) => {
       const { pastedGraph } = action.payload;
       state.nodes = { ...state.nodes, ...pastedGraph.nodes };
@@ -106,7 +106,7 @@ const trayGraphSlice = createSlice({
     },
     updateTrayName: (
       state,
-      action: PayloadAction<{ id: string; name: string }>
+      action: PayloadAction<{ id: string; name: string }>,
     ) => {
       const { id, name } = action.payload;
       state.nodes[id].data.name = name;
@@ -114,7 +114,7 @@ const trayGraphSlice = createSlice({
     },
     updateTraycolor: (
       state,
-      action: PayloadAction<{ id: string; color: string }>
+      action: PayloadAction<{ id: string; color: string }>,
     ) => {
       const { id, color } = action.payload;
       state.nodes[id].data.color = color;
@@ -122,7 +122,7 @@ const trayGraphSlice = createSlice({
     },
     updateTrayURL: (
       state,
-      action: PayloadAction<{ id: string; URL: string }>
+      action: PayloadAction<{ id: string; URL: string }>,
     ) => {
       const { id, URL } = action.payload;
       state.nodes[id].data.URL = URL;
@@ -130,7 +130,7 @@ const trayGraphSlice = createSlice({
     },
     updateTrayFilename: (
       state,
-      action: PayloadAction<{ id: string; filename: string }>
+      action: PayloadAction<{ id: string; filename: string }>,
     ) => {
       const { id, filename } = action.payload;
       state.nodes[id].data.filename = filename;
@@ -138,14 +138,14 @@ const trayGraphSlice = createSlice({
     },
     updateTrayVisFold: (
       state,
-      action: PayloadAction<{ id: string; fold: boolean }>
+      action: PayloadAction<{ id: string; fold: boolean }>,
     ) => {
       const { id, fold } = action.payload;
       state.nodes[id].isFolded = fold;
     },
     updateTrayFlex: (
       state,
-      action: PayloadAction<{ id: string; flexDirection: "row" | "column" }>
+      action: PayloadAction<{ id: string; flexDirection: "row" | "column" }>,
     ) => {
       const { id, flexDirection } = action.payload;
       state.nodes[id].data.flexDirection = flexDirection;
@@ -153,7 +153,7 @@ const trayGraphSlice = createSlice({
     },
     updateSelected(
       state,
-      action: PayloadAction<{ id: string; checked: boolean }>
+      action: PayloadAction<{ id: string; checked: boolean }>,
     ) {
       const { id, checked } = action.payload;
       if (checked) {
@@ -183,7 +183,7 @@ const trayGraphSlice = createSlice({
       action: PayloadAction<{
         direction: "left" | "right" | "upper" | "lower";
         visId: string;
-      }>
+      }>,
     ) => {
       const { direction, visId } = action.payload;
       if (direction === "left") {
