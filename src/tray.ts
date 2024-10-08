@@ -22,6 +22,7 @@ import { colorPalette } from "./const";
 import { onContextMenu } from "./contextMenu";
 import { handleKeyDown } from "./keyboardInteraction";
 import { setLastFocused } from "./state";
+import store from "./store";
 
 export type TrayId = string;
 
@@ -52,7 +53,7 @@ export class Tray {
     flexDirection: "column" | "row" = "column",
     host_url: string | null = null,
     filename: string | null = null,
-    isFold: boolean = true,
+    isFold: boolean = true
   ) {
     this.id = id;
     this.name = name;
@@ -72,7 +73,7 @@ export class Tray {
     // this.updateLabels();
     this.updateAppearance();
     this.updateBorderColor(this.borderColor);
-    this.setupFocusTracking();
+    // this.setupFocusTracking(this);
   }
 
   createElement() {
@@ -109,7 +110,7 @@ export class Tray {
     contextMenuButton.textContent = "⋮";
     contextMenuButton.addEventListener(
       "click",
-      this.onContextMenuButtonClick.bind(this),
+      this.onContextMenuButtonClick.bind(this)
     );
     const labelsElement = document.createElement("div");
     labelsElement.classList.add("tray-labels");
@@ -204,11 +205,11 @@ export class Tray {
 
     const uploadButton = document.createElement("button");
     uploadButton.textContent = "Upload";
-    uploadButton.addEventListener("click", () => uploadData(this));
+    uploadButton.addEventListener("click", (e) => uploadData(this));
 
     const downloadButton = document.createElement("button");
     downloadButton.textContent = "Download";
-    downloadButton.addEventListener("click", () => downloadData(this));
+    downloadButton.addEventListener("click", (e) => downloadData(this));
 
     // const autoUploadButton = document.createElement("button");
     // autoUploadButton.textContent = `Auto Upload: ${
@@ -233,25 +234,33 @@ export class Tray {
     titleContainer.style.display = "flex";
     titleContainer.style.alignItems = "center";
     titleContainer.style.justifyContent = "space-between";
+    tray.addEventListener(
+      "focus",(e) => store.dispatch(setLastFocused(this)));
+    tray.addEventListener(
+      "click",
+      (e) => {
+        store.dispatch(setLastFocused(this));
+      },
+    );
 
     return tray;
   }
 
-  setupFocusTracking() {
-    this.element.addEventListener(
+  setupFocusTracking(tray: Tray) {
+    tray.element.addEventListener(
       "focus",
       () => {
-        setLastFocused(this);
+        setLastFocused(tray);
       },
-      true,
+      true
     );
 
-    this.element.addEventListener(
+    tray.element.addEventListener(
       "click",
       () => {
-        setLastFocused(this);
+        setLastFocused(tray);
       },
-      true,
+      true
     );
   }
   formatCreatedTime() {
@@ -385,7 +394,7 @@ export class Tray {
 
   updateFlexDirection(): void {
     const content = this.element.querySelector(
-      ".tray-content",
+      ".tray-content"
     ) as HTMLElement | null;
     if (content) {
       content.style.flexDirection = this.flexDirection;
@@ -467,13 +476,13 @@ export class Tray {
   }
   updateAppearance(): void {
     const content = this.element.querySelector(
-      ".tray-content",
+      ".tray-content"
     ) as HTMLElement | null;
     const foldButton = this.element.querySelector(
-      ".tray-fold-button",
+      ".tray-fold-button"
     ) as HTMLElement | null;
     const foldButtonRight = this.element.querySelector(
-      ".tray-fold-button-right",
+      ".tray-fold-button-right"
     ) as HTMLElement | null;
 
     if (!content || !foldButton || !foldButtonRight) {
@@ -591,7 +600,7 @@ export class Tray {
     this.updateAppearance();
     // newTray.element.focus();
     const newTitleElement = newTray.element.querySelector(
-      ".tray-title",
+      ".tray-title"
     ) as HTMLDivElement;
     newTray.startTitleEdit(newTitleElement);
   }
@@ -622,7 +631,7 @@ export class Tray {
     movingTray.parentId = this.id;
 
     const content = this.element.querySelector(
-      ".tray-content",
+      ".tray-content"
     ) as HTMLElement | null;
     if (content) {
       content.insertBefore(movingTray.element, content.firstChild);
@@ -650,7 +659,7 @@ export class Tray {
     this.updateAppearance();
 
     const newTitleElement = newTray.element.querySelector(
-      ".tray-title",
+      ".tray-title"
     ) as HTMLDivElement | null;
     if (newTitleElement) {
       newTray.startTitleEdit(newTitleElement);
@@ -666,7 +675,7 @@ export class Tray {
     childTray.parentId = this.id;
 
     const trayContent = this.element.querySelector(
-      ".tray-content",
+      ".tray-content"
     ) as HTMLElement | null;
     if (trayContent) {
       trayContent.insertBefore(childTray.element, trayContent.firstChild);
@@ -680,7 +689,7 @@ export class Tray {
       console.log(
         this.borderColor === getWhiteColor(),
         color,
-        this.borderColor,
+        this.borderColor
       );
       this.borderColor = color;
       this.updateBorderColor(this.borderColor);

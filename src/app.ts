@@ -34,9 +34,9 @@ export const globalLabelManager = new LabelManager();
 
 
 window.addEventListener("DOMContentLoaded", () => {
-  const actionButtons = createActionButtons();
+  // const actionButtons = createActionButtons();
   // Attempt alternative insertion if needed
-  document.body.appendChild(actionButtons);
+  // document.body.appendChild(actionButtons);
   let sessionId = getUrlParameter("sessionId");
   if (sessionId == "new") {
     let id = generateUUID();
@@ -57,16 +57,16 @@ window.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  const { leftBar } = createHamburgerMenu();
-  console.log("leftBar:", leftBar); // Debug log
+  // const { leftBar } = createHamburgerMenu();
+  // console.log("leftBar:", leftBar); // Debug log
   // document.body.insertBefore(leftBar, document.body.firstChild);
-  document.body.appendChild(leftBar);
+  // document.body.appendChild(leftBar);
 
 
 
   // document.body.insertBefore(actionButtons, leftBar);
   
-  const root = getRootElement(); // Removed TypeScript casting for generality
+  // const root = getRootElement(); // Removed TypeScript casting for generality
   // setLastFocused(element2TrayMap.get(root) as Tray);
   // root.focus();
 });

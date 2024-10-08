@@ -18,7 +18,11 @@ const appSlice = createSlice({
   initialState,
   reducers: {
     setLastFocused(state, action: PayloadAction<Tray>) {
+      // console.log(action)
+      const id = action.payload.id;
+      if (id){
       state.lastFocused = action.payload.id;
+      }
     },
     toggleMenuOpening(state) {
       state.menuOpening = !state.menuOpening;

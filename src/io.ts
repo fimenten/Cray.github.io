@@ -7,6 +7,7 @@ import {
 } from "./utils";
 import { createHamburgerMenu } from "./humberger";
 import { Tray } from "./tray";
+import { createActionButtons } from "./actionbotton";
 export function exportData(): void {
   const data = serialize(element2TrayMap.get(getRootElement() as HTMLDivElement) as Tray);
 
@@ -190,6 +191,11 @@ function initializeTray(rootTray: Tray) {
   document.body.appendChild(rootTray.element);
 
   createHamburgerMenu();
+  const actio = createActionButtons()
+  // document.body.appendChild(hamb);
+  document.body.appendChild(actio);
+
+
 }
 
 export function serialize(tray: Tray) {
