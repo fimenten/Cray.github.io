@@ -19,8 +19,9 @@ module.exports = {
     path: path.resolve(__dirname, "dist"), // 出力ディレクトリ
   },
   devServer: {
-    contentBase: path.join(__dirname, "dist"),
-    compress: true,
-    port: 9000,
-  },
+    static:{
+    directory: path.join(__dirname, "dist"),
+    },compress: true,
+    port: 9000,}
+  
 };

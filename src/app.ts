@@ -22,6 +22,8 @@ import { Tray, TrayId } from "./tray";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import store from "./store";
 import { setLastFocused } from "./state";
+import { createActionButtons } from "./actionbotton";
+
 
 export const element2TrayMap = new WeakMap<HTMLElement, Tray>();
 export const id2TrayData = new Map<TrayId, Tray>();
@@ -30,7 +32,11 @@ const TRAY_DATA_KEY = "trayData";
 
 export const globalLabelManager = new LabelManager();
 
+
 window.addEventListener("DOMContentLoaded", () => {
+  const actionButtons = createActionButtons();
+  // Attempt alternative insertion if needed
+  document.body.appendChild(actionButtons);
   let sessionId = getUrlParameter("sessionId");
   if (sessionId == "new") {
     let id = generateUUID();
@@ -52,77 +58,19 @@ window.addEventListener("DOMContentLoaded", () => {
   }
 
   const { leftBar } = createHamburgerMenu();
-  document.body.insertBefore(leftBar, document.body.firstChild);
-  const actionButtons = createActionButtons();
-  document.body.appendChild(actionButtons);
-  const root = getRootElement() as HTMLDivElement;
-  setLastFocused(element2TrayMap.get(root) as Tray);
-  root.focus();
+  console.log("leftBar:", leftBar); // Debug log
+  // document.body.insertBefore(leftBar, document.body.firstChild);
+  document.body.appendChild(leftBar);
+
+
+
+  // document.body.insertBefore(actionButtons, leftBar);
+  
+  const root = getRootElement(); // Removed TypeScript casting for generality
+  // setLastFocused(element2TrayMap.get(root) as Tray);
+  // root.focus();
 });
 
-function createActionButtons() {
-  const buttonContainer = document.createElement("div");
-  buttonContainer.classList.add("action-buttons");
-
-  const addButton = document.createElement("button");
-  addButton.textContent = "+";
-  addButton.classList.add("action-button", "add-button");
-  addButton.addEventListener("click", addNewTrayToParent);
-
-  const insertButton = document.createElement("button");
-  insertButton.textContent = "↩";
-  insertButton.classList.add("action-button", "insert-button");
-  insertButton.addEventListener("click", addNewTrayToFocused);
-
-  buttonContainer.appendChild(addButton);
-  buttonContainer.appendChild(insertButton);
-
-  return buttonContainer;
-}
-
-function addNewTrayToParent() {
-  const lastFocusedTray = getTrayFromId(
-    store.getState().app.lastFocused as string,
-  ) as Tray;
-  const parentTray = getTrayFromId(lastFocusedTray.parentId);
-
-  if (parentTray) {
-    const newTray = new Tray(parentTray.id, Date.now().toString(), "New Tray");
-    parentTray.addChild(newTray);
-    parentTray.isFolded = false;
-    parentTray.updateAppearance();
-    newTray.element.focus();
-    const newTitleElement = newTray.element.querySelector(
-      ".tray-title",
-    ) as HTMLDivElement;
-    newTray.startTitleEdit(newTitleElement);
-  }
-}
-
-function addNewTrayToFocused() {
-  const lastFocusedId = store.getState().app.lastFocused;
-  if (!lastFocusedId) {
-    return;
-  }
-  const lastFocusedTray = getTrayFromId(lastFocusedId);
-  if (!lastFocusedTray) {
-    return;
-  }
-
-  const newTray = new Tray(
-    lastFocusedTray.id,
-    Date.now().toString(),
-    "New Tray",
-  );
-  lastFocusedTray.addChild(newTray);
-  lastFocusedTray.isFolded = false;
-  lastFocusedTray.updateAppearance();
-  newTray.element.focus();
-  const newTitleElement = newTray.element.querySelector(
-    ".tray-title",
-  ) as HTMLDivElement;
-  newTray.startTitleEdit(newTitleElement);
-}
 
 // function labelFilteringWithDestruction(labelName:string, tray:Tray) {
 //     console.log(tray.labels);

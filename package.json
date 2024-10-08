@@ -18,8 +18,8 @@
     "webpack-dev-server": "^5.1.0"
   },
   "scripts": {
-    "build": "webpack",
-    "start": "webpack serve --open"
+    "build": "webpack --mode production",
+    "start": "webpack serve --mode development"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.7",
