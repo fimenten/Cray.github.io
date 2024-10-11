@@ -26,7 +26,7 @@ interface SerializedData {
 }
 
 // Serialization function
-function serializeTray(root: Tray): SerializedData {
+function serializeToSaneJson(root: Tray): SerializedData {
   const trayDataList: TrayData[] = [];
   const edgeList: Edge[] = [];
 

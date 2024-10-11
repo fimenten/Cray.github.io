@@ -143,7 +143,7 @@ export async function downloadData(tray: Tray) {
     }
 
     const data = await response.json();
-    const downloadedTray = deserialize(data);
+    const downloadedTray = deserialize(JSON.stringify(data));
 
     // ダウンロードされたtrayの処理（コメント解除して使う）
     // let parent = getTrayFromId(this.parentId);
