@@ -135,6 +135,7 @@ export class Tray {
     const content = document.createElement("div");
     content.classList.add("tray-content");
     content.style.flexDirection = this.flexDirection;
+    content.style.overflowY = "auto";
     titleContainer.addEventListener("dblclick", this.onDoubleClick.bind(this));
     const foldButton = document.createElement("button");
     foldButton.classList.add("tray-fold-button");
