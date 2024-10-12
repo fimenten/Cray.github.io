@@ -1,9 +1,16 @@
-import { cloneTray, createDefaultRootTray, generateUUID, getRootElement } from "./utils";
+import {
+  cloneTray,
+  createDefaultRootTray,
+  generateUUID,
+  getRootElement,
+} from "./utils";
 import { exportData, importData } from "./io";
 import { getUrlParameter } from "./utils";
-import { element2TrayMap, Tray} from "./app";
+import { element2TrayMap } from "./app";
+import { Tray } from "./tray";
 import { downloadData, uploadData } from "./networks";
-export let selected_trays:Tray[] = []
+import { copyTray, deleteTray } from "./contextMenu";
+export let selected_trays: Tray[] = [];
 
 function resetAllTrays() {
   localStorage.removeItem("trayData");
@@ -66,7 +73,7 @@ export function createHamburgerMenu() {
   menu.innerHTML += `
       <div class="menu-item" data-action="downloadAll">Download All</div>
     `;
-    menu.innerHTML += `
+  menu.innerHTML += `
     <div class="menu-item" data-action="copySelected">Copy selected</div>
     <div class="menu-item" data-action="cutSelected">Cut selected</div>
 
@@ -109,7 +116,7 @@ export function createHamburgerMenu() {
       case "reset":
         if (
           confirm(
-            "すべてのトレイをリセットしますか？この操作は元に戻せません。"
+            "すべてのトレイをリセットしますか？この操作は元に戻せません。",
           )
         ) {
           resetAllTrays();
@@ -154,12 +161,11 @@ export function createHamburgerMenu() {
         downloadAllData();
         break;
       case "cutSelected":
-        cutSelected()
-        break
+        cutSelected();
+        break;
       case "copySelected":
-        copySelected()
-        break
-      
+        copySelected();
+        break;
     }
     menu.style.display = "none";
   });
@@ -180,7 +186,7 @@ function editPageTitle() {
   const currentTitle = document.title;
   const newTitle = prompt(
     "新しいページタイトルを入力してください:",
-    currentTitle
+    currentTitle,
   );
   if (newTitle !== null && newTitle.trim() !== "") {
     document.title = newTitle.trim();
@@ -280,38 +286,36 @@ function cutSelected(): void {
   if (selected_trays.length !== 0) {
     // Copy the selected trays
     const t = new Tray(generateUUID(), generateUUID(), "selected Trays");
-    selected_trays.map(tt => t.children.push(cloneTray(tt)))
-    t.copyTray();
+    selected_trays.map((tt) => t.children.push(cloneTray(tt)));
+    copyTray(t);
 
-    selected_trays.map(t => t.deleteTray())
-
+    selected_trays.map((t) => deleteTray(t));
 
     // Clear the selected_trays array
     selected_trays = [];
 
     // Uncheck all checkboxes
-    const checkboxes: NodeListOf<HTMLInputElement> = document.querySelectorAll(".tray-checkbox");
+    const checkboxes: NodeListOf<HTMLInputElement> =
+      document.querySelectorAll(".tray-checkbox");
     checkboxes.forEach((checkbox: HTMLInputElement) => {
       checkbox.checked = false;
     });
   }
 }
 
-
-
-
 function copySelected(): void {
   if (selected_trays.length !== 0) {
     // Copy the selected trays
     const t = new Tray(generateUUID(), generateUUID(), "selected Trays");
-    selected_trays.map(tt => t.children.push(cloneTray(tt)))
-    t.copyTray();
+    selected_trays.map((tt) => t.children.push(cloneTray(tt)));
+    copyTray(t);
 
     // Clear the selected_trays array
     selected_trays = [];
 
     // Uncheck all checkboxes
-    const checkboxes: NodeListOf<HTMLInputElement> = document.querySelectorAll(".tray-checkbox");
+    const checkboxes: NodeListOf<HTMLInputElement> =
+      document.querySelectorAll(".tray-checkbox");
     checkboxes.forEach((checkbox: HTMLInputElement) => {
       checkbox.checked = false;
     });

@@ -1,9 +1,9 @@
-import {Tray} from "./app"
-import {getTrayFromId} from "./utils"
+import { Tray } from "./tray";
+import { getTrayFromId } from "./utils";
 // export function addNewTrayToParent(last_focused:Tray) {
 
 //     const parentTray = getTrayFromId(last_focused.parentId);
-  
+
 //     if (parentTray) {
 //       const newTray = new Tray(parentTray.id, Date.now().toString(), "New Tray");
 //       parentTray.addChild(newTray);
@@ -16,9 +16,9 @@ import {getTrayFromId} from "./utils"
 //       newTray.startTitleEdit(newTitleElement);
 //     }
 //   }
-  
+
 // export function addNewTrayToFocused(last_focused:Tray) {
- 
+
 //     const newTray = new Tray(last_focused.id, Date.now().toString(), "New Tray");
 //     last_focused.addChild(newTray);
 //     last_focused.isFolded = false;
@@ -29,4 +29,3 @@ import {getTrayFromId} from "./utils"
 //     ) as HTMLDivElement;
 //     newTray.startTitleEdit(newTitleElement);
 //   }
-  
