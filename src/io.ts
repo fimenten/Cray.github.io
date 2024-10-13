@@ -8,6 +8,8 @@ import {
 import { createHamburgerMenu } from "./humberger";
 import { Tray } from "./tray";
 import { createActionButtons } from "./actionbotton";
+
+
 export function exportData(): void {
   const data = serialize(element2TrayMap.get(getRootElement() as HTMLDivElement) as Tray);
 

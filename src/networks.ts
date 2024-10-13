@@ -222,7 +222,7 @@ export function ondownloadButtonPressed(tray: Tray) {
       .then((downloaded) => {
         // Update the current tray with the downloaded data
         let parent = getTrayFromId(tray.parentId) as Tray;
-        deleteTray(tray);
+        // deleteTray(tray);
         parent.addChild(downloaded as Tray);
         parent.updateAppearance();
 
