@@ -65,6 +65,8 @@ export function createActionButtons() {
       const newTitleElement = newTray.element.querySelector(
         ".tray-title",
       ) as HTMLDivElement;
+      store.dispatch(setLastFocused(newTray as Tray));
+
       newTray.startTitleEdit(newTitleElement);
     }
   }
@@ -91,5 +93,7 @@ export function createActionButtons() {
     const newTitleElement = newTray.element.querySelector(
       ".tray-title",
     ) as HTMLDivElement;
+    store.dispatch(setLastFocused(newTray as Tray));
+
     newTray.startTitleEdit(newTitleElement);
   }

@@ -23,6 +23,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import store from "./store";
 import { setLastFocused } from "./state";
 import { createActionButtons } from "./actionbotton";
+import { watchFocusedElement } from "./focusWatch";
 
 
 export const element2TrayMap = new WeakMap<HTMLElement, Tray>();
@@ -56,6 +57,7 @@ window.addEventListener("DOMContentLoaded", () => {
       document.title = savedTitle;
     }
   }
+  const stopWatching = watchFocusedElement();
 
   // const { leftBar } = createHamburgerMenu();
   // console.log("leftBar:", leftBar); // Debug log

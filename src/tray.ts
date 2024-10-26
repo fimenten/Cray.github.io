@@ -235,15 +235,22 @@ export class Tray {
     titleContainer.style.display = "flex";
     titleContainer.style.alignItems = "center";
     titleContainer.style.justifyContent = "space-between";
-    tray.addEventListener(
-      "focus",(e) => store.dispatch(setLastFocused(this)));
-    tray.addEventListener(
-      "click",
-      (e) => {
-        store.dispatch(setLastFocused(this));
-      },
-    );
-
+    // titleContainer.addEventListener(
+    //   "focus",(e) => store.dispatch(setLastFocused(this)));
+    // tray.addEventListener(
+    //   "click",
+    //   (e) => {
+    //     if (this.children)
+    //     this.element.focus();
+    //     console.log("clicked")
+    //   },
+    // );
+    // tray.addEventListener(
+    //   "touch",
+    //   (e) => {
+    //     this.element.focus();
+    //   },
+    // );
     return tray;
   }
 
@@ -277,6 +284,7 @@ export class Tray {
     });
     return `${dateString}\n${timeString}`;
   }
+
   onCheckboxChange(event: Event): void {
     const isChecked = (event.target as HTMLInputElement).checked;
 
@@ -523,6 +531,7 @@ export class Tray {
 
   startTitleEdit(titleElement: HTMLDivElement) {
     this.isEditing = true;
+    this.element.focus()
     titleElement.setAttribute("contenteditable", "true");
     // titleElement.focus();
 
