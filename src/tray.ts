@@ -632,24 +632,35 @@ export class Tray {
 
     const parentTray = getTrayFromId(movingTray.parentId);
 
-    if (parentTray) {
-      parentTray.removeChild(movingId);
+    const backup = cloneTray(movingTray);
+
+    try {
+      if (parentTray) {
+        parentTray.removeChild(movingId);
+      }
+
+      this.children.unshift(movingTray);
+      movingTray.parentId = this.id;
+
+      const content = this.element.querySelector(
+        ".tray-content"
+      ) as HTMLElement | null;
+      if (content) {
+        content.insertBefore(movingTray.element, content.firstChild);
+      }
+
+      movingTray.element.style.display = "block";
+      this.isFolded = false;
+      this.updateAppearance();
+    } catch (error) {
+      console.error(error);
+      // If there's an error, restore the original state
+      if (parentTray) {
+        parentTray.addChild(backup);
+      }
     }
 
-    this.children.unshift(movingTray);
-    // movingTray.parent = this as Tray;
-    movingTray.parentId = this.id;
 
-    const content = this.element.querySelector(
-      ".tray-content"
-    ) as HTMLElement | null;
-    if (content) {
-      content.insertBefore(movingTray.element, content.firstChild);
-    }
-
-    movingTray.element.style.display = "block";
-    this.isFolded = false;
-    this.updateAppearance();
 
     saveToIndexedDB();
   }
