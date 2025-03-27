@@ -58,51 +58,59 @@ export function importData() {
     };
     input.click();
 }
-export function saveToIndexedDB(key = null, content = null) {
-    const request = indexedDB.open("TrayDatabase", 1); // Open a database named "TrayDatabase"
-    let db;
-    request.onupgradeneeded = (event) => {
-        db = request.result;
-        if (!db.objectStoreNames.contains("trays")) {
-            db.createObjectStore("trays", { keyPath: "id" }); // Create an object store for trays
-        }
-    };
-    request.onsuccess = () => {
-        db = request.result;
-        const sessionId = getUrlParameter("sessionId");
-        const rootElement = getRootElement();
-        if (!rootElement) {
-            console.error("Root element not found");
-            return;
-        }
-        const tray = element2TrayMap.get(rootElement);
-        const data = content ? content : serialize(tray);
-        if (!data) {
-            console.log("serialize failed");
-            return;
-        }
-        let keyToUse;
-        if (key) {
-            keyToUse = key;
-        }
-        else {
-            keyToUse = sessionId ? sessionId : TRAY_DATA_KEY;
-        }
-        const transaction = db.transaction("trays", "readwrite");
-        const store = transaction.objectStore("trays");
-        const putRequest = store.put({ id: keyToUse, value: data });
-        putRequest.onsuccess = () => {
-            console.log(keyToUse);
-            console.log("Data saved successfully");
-            // Uncomment if auto-sync functionality is needed
-            // if (AUTO_SYNC) {
-            //   uploadAllData();
-            // }
-        };
-        putRequest.onerror = (event) => {
-            console.error("Error saving to IndexedDB:", putRequest.error);
-        };
-    };
+export function saveToIndexedDB() {
+    return __awaiter(this, arguments, void 0, function* (key = null, content = null) {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open("TrayDatabase", 1);
+            let db;
+            request.onupgradeneeded = (event) => {
+                db = request.result;
+                if (!db.objectStoreNames.contains("trays")) {
+                    db.createObjectStore("trays", { keyPath: "id" });
+                }
+            };
+            request.onerror = (event) => {
+                reject(`Error opening database: ${request.error}`);
+            };
+            request.onsuccess = () => {
+                db = request.result;
+                const sessionId = getUrlParameter("sessionId");
+                const rootElement = getRootElement();
+                if (!rootElement) {
+                    reject("Root element not found");
+                    return;
+                }
+                const tray = element2TrayMap.get(rootElement);
+                const data = content ? content : serialize(tray);
+                if (!data) {
+                    reject("Serialize failed");
+                    return;
+                }
+                let keyToUse;
+                if (key) {
+                    keyToUse = key;
+                }
+                else {
+                    keyToUse = sessionId ? sessionId : TRAY_DATA_KEY;
+                }
+                const transaction = db.transaction("trays", "readwrite");
+                const store = transaction.objectStore("trays");
+                const putRequest = store.put({ id: keyToUse, value: data });
+                putRequest.onsuccess = () => {
+                    console.log(keyToUse);
+                    console.log("Data saved successfully");
+                    // Uncomment if auto-sync functionality is needed
+                    // if (AUTO_SYNC) {
+                    //   uploadAllData();
+                    // }
+                    resolve(keyToUse);
+                };
+                putRequest.onerror = (event) => {
+                    reject(`Error saving to IndexedDB: ${putRequest.error}`);
+                };
+            };
+        });
+    });
 }
 export function loadFromIndexedDB() {
     return __awaiter(this, arguments, void 0, function* (key = TRAY_DATA_KEY) {
@@ -179,7 +187,7 @@ export function serialize(tray) {
     return JSON.stringify(tray);
 }
 function ddo(the_data) {
-    console.log("help");
+    // console.log("help");
     let url;
     if (the_data.host_url) {
         url = the_data.host_url;

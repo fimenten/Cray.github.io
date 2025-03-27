@@ -124,9 +124,7 @@ export class Tray {
     );
     const labelsElement = document.createElement("div");
     labelsElement.classList.add("tray-labels");
-    if (!this.labels) {
-      labelsElement.style.display = "none";
-    }
+
 
     title.addEventListener("contextmenu", (event) => {
       event.stopPropagation();
@@ -697,11 +695,7 @@ export class Tray {
         this.borderColor == getWhiteColor()
           ? getRandomColor()
           : this.borderColor;
-      console.log(
-        this.borderColor === getWhiteColor(),
-        color,
-        this.borderColor
-      );
+
       this.borderColor = color;
       this.updateBorderColor(this.borderColor);
       this.updateAppearance();

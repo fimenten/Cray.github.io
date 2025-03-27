@@ -9,95 +9,6 @@ import { handleKeyDown } from "./keyboardInteraction";
 import { setLastFocused } from "./state";
 import store from "./store";
 export class Tray {
-    // Initialize the template once
-    static initTemplate() {
-        if (Tray.template)
-            return;
-        const tray = document.createElement("div");
-        tray.classList.add("tray");
-        tray.setAttribute("draggable", "true");
-        tray.style.display = "block";
-        const titleContainer = document.createElement("div");
-        titleContainer.classList.add("tray-title-container");
-        titleContainer.style.display = "flex";
-        titleContainer.style.alignItems = "center";
-        titleContainer.style.justifyContent = "space-between";
-        // Add fold button
-        const foldButton = document.createElement("button");
-        foldButton.classList.add("tray-fold-button");
-        foldButton.textContent = "▼";
-        // Add title
-        const title = document.createElement("div");
-        title.classList.add("tray-title");
-        title.setAttribute("contenteditable", "false");
-        // Add right fold button
-        const rightFoldButton = document.createElement("button");
-        rightFoldButton.classList.add("tray-fold-button-right");
-        rightFoldButton.textContent = "▼";
-        rightFoldButton.style.display = "none";
-        // Add context menu button
-        const contextMenuButton = document.createElement("button");
-        contextMenuButton.classList.add("tray-context-menu-button");
-        contextMenuButton.textContent = "⋮";
-        // Add created time
-        const createdTime = document.createElement("span");
-        createdTime.classList.add("tray-created-time");
-        createdTime.style.fontSize = "0.8em";
-        createdTime.style.color = "#888";
-        // Add checkbox container
-        const checkboxContainer = document.createElement("div");
-        checkboxContainer.classList.add("tray-checkbox-container");
-        // Add checkbox
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.classList.add("tray-checkbox");
-        checkboxContainer.appendChild(checkbox);
-        // Add labels
-        const labelsElement = document.createElement("div");
-        labelsElement.classList.add("tray-labels");
-        // Network info
-        const networkInfoElement = document.createElement("div");
-        networkInfoElement.classList.add("network-tray-info");
-        // Button container
-        const buttonContainer = document.createElement("div");
-        buttonContainer.classList.add("network-tray-buttons");
-        buttonContainer.style.display = "flex";
-        buttonContainer.style.flexDirection = "column";
-        buttonContainer.style.alignItems = "flex-start";
-        buttonContainer.style.gap = "5px";
-        // URL button
-        const urlButton = document.createElement("button");
-        urlButton.textContent = "URL";
-        // Filename element
-        const filenameElement = document.createElement("div");
-        // Upload button
-        const uploadButton = document.createElement("button");
-        uploadButton.textContent = "Upload";
-        // Download button
-        const downloadButton = document.createElement("button");
-        downloadButton.textContent = "Download";
-        // Add buttons to container
-        buttonContainer.appendChild(urlButton);
-        buttonContainer.appendChild(filenameElement);
-        buttonContainer.appendChild(uploadButton);
-        buttonContainer.appendChild(downloadButton);
-        // Assemble title container
-        titleContainer.appendChild(foldButton);
-        titleContainer.appendChild(title);
-        titleContainer.appendChild(rightFoldButton);
-        titleContainer.appendChild(contextMenuButton);
-        titleContainer.appendChild(createdTime);
-        titleContainer.appendChild(checkboxContainer);
-        titleContainer.appendChild(labelsElement);
-        titleContainer.appendChild(networkInfoElement);
-        // Add content container
-        const content = document.createElement("div");
-        content.classList.add("tray-content");
-        // Assemble tray
-        tray.appendChild(titleContainer);
-        tray.appendChild(content);
-        Tray.template = tray;
-    }
     constructor(parentId, id, name, color = null, labels = [], created_dt = null, flexDirection = "column", host_url = null, filename = null, isFold = true) {
         this.id = id;
         this.name = name;
@@ -110,74 +21,58 @@ export class Tray {
         this.host_url = host_url;
         this.filename = filename;
         this.flexDirection = flexDirection;
+        // this.element = this.createElement();
+        // this.element = null
         this.isEditing = false;
         this.isSelected = false;
-        // Create element from template
-        this.element = this.createElement();
-        // Update element properties
+        this._element = null;
+        // this.updateLabels();
         this.updateAppearance();
         this.updateBorderColor(this.borderColor);
+        // this.setupFocusTracking(this);
+    }
+    get element() {
+        if (!this._element) {
+            const e = this.createElement();
+            this._element = e;
+        }
+        return this._element;
     }
     createElement() {
-        // Initialize template if not already done
-        Tray.initTemplate();
-        // Clone the template
-        const tray = Tray.template.cloneNode(true);
-        // Set unique ID
+        const tray = document.createElement("div");
+        tray.classList.add("tray");
+        tray.setAttribute("draggable", "true");
         tray.setAttribute("data-tray-id", this.id);
-        // Get components
-        const titleContainer = tray.querySelector(".tray-title-container");
-        const title = tray.querySelector(".tray-title");
-        const foldButton = tray.querySelector(".tray-fold-button");
-        const rightFoldButton = tray.querySelector(".tray-fold-button-right");
-        const contextMenuButton = tray.querySelector(".tray-context-menu-button");
-        const createdTime = tray.querySelector(".tray-created-time");
-        const checkbox = tray.querySelector(".tray-checkbox");
-        const labelsElement = tray.querySelector(".tray-labels");
-        const content = tray.querySelector(".tray-content");
-        const networkInfoElement = tray.querySelector(".network-tray-info");
-        const buttonContainer = tray.querySelector(".network-tray-buttons");
-        // Set properties
-        title.textContent = this.name;
+        tray.style.display = "block";
+        const titleContainer = document.createElement("div");
+        titleContainer.classList.add("tray-title-container");
+        const checkboxContainer = document.createElement("div");
+        checkboxContainer.classList.add("tray-checkbox-container");
+        const createdTime = document.createElement("span");
+        createdTime.classList.add("tray-created-time");
         createdTime.textContent = this.formatCreatedTime();
+        createdTime.style.fontSize = "0.8em";
+        createdTime.style.color = "#888";
+        // createdTime.style.marginLeft = '10px';
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.classList.add("tray-checkbox");
         checkbox.checked = this.isSelected;
-        content.style.flexDirection = this.flexDirection;
-        // Hide labels if none
-        if (!this.labels || this.labels.length === 0) {
+        checkbox.addEventListener("change", this.onCheckboxChange.bind(this));
+        checkboxContainer.appendChild(checkbox);
+        const title = document.createElement("div");
+        title.classList.add("tray-title");
+        title.setAttribute("contenteditable", "false");
+        title.textContent = this.name;
+        const contextMenuButton = document.createElement("button");
+        contextMenuButton.classList.add("tray-context-menu-button");
+        contextMenuButton.textContent = "⋮";
+        contextMenuButton.addEventListener("click", this.onContextMenuButtonClick.bind(this));
+        const labelsElement = document.createElement("div");
+        labelsElement.classList.add("tray-labels");
+        if (!this.labels) {
             labelsElement.style.display = "none";
         }
-        // URL button setup
-        if (buttonContainer) {
-            const urlButton = buttonContainer.querySelector("button");
-            if (urlButton) {
-                if (this.host_url && this.host_url.trim() !== "") {
-                    urlButton.style.backgroundColor = "green";
-                    urlButton.style.color = "white";
-                }
-                else {
-                    urlButton.style.backgroundColor = "gray";
-                    urlButton.style.color = "white";
-                }
-                urlButton.title = this.host_url || "No URL set";
-            }
-            // Filename setup
-            const filenameElement = buttonContainer.children[1];
-            if (filenameElement) {
-                filenameElement.textContent = this.filename || "";
-            }
-            // Show button container only if filename exists
-            if (this.filename != null) {
-                titleContainer.appendChild(buttonContainer);
-            }
-            else if (buttonContainer.parentNode === titleContainer) {
-                titleContainer.removeChild(buttonContainer);
-            }
-        }
-        // Set up event listeners
-        foldButton.addEventListener("click", this.toggleFold.bind(this));
-        rightFoldButton.addEventListener("click", this.toggleFold.bind(this));
-        contextMenuButton.addEventListener("click", this.onContextMenuButtonClick.bind(this));
-        checkbox.addEventListener("change", this.onCheckboxChange.bind(this));
         title.addEventListener("contextmenu", (event) => {
             event.stopPropagation();
             onContextMenu(this, event);
@@ -189,25 +84,101 @@ export class Tray {
             target.focus();
         });
         this.setupTitleEditing(title);
+        const content = document.createElement("div");
+        content.classList.add("tray-content");
+        content.style.flexDirection = this.flexDirection;
+        content.style.overflowY = "auto";
         titleContainer.addEventListener("dblclick", this.onDoubleClick.bind(this));
-        content.addEventListener("dblclick", this.onDoubleClick.bind(this));
+        const foldButton = document.createElement("button");
+        foldButton.classList.add("tray-fold-button");
+        foldButton.textContent = "▼";
+        foldButton.addEventListener("click", this.toggleFold.bind(this));
+        // foldButton.style.display = "none";
+        const rightFoldBotton = document.createElement("button");
+        rightFoldBotton.classList.add("tray-fold-button-right");
+        rightFoldBotton.textContent = "▼";
+        rightFoldBotton.addEventListener("click", this.toggleFold.bind(this));
+        rightFoldBotton.style.display = "none";
+        titleContainer.appendChild(foldButton);
+        titleContainer.appendChild(title);
+        titleContainer.appendChild(rightFoldBotton);
+        titleContainer.appendChild(contextMenuButton);
+        titleContainer.appendChild(createdTime);
+        titleContainer.appendChild(checkboxContainer);
+        titleContainer.appendChild(labelsElement);
+        // titleContainer.appendChild(clickArea)
+        tray.appendChild(titleContainer);
+        tray.append(content);
         tray.addEventListener("dragstart", this.onDragStart.bind(this));
         tray.addEventListener("dragover", this.onDragOver.bind(this));
         tray.addEventListener("drop", this.onDrop.bind(this));
-        this.setupKeyboardNavigation(tray);
-        if (buttonContainer) {
-            const uploadButton = buttonContainer.children[2];
-            const downloadButton = buttonContainer.children[3];
-            if (uploadButton) {
-                uploadButton.addEventListener("click", (e) => uploadData(this));
-            }
-            if (downloadButton) {
-                downloadButton.addEventListener("click", (e) => downloadData(this));
-            }
-        }
-        tray.addEventListener("focus", (e) => store.dispatch(setLastFocused(this)));
-        tray.addEventListener("click", (e) => store.dispatch(setLastFocused(this)));
+        content.addEventListener("dblclick", this.onDoubleClick.bind(this));
         element2TrayMap.set(tray, this);
+        this.setupKeyboardNavigation(tray);
+        // if (this.isLabelTrayCopy) {
+        //   element.classList.add("label-tray-copy");
+        //   element.setAttribute("draggable", "false");
+        //   const titleElement = element.querySelector(".tray-title");
+        //   titleElement.setAttribute("contenteditable", "false");
+        //   titleElement.style.pointerEvents = "none";
+        // }
+        // this.setupEventListeners(tray);
+        const networkInfoElement = document.createElement("div");
+        networkInfoElement.classList.add("network-tray-info");
+        // this.updateNetworkInfo(networkInfoElement);
+        const urlButton = document.createElement("button");
+        urlButton.textContent = "URL";
+        // Set button color based on host_url validity
+        if (this.host_url && this.host_url.trim() !== "") {
+            urlButton.style.backgroundColor = "green";
+            urlButton.style.color = "white";
+        }
+        else {
+            urlButton.style.backgroundColor = "gray";
+            urlButton.style.color = "white";
+        }
+        // Add tooltip functionality
+        urlButton.title = this.host_url || "No URL set";
+        // Create filename element
+        const filenameElement = document.createElement("div");
+        filenameElement.textContent = `${this.filename}`;
+        // Append elements to the container
+        const buttonContainer = document.createElement("div");
+        buttonContainer.classList.add("network-tray-buttons");
+        buttonContainer.style.display = "flex";
+        buttonContainer.style.flexDirection = "column";
+        buttonContainer.style.alignItems = "flex-start";
+        buttonContainer.style.gap = "5px"; // Add some space between buttons
+        const uploadButton = document.createElement("button");
+        uploadButton.textContent = "Upload";
+        uploadButton.addEventListener("click", (e) => uploadData(this));
+        const downloadButton = document.createElement("button");
+        downloadButton.textContent = "Download";
+        downloadButton.addEventListener("click", (e) => downloadData(this));
+        // const autoUploadButton = document.createElement("button");
+        // autoUploadButton.textContent = `Auto Upload: ${
+        //   this.autoUpload ? "On" : "Off"
+        // }`;
+        // autoUploadButton.style.backgroundColor = this.autoUpload ? "green" : "";
+        // autoUploadButton.style.color = this.autoUpload ? "white" : "";
+        // autoUploadButton.addEventListener("click", () => this.toggleAutoUpload());
+        // Add buttons to the container
+        buttonContainer.appendChild(urlButton);
+        buttonContainer.appendChild(filenameElement);
+        buttonContainer.appendChild(uploadButton);
+        buttonContainer.appendChild(downloadButton);
+        // buttonContainer.appendChild(autoUploadButton);
+        titleContainer.appendChild(networkInfoElement);
+        if (this.filename != null) {
+            titleContainer.appendChild(buttonContainer);
+        }
+        titleContainer.style.display = "flex";
+        titleContainer.style.alignItems = "center";
+        titleContainer.style.justifyContent = "space-between";
+        tray.addEventListener("focus", (e) => store.dispatch(setLastFocused(this)));
+        tray.addEventListener("click", (e) => {
+            store.dispatch(setLastFocused(this));
+        });
         return tray;
     }
     setupFocusTracking(tray) {
@@ -611,5 +582,3 @@ export class Tray {
         }
     }
 }
-// Static template element that will be cloned for each new Tray
-Tray.template = null;
