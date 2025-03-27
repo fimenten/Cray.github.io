@@ -1,33 +1,28 @@
-import { Tray } from "./tray";
 import { getTrayFromId } from "./utils";
-
-export function meltTray(tray: Tray) {
-  const parentTray = getTrayFromId(tray.parentId) as Tray;
-  tray.children.map((t) => {
-    parentTray.addChild(t);
-  });
-}
-export function outputAsMarkdown(tray: Tray) {
-  let markdown = "- " + tray.name + "\n";
-
-  if (tray.children.length > 0) {
-    tray.children.forEach((child) => {
-      markdown += outputAsMarkdown(child).replace("\n","\n ");
+export function meltTray(tray) {
+    const parentTray = getTrayFromId(tray.parentId);
+    tray.children.map((t) => {
+        parentTray.addChild(t);
     });
-  }
-
-  return markdown;
 }
-export function showMarkdownOutput(tray: Tray) {
-  const markdown = outputAsMarkdown(tray);
-  const blob = new Blob([markdown], { type: "text/markdown" });
-  const url = URL.createObjectURL(blob);
-
-  const outputWindow = window.open("", "_blank");
-  if (!outputWindow) {
-    return;
-  }
-  outputWindow.document.write(`
+export function outputAsMarkdown(tray) {
+    let markdown = "- " + tray.name + "\n";
+    if (tray.children.length > 0) {
+        tray.children.forEach((child) => {
+            markdown += outputAsMarkdown(child).replace("\n", "\n ");
+        });
+    }
+    return markdown;
+}
+export function showMarkdownOutput(tray) {
+    const markdown = outputAsMarkdown(tray);
+    const blob = new Blob([markdown], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const outputWindow = window.open("", "_blank");
+    if (!outputWindow) {
+        return;
+    }
+    outputWindow.document.write(`
           <html>
             <head>
               <title>Tray Structure as Markdown</title>

@@ -41,8 +41,8 @@ export class Tray {
 
   isEditing: boolean;
   isSelected: boolean;
-  element: HTMLDivElement;
-
+  // element: HTMLDivElement|null;
+  _element :HTMLDivElement|null;
   constructor(
     parentId: TrayId,
     id: TrayId,
@@ -67,13 +67,23 @@ export class Tray {
     this.host_url = host_url;
     this.filename = filename;
     this.flexDirection = flexDirection;
-    this.element = this.createElement();
+    // this.element = this.createElement();
+    // this.element = null
     this.isEditing = false;
     this.isSelected = false;
+    this._element = null
     // this.updateLabels();
     this.updateAppearance();
     this.updateBorderColor(this.borderColor);
     // this.setupFocusTracking(this);
+  }
+
+  get element(){
+    if (!this._element){
+      const e = this.createElement()
+      this._element = e
+    }
+    return this._element
   }
 
   createElement() {
@@ -99,7 +109,7 @@ export class Tray {
     checkbox.addEventListener("change", this.onCheckboxChange.bind(this));
 
     checkboxContainer.appendChild(checkbox);
-
+    
     const title = document.createElement("div");
     title.classList.add("tray-title");
     title.setAttribute("contenteditable", "false");
@@ -520,7 +530,7 @@ export class Tray {
       }
     }
   }
-
+ 
   startTitleEdit(titleElement: HTMLDivElement) {
     this.isEditing = true;
     titleElement.setAttribute("contenteditable", "true");
