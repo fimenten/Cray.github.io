@@ -15,6 +15,7 @@ import {
   uploadData,
   fetchTrayList,
   setNetworkOption,
+  addTrayFromServer,
 } from "./networks";
 import { meltTray } from "./functions";
 import { id2TrayData, element2TrayMap, globalLabelManager } from "./app";
@@ -218,7 +219,9 @@ export class Tray {
 
     const downloadButton = document.createElement("button");
     downloadButton.textContent = "Download";
-    downloadButton.addEventListener("click", (e) => downloadData(this));
+    downloadButton.addEventListener("click", (e) => {
+      if ((this.host_url)&&(this.filename)){
+        addTrayFromServer(getTrayFromId(this.parentId) as Tray,this.host_url,this.filename)}})      
 
     // const autoUploadButton = document.createElement("button");
     // autoUploadButton.textContent = `Auto Upload: ${
@@ -251,7 +254,12 @@ export class Tray {
         store.dispatch(setLastFocused(this));
       },
     );
-
+    tray.addEventListener(
+      "touchstart",
+      (e) => {
+        store.dispatch(setLastFocused(this));
+      },
+    );
     return tray;
   }
 

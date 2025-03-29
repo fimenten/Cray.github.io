@@ -35,6 +35,14 @@ export function createHamburgerMenu() {
   // document.body.appendChild(hamburger);
   leftBar.appendChild(hamburger);
 
+  const sessionList =document.createElement("div");
+  sessionList.classList.add("sessions-bottum")
+  sessionList.innerHTML =  "○"
+  
+
+
+
+
   const menu = document.createElement("div");
   menu.classList.add("hamburger-menu-items");
   menu.style.display = "none";
