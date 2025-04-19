@@ -361,53 +361,7 @@ export class Tray {
     });
   }
 
-  // updateLabels(): void {
-  //   let labelContainer = this.element.querySelector(
-  //     ".tray-labels"
-  //   ) as HTMLElement | null;
 
-  //   if (!labelContainer) {
-  //     const titleContainer = this.element.querySelector(
-  //       ".tray-title-container"
-  //     ) as HTMLElement | null;
-  //     if (titleContainer) {
-  //       labelContainer = document.createElement("div");
-  //       labelContainer.classList.add("tray-labels");
-  //       titleContainer.appendChild(labelContainer);
-  //     }
-  //   }
-
-  //   if (labelContainer) {
-  //     labelContainer.innerHTML = "";
-  //     if (this.labels && this.labels.length > 0) {
-  //       labelContainer.style.display = "block";
-  //     }
-
-  //     this.labels.forEach((labelName: string) => {
-  //       const labelColor = globalLabelManager.getLabel(labelName);
-  //       if (labelColor) {
-  //         const labelElement = document.createElement("span");
-  //         labelElement.classList.add("tray-label");
-  //         labelElement.textContent = labelName;
-  //         labelElement.style.backgroundColor = labelColor;
-  //         labelElement.addEventListener("click", (event: MouseEvent) =>
-  //           this.onLabelClick(tray,event, labelName)
-  //         );
-  //         labelContainer.appendChild(labelElement);
-  //         globalLabelManager.registLabeledTray(labelName, this);
-  //       }
-  //     });
-
-  //     // saveToIndexedDB();
-  //   }
-  // }
-
-  onLabelClick(tray: Tray, event: MouseEvent, labelName: string): void {
-    event.stopPropagation();
-    if (confirm(`Do you want to remove the label "${labelName}"?`)) {
-      removeLabel(tray, labelName);
-    }
-  }
 
   updateFlexDirection(): void {
     const content = this.element.querySelector(
