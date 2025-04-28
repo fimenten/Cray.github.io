@@ -8,6 +8,7 @@ import {
 import { createHamburgerMenu } from "./humberger";
 import { Tray, TrayId } from "./tray";
 import { createActionButtons } from "./actionbotton";
+import { graph } from "./render";
 export function exportData(): void {
   const data = serialize(element2TrayMap.get(getRootElement() as HTMLDivElement) as Tray);
 
@@ -135,6 +136,9 @@ export async function loadFromIndexedDB(
     if (savedData) {
       try {
         rootTray = deserialize(savedData.value as string) as Tray;
+        // const data = savedData.value as string
+        // Object.assign(graph, JSON.parse(data));
+
       } catch (error) {
         console.error("Error deserializing data:", error);
         rootTray = createDefaultRootTray();
