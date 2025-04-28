@@ -74,7 +74,7 @@ export function onContextMenu(
     }
   };
 
-  document.addEventListener("keydown", handler.bind(tray));
+  document.addEventListener("keydown", handler.bind(tray),{once:true});
 
   menuItems[0].classList.add("focused");
   menuItems[0].focus();
