@@ -88,6 +88,7 @@ export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
       if (event.ctrlKey){
         event.preventDefault();
         exportMarkdown(tray)
+        break
       }
     // case " ":
     //   if (event.ctrlKey) {
