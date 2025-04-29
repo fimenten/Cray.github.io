@@ -8,6 +8,7 @@ import {
 import store from "./store";
 import { Tray } from "./tray";
 import { getTrayFromId } from "./utils";
+import { exportMarkdown } from "./markdown";
 
 export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
   if (store.getState().app.menuOpening) {
@@ -83,6 +84,11 @@ export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
         pasteTray(tray);
       }
       break;
+    case "m":
+      if (event.ctrlKey){
+        event.preventDefault();
+        exportMarkdown(tray)
+      }
     // case " ":
     //   if (event.ctrlKey) {
     //     event.preventDefault();
