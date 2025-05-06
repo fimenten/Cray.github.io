@@ -1,5 +1,5 @@
 
-import { copyTray, cutTray, deleteTray, pasteFromClipboardInto } from "./functions";
+import { copyTray, cutTray, deleteTray, pasteFromClipboardInto, showMarkdownOutput } from "./functions";
 import store from "./store";
 import { Tray } from "./tray";
 import { getTrayFromId, toggleEditMode } from "./utils";
@@ -82,7 +82,7 @@ export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
     case "m":
       if (event.ctrlKey){
         event.preventDefault();
-        exportMarkdown(tray)
+        showMarkdownOutput(tray)
         break
       }
     // case " ":

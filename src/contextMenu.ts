@@ -99,16 +99,29 @@ function hydrateMenu(tray: Tray) {
 }
 
 function position(ev: MouseEvent | TouchEvent, el: HTMLElement) {
-  const point =
-    ev instanceof MouseEvent ? { x: ev.clientX, y: ev.clientY }
-                             : { x: ev.touches[0].clientX, y: ev.touches[0].clientY };
+  // ① クリック座標
+  const pt =
+    ev instanceof MouseEvent
+      ? { x: ev.clientX, y: ev.clientY }
+      : { x: ev.touches[0].clientX, y: ev.touches[0].clientY };
 
-  // 1 度だけ計測 (強制 reflow 無し)
+  // ② メニュー寸法（表示前に display:block 済み）
   const { width, height } = el.getBoundingClientRect();
-  const left = Math.min(point.x, window.innerWidth  - width);
-  const top  = Math.min(point.y, window.innerHeight - height);
-  el.style.transform = `translate(${left}px, ${top}px)`;
+
+  // ③ 画面内に収める
+  let left = pt.x + width  > window.innerWidth  ? pt.x - width  : pt.x;
+  let top  = pt.y + height > window.innerHeight ? pt.y - height : pt.y;
+
+  left = Math.max(0, left);
+  top  = Math.max(0, top);
+
+  // ④ 直接 left/top を書き込む
+  el.style.position = "fixed";      // 念押し
+  el.style.left = `${left}px`;
+  el.style.top  = `${top}px`;
+  el.style.transform = "";          // transform はクリア
 }
+
 
 // ===== アクションディスパッチ =================================
 function executeMenuAction(tray: Tray, act: string) {
