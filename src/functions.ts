@@ -8,17 +8,20 @@ export function meltTray(tray: Tray) {
     parentTray.addChild(t);
   });
 }
-export function outputAsMarkdown(tray: Tray) {
-  let markdown = "- " + tray.name + "\n";
+export function outputAsMarkdown(tray: Tray, depth = 0): string {
+  // 深さに応じたスペース（ここでは2スペースずつ）
+  const indent = "  ".repeat(depth);
+  // 現ノードを出力
+  let markdown = `${indent}- ${tray.name}\n`;
 
-  if (tray.children.length > 0) {
-    tray.children.forEach((child) => {
-      markdown += outputAsMarkdown(child).replace("\n","\n ");
-    });
+  // 子要素は depth+1 で再帰
+  for (const child of tray.children) {
+    markdown += outputAsMarkdown(child, depth + 1);
   }
 
   return markdown;
 }
+
 export function showMarkdownOutput(tray: Tray) {
   const markdown = outputAsMarkdown(tray);
   const blob = new Blob([markdown], { type: "text/markdown" });

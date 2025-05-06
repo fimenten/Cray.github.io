@@ -51,6 +51,7 @@ function buildMenu(): HTMLElement {
   return el;
 }
 
+
 // ===== パブリック API ==========================================
 export function openContextMenu(tray: Tray, ev: MouseEvent | TouchEvent) {
   // ――― HMR や再描画で切れていたら付け直す ―――

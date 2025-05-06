@@ -4,6 +4,7 @@ import store from "./store";
 import { Tray } from "./tray";
 import { getTrayFromId, toggleEditMode } from "./utils";
 
+
 export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
   if (store.getState().app.menuOpening) {
     return;
@@ -78,6 +79,12 @@ export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
         pasteFromClipboardInto(tray);
       }
       break;
+    case "m":
+      if (event.ctrlKey){
+        event.preventDefault();
+        exportMarkdown(tray)
+        break
+      }
     // case " ":
     //   if (event.ctrlKey) {
     //     event.preventDefault();

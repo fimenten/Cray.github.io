@@ -6,8 +6,9 @@ import {
   createDefaultRootTray,
 } from "./utils";
 import { createHamburgerMenu } from "./humberger";
-import { Tray } from "./tray";
+import { Tray, TrayId } from "./tray";
 import { createActionButtons } from "./actionbotton";
+import { graph } from "./render";
 export function exportData(): void {
   const data = serialize(element2TrayMap.get(getRootElement() as HTMLDivElement) as Tray);
 
@@ -135,6 +136,9 @@ export async function loadFromIndexedDB(
     if (savedData) {
       try {
         rootTray = deserialize(savedData.value as string) as Tray;
+        // const data = savedData.value as string
+        // Object.assign(graph, JSON.parse(data));
+
       } catch (error) {
         console.error("Error deserializing data:", error);
         rootTray = createDefaultRootTray();
@@ -249,6 +253,51 @@ export function deserialize(data: string) {
   let the_data = JSON.parse(data);
   return ddo(the_data);
 }
+export interface Traydata{
+    id: TrayId;
+    name: string;
+    // children: Tray[];
+    childrenIds:TrayId[];
+    labels: string[];
+    parentId: TrayId;
+    borderColor: string;
+    created_dt: Date;
+    flexDirection: "column" | "row";
+    host_url: string | null;
+    filename: string | null;
+    isFolded: boolean;
+
+}
+
+export function deserializeJSONL(data:string){
+  const lines = data.split("\n").map((l)=>JSON.parse(l) as Traydata)
+  
+  const id2Tray:Map<string,Tray> = new Map()
+  lines.forEach(td=>{
+    const t = new Tray(td.parentId,td.id,td.name,td.borderColor,td.labels,td.created_dt,td.flexDirection,td.host_url,td.filename,td.isFolded)
+    id2Tray.set(td.id,t)
+    const p = id2Tray.get(td.parentId)
+    if (p){
+      p.children.push(t)
+    }
+  })
+  const root = crawl(id2Tray)
+  return root
+}
+
+function crawl(id2Tray:Map<string,Tray> ){
+  const start = id2Tray.get(id2Tray.keys().next().value as string) as Tray
+  let now = start
+  while (true){
+    const p = id2Tray.get(now?.parentId)
+    if (p){
+      now = p
+    }else{break}
+  }
+  return now
+}
+
+
 export function loadFromLocalStorage(key: string = TRAY_DATA_KEY): void {
   let rootTray: Tray;
   try {
