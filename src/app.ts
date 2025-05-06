@@ -9,7 +9,7 @@ import {
   saveToIndexedDB,
 } from "./io";
 import { createHamburgerMenu, selected_trays } from "./humberger";
-import { LabelManager } from "./label";
+// import { LabelManager } from "./label";
 import {
   downloadData,
   showUploadNotification,
@@ -30,7 +30,7 @@ export const id2TrayData = new Map<TrayId, Tray>();
 
 const TRAY_DATA_KEY = "trayData";
 
-export const globalLabelManager = new LabelManager();
+// export const globalLabelManager = new LabelManager();
 
 
 window.addEventListener("DOMContentLoaded", () => {

@@ -8,7 +8,6 @@ import {
   saveToIndexedDB,
 } from "./io";
 import { createHamburgerMenu, selected_trays } from "./humberger";
-import { LabelManager, removeLabel } from "./label";
 import {
   downloadData,
   showUploadNotification,
@@ -18,12 +17,12 @@ import {
   addTrayFromServer,
 } from "./networks";
 import { meltTray } from "./functions";
-import { id2TrayData, element2TrayMap, globalLabelManager } from "./app";
+import { id2TrayData, element2TrayMap} from "./app";
 import { colorPalette } from "./const";
-import { onContextMenu } from "./contextMenu";
 import { handleKeyDown } from "./keyboardInteraction";
 import { setLastFocused } from "./state";
 import store from "./store";
+import { openContextMenu } from "./contextMenu";
 
 export type TrayId = string;
 
@@ -129,7 +128,7 @@ export class Tray {
 
     title.addEventListener("contextmenu", (event) => {
       event.stopPropagation();
-      onContextMenu(this, event);
+      openContextMenu(this, event);
     });
 
     title.addEventListener("dblclick", (event: MouseEvent) => {
@@ -402,12 +401,12 @@ export class Tray {
   //   }
   // }
 
-  onLabelClick(tray: Tray, event: MouseEvent, labelName: string): void {
-    event.stopPropagation();
-    if (confirm(`Do you want to remove the label "${labelName}"?`)) {
-      removeLabel(tray, labelName);
-    }
-  }
+  // onLabelClick(tray: Tray, event: MouseEvent, labelName: string): void {
+  //   event.stopPropagation();
+  //   if (confirm(`Do you want to remove the label "${labelName}"?`)) {
+  //     removeLabel(tray, labelName);
+  //   }
+  // }
 
   updateFlexDirection(): void {
     const content = this.element.querySelector(
@@ -576,7 +575,7 @@ export class Tray {
   }
 
   showContextMenu(event: MouseEvent | TouchEvent) {
-    onContextMenu(this, event);
+    openContextMenu(this, event);
   }
 
   finishTitleEdit(titleElement: HTMLDivElement) {

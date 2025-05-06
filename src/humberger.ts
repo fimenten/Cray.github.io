@@ -9,7 +9,7 @@ import { getUrlParameter } from "./utils";
 import { element2TrayMap } from "./app";
 import { Tray } from "./tray";
 import { downloadData, uploadData } from "./networks";
-import { copyTray, deleteTray } from "./contextMenu";
+import { copyTray, deleteTray } from "./functions";
 export let selected_trays: Tray[] = [];
 
 function resetAllTrays() {
