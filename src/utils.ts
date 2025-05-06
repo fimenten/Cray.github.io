@@ -1,4 +1,5 @@
 import { element2TrayMap } from "./app";
+import { deserialize, saveToIndexedDB, serialize } from "./io";
 import { Tray } from "./tray";
 
 export function getTrayFromId(Id: string): Tray | undefined {
@@ -66,13 +67,21 @@ export function cloneTray(tray: Tray) {
   ret.id = generateUUID();
   return ret;
 }
-export function getEventCoordinates(
-  event: MouseEvent | TouchEvent,
-): [number, number] {
-  if (event instanceof MouseEvent) {
-    return [event.clientX, event.clientY];
-  } else if (event instanceof TouchEvent && event.touches.length > 0) {
-    return [event.touches[0].clientX, event.touches[0].clientY];
+export function toggleEditMode(tray: Tray) {
+  const titleElement = tray.element.querySelector(
+    ".tray-title",
+  ) as HTMLDivElement;
+  if (!titleElement) {
+    return;
   }
-  return [0, 0];
+  if (titleElement.getAttribute("contenteditable") === "true") {
+    tray.finishTitleEdit(titleElement);
+  } else {
+    tray.startTitleEdit(titleElement);
+  }
+}
+export function expandAll(tray: Tray) {
+  tray.isFolded = false;
+  tray.children.map((t) => expandAll(t));
+  tray.updateAppearance();
 }

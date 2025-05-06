@@ -1,5 +1,6 @@
+import { deserialize, saveToIndexedDB, serialize } from "./io";
 import { Tray } from "./tray";
-import { getTrayFromId } from "./utils";
+import { cloneTray, generateUUID, getTrayFromId } from "./utils";
 
 export function meltTray(tray: Tray) {
   const parentTray = getTrayFromId(tray.parentId) as Tray;
@@ -69,4 +70,68 @@ export function showMarkdownOutput(tray: Tray) {
             </body>
           </html>
         `);
+}
+
+
+export function getEventCoordinates(
+  event: MouseEvent | TouchEvent,
+): [number, number] {
+  if (event instanceof MouseEvent) {
+    return [event.clientX, event.clientY];
+  } else if (event instanceof TouchEvent && event.touches.length > 0) {
+    return [event.touches[0].clientX, event.touches[0].clientY];
+  }
+  return [0, 0];
+}
+
+export function copyTray(tray: Tray) {
+  const serialized = serialize(cloneTray(tray));
+  navigator.clipboard.writeText(serialized);
+}
+
+export function renameTray(tray: Tray) {
+  const title = tray.element.querySelector(".tray-title");
+  if (!title) {
+    return;
+  }
+  title.setAttribute("contenteditable", "true");
+  // title.focus();
+  saveToIndexedDB();
+}
+
+export function cutTray(tray: Tray) {
+  const serialized = serialize(cloneTray(tray));
+  navigator.clipboard.writeText(serialized);
+}
+
+export function pasteFromClipboardInto(tray: Tray) {
+  const serialized = navigator.clipboard.readText().then((str) => {
+    try {
+      let newTray = deserialize(str);
+      if (!newTray) {
+        return;
+      }
+      tray.addChild(newTray);
+    } catch {
+      const texts = str.split("\n").filter((line) => line.trim() !== "");
+      const trays = texts.map(
+        (text) => new Tray(tray.id, generateUUID(), text),
+      );
+      trays.map((t) => tray.addChild(t));
+    }
+  });
+}
+
+export function deleteTray(tray: Tray) {
+  const parent = getTrayFromId(tray.parentId) as Tray;
+  const indexInParent = parent.children.findIndex(
+    (child) => child.id === tray.id,
+  );
+
+  parent.removeChild(tray.id);
+  tray.element.remove();
+
+  tray.moveFocusAfterDelete(parent, indexInParent);
+
+  saveToIndexedDB();
 }

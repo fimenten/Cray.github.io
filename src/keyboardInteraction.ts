@@ -1,14 +1,9 @@
-import {
-  copyTray,
-  cutTray,
-  deleteTray,
-  pasteTray,
-  toggleEditMode,
-} from "./contextMenu";
+
+import { copyTray, cutTray, deleteTray, pasteFromClipboardInto } from "./functions";
 import store from "./store";
 import { Tray } from "./tray";
-import { getTrayFromId } from "./utils";
-import { exportMarkdown } from "./markdown";
+import { getTrayFromId, toggleEditMode } from "./utils";
+
 
 export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
   if (store.getState().app.menuOpening) {
@@ -81,7 +76,7 @@ export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
     case "v":
       if (event.ctrlKey) {
         event.preventDefault();
-        pasteTray(tray);
+        pasteFromClipboardInto(tray);
       }
       break;
     case "m":

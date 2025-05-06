@@ -1,7 +1,7 @@
 import { Tray } from "./tray";
 import { deserialize, serialize } from "./io";
 import { getTrayFromId } from "./utils";
-import { deleteTray } from "./contextMenu";
+import { deleteTray } from "./functions";
 export function fetchTrayList(tray: Tray) {
   const defaultServer = localStorage.getItem("defaultServer") || "";
   const url = prompt("Enter server URL:", defaultServer);
