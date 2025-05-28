@@ -45,6 +45,8 @@ function buildMenu(): HTMLElement {
     <div class="menu-item" data-act="addLabelTray">Add Label Tray</div>
     <div class="menu-item" data-act="addLabel">Add Label</div>
     <div class="menu-item" data-act="removeLabel">Edit Labels</div>
+    <div class="menu-item" data-act="addProperty">Set Property</div>
+    <div class="menu-item" data-act="sortChildren">Sort Children</div>
     <div class="menu-item" data-act="outputMarkdown">Output as Markdown</div>
     <div class="menu-item"><input type="color" id="borderColorPicker" /></div>
   `;
@@ -174,6 +176,28 @@ function executeMenuAction(tray: Tray, act: string) {
     case "fetchTrayFromServer":
       fetchTrayList(tray);
       break;
+
+    case "addProperty": {
+      const key = prompt("Property name:", "priority") || "priority";
+      const value = prompt(`Value for '${key}':`, "");
+      if (value !== null) {
+        tray.addProperty(key, value);
+      }
+      break;
+    }
+
+    case "sortChildren": {
+      const prop = prompt(
+        "Sort by property (default created_dt)",
+        "created_dt",
+      );
+      if (prop !== null) {
+        const order = prompt("Order (asc or desc)", "desc");
+        const descending = order !== "asc";
+        tray.sortChildren(prop || "created_dt", descending);
+      }
+      break;
+    }
 
     // case "openTrayInOther":
       // openTrayInOther(tray);

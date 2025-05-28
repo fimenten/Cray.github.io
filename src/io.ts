@@ -234,6 +234,7 @@ function ddo(the_data: any) {
     url,
     the_data.filename,
     the_data.isFolded instanceof Boolean ? the_data.isFolded : true,
+    the_data.properties ?? {}
   );
   let children = the_data.children as [];
   if (children.length > 0) {
@@ -242,7 +243,7 @@ function ddo(the_data: any) {
       // .sort((a, b) => a.created_dt.getTime() - b.created_dt.getTime())
       .sort(
         (a, b) =>
-          new Date(a.created_dt).getTime() - new Date(b.created_dt).getTime(),
+          new Date(b.created_dt).getTime() - new Date(a.created_dt).getTime(),
       )
       .map((t) => tray.addChild(t));
   }
@@ -266,6 +267,7 @@ export interface Traydata{
     host_url: string | null;
     filename: string | null;
     isFolded: boolean;
+    properties: Record<string, any>;
 
 }
 
@@ -274,7 +276,7 @@ export function deserializeJSONL(data:string){
   
   const id2Tray:Map<string,Tray> = new Map()
   lines.forEach(td=>{
-    const t = new Tray(td.parentId,td.id,td.name,td.borderColor,td.labels,td.created_dt,td.flexDirection,td.host_url,td.filename,td.isFolded)
+    const t = new Tray(td.parentId,td.id,td.name,td.borderColor,td.labels,td.created_dt,td.flexDirection,td.host_url,td.filename,td.isFolded,td.properties ?? {})
     id2Tray.set(td.id,t)
     const p = id2Tray.get(td.parentId)
     if (p){

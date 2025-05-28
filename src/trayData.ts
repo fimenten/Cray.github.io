@@ -12,5 +12,6 @@ export interface Traydata{
     host_url: string | null;
     filename: string | null;
     isFolded: boolean;
+    properties: Record<string, any>;
 
 }

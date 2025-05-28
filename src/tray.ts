@@ -38,6 +38,7 @@ export class Tray {
   host_url: string | null;
   filename: string | null;
   isFolded: boolean;
+  properties: Record<string, any>;
 
   isEditing: boolean;
   isSelected: boolean;
@@ -53,7 +54,8 @@ export class Tray {
     flexDirection: "column" | "row" = "column",
     host_url: string | null = null,
     filename: string | null = null,
-    isFold: boolean = true
+    isFold: boolean = true,
+    properties: Record<string, any> = {}
   ) {
     this.id = id;
     this.name = name;
@@ -67,6 +69,7 @@ export class Tray {
     this.host_url = host_url;
     this.filename = filename;
     this.flexDirection = flexDirection;
+    this.properties = properties;
     // this.element = this.createElement();
     // this.element = null
     this.isEditing = false;
@@ -694,5 +697,40 @@ export class Tray {
         this.addChild(tray);
       }
     }
+  }
+
+  addProperty(key: string = "priority", value: any) {
+    this.properties[key] = value;
+    saveToIndexedDB();
+  }
+
+  sortChildren(property: string = "created_dt", descending: boolean = true) {
+    this.children.sort((a, b) => {
+      let valA: any;
+      let valB: any;
+      if (property === "created_dt") {
+        valA = new Date(a.created_dt).getTime();
+        valB = new Date(b.created_dt).getTime();
+      } else {
+        valA = a.properties[property];
+        valB = b.properties[property];
+      }
+      if (valA === undefined && valB === undefined) return 0;
+      if (valA === undefined) return 1;
+      if (valB === undefined) return -1;
+      if (valA > valB) return descending ? -1 : 1;
+      if (valA < valB) return descending ? 1 : -1;
+      return 0;
+    });
+
+    const content = this.element.querySelector(
+      ".tray-content",
+    ) as HTMLElement | null;
+    if (content) {
+      this.children.forEach((child) => {
+        content.appendChild(child.element);
+      });
+    }
+    saveToIndexedDB();
   }
 }
