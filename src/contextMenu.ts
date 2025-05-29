@@ -75,6 +75,7 @@ function buildMenu(): HTMLElement {
   el.innerHTML = /* html */ `
     <div class="menu-item" data-act="fetchTrayFromServer">Fetch Tray from Server</div>
     <div class="menu-item" data-act="networkSetting">Network Setting</div>
+    <div class="menu-item" data-act="setEncryptKey">Set Encrypt Key</div>
     <div class="menu-item" data-act="openTrayInOther">Open This in Other</div>
     <div class="menu-item" data-act="toggleFlexDirection">Toggle Flex Direction</div>
     <div class="menu-item" data-act="meltTray">Melt this Tray</div>
@@ -191,6 +192,14 @@ function executeMenuAction(tray: Tray, act: string) {
     case "networkSetting":
       setNetworkOption(tray);
       break;
+
+    case "setEncryptKey": {
+      const key = prompt("Encryption key:", tray.encryptionKey || "");
+      if (key !== null) {
+        tray.encryptionKey = key.trim() === "" ? null : key;
+      }
+      break;
+    }
 
     case "meltTray":
       meltTray(tray);

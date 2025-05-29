@@ -11,6 +11,7 @@ export interface Traydata{
     flexDirection: "column" | "row";
     host_url: string | null;
     filename: string | null;
+    encryptionKey: string | null;
     isFolded: boolean;
     properties: Record<string, any>;
 

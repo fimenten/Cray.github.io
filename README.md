@@ -7,3 +7,5 @@ https://fimenten.github.io/Cray.github.io/
   you can specify a password. If a password is supplied the payload will be
   encrypted using AES-GCM before being sent. Unencrypted transfers are still
   supported for backwards compatibility.
+- Each tray can now store an encryption key. Use the context menu to set the key
+  so uploads and downloads won't prompt for a password every time.
