@@ -3,6 +3,7 @@ import { copyTray, cutTray, deleteTray, pasteFromClipboardInto, showMarkdownOutp
 import store from "./store";
 import { Tray } from "./tray";
 import { getTrayFromId, toggleEditMode } from "./utils";
+import { selected_trays, cutSelected, copySelected, deleteSelected } from "./humberger";
 
 
 export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
@@ -58,19 +59,31 @@ export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
     case "Delete":
       event.preventDefault();
       if (event.ctrlKey) {
-        deleteTray(tray);
+        if (selected_trays.length > 0) {
+          deleteSelected();
+        } else {
+          deleteTray(tray);
+        }
       }
       break;
     case "c":
       if (event.ctrlKey) {
         event.preventDefault();
-        copyTray(tray);
+        if (selected_trays.length > 0) {
+          copySelected();
+        } else {
+          copyTray(tray);
+        }
       }
       break;
     case "x":
       if (event.ctrlKey) {
         event.preventDefault();
-        cutTray(tray);
+        if (selected_trays.length > 0) {
+          cutSelected();
+        } else {
+          cutTray(tray);
+        }
       }
       break;
     case "v":
