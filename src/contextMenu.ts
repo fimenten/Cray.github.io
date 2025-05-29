@@ -38,8 +38,8 @@ function showSortDialog(tray: Tray) {
       </label>
       <label>Order:
         <select id="sort-order">
-          <option value="asc">Ascending</option>
-          <option value="desc" selected>Descending</option>
+          <option value="asc" selected>Ascending</option>
+          <option value="desc">Descending</option>
         </select>
       </label>
       <button id="sort-ok">Sort</button>

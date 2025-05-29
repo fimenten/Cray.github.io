@@ -240,10 +240,10 @@ function ddo(the_data: any) {
   if (children.length > 0) {
     children
       .map((d) => ddo(d))
-      // Sort newer items first because addChild prepends
+      // Sort older items first because addChild prepends
       .sort(
         (a, b) =>
-          new Date(b.created_dt).getTime() - new Date(a.created_dt).getTime(),
+          new Date(a.created_dt).getTime() - new Date(b.created_dt).getTime(),
       )
       .map((t) => tray.addChild(t));
   }

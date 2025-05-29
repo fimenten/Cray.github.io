@@ -704,7 +704,8 @@ export class Tray {
     saveToIndexedDB();
   }
 
-  sortChildren(property: string = "created_dt", descending: boolean = true) {
+  // Default to ascending order
+  sortChildren(property: string = "created_dt", descending: boolean = false) {
     this.children.sort((a, b) => {
       let valA: any;
       let valB: any;
