@@ -98,6 +98,24 @@ export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
         showMarkdownOutput(tray)
         break
       }
+    case "S":
+      event.preventDefault();
+      const checkbox = tray.element.querySelector<HTMLInputElement>(
+        ".tray-checkbox",
+      );
+      if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+        checkbox.dispatchEvent(new Event("change"));
+      }
+      break;
+    case "P":
+      event.preventDefault();
+      const key = prompt("Property name:", "priority") || "priority";
+      const value = prompt(`Value for '${key}':`, "");
+      if (value !== null) {
+        tray.addProperty(key, value);
+      }
+      break;
     // case " ":
     //   if (event.ctrlKey) {
     //     event.preventDefault();
