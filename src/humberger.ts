@@ -10,6 +10,7 @@ import { element2TrayMap } from "./app";
 import { Tray } from "./tray";
 import { downloadData, uploadData } from "./networks";
 import { copyTray, deleteTray } from "./functions";
+
 export let selected_trays: Tray[] = [];
 
 function appendMenuItems(
@@ -25,7 +26,7 @@ function appendMenuItems(
   });
 }
 
-function clearSelectedTrays(): void {
+export function clearSelectedTrays(): void {
   selected_trays = [];
   const checkboxes = document.querySelectorAll<HTMLInputElement>(".tray-checkbox");
   checkboxes.forEach((checkbox) => {
@@ -263,7 +264,7 @@ function set_default_server() {
 //   secret = prompt("set secretKey", secret);
 //   localStorage.setItem("secretKey", secret);
 // }
-function cutSelected(): void {
+export function cutSelected(): void {
   if (selected_trays.length !== 0) {
     // Copy the selected trays
     const t = new Tray(generateUUID(), generateUUID(), "selected Trays");
@@ -275,12 +276,19 @@ function cutSelected(): void {
   }
 }
 
-function copySelected(): void {
+export function copySelected(): void {
   if (selected_trays.length !== 0) {
     // Copy the selected trays
     const t = new Tray(generateUUID(), generateUUID(), "selected Trays");
     selected_trays.forEach((tt) => t.children.push(cloneTray(tt)));
     copyTray(t);
+    clearSelectedTrays();
+  }
+}
+
+export function deleteSelected(): void {
+  if (selected_trays.length !== 0) {
+    selected_trays.forEach((t) => deleteTray(t));
     clearSelectedTrays();
   }
 }
