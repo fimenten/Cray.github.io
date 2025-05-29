@@ -1,5 +1,6 @@
 import { Tray } from "./tray";
 import { deserialize, serialize } from "./io";
+import { encryptString, decryptString } from "./encryption";
 import { getTrayFromId } from "./utils";
 import { deleteTray } from "./functions";
 export function fetchTrayList(tray: Tray) {
@@ -89,7 +90,20 @@ export async function addTrayFromServer(
   }
 }
 export async function uploadData(tray: Tray) {
-  const data = JSON.parse(serialize(tray));
+  const serialized = serialize(tray);
+  let payload: { data: string; encrypted: boolean } = {
+    data: serialized,
+    encrypted: false,
+  };
+
+  const password = prompt(
+    "Encryption password (leave blank for no encryption):",
+    "",
+  );
+  if (password) {
+    payload.data = await encryptString(serialized, password);
+    payload.encrypted = true;
+  }
 
   if (!tray.filename) {
     return;
@@ -105,7 +119,7 @@ export async function uploadData(tray: Tray) {
         "Content-Type": "application/json",
         filename: tray.filename, // filenameはnullでないことが保証される
       },
-      body: JSON.stringify({ data: data }),
+      body: JSON.stringify(payload),
     });
 
     if (!response.ok) {
@@ -143,7 +157,23 @@ export async function downloadData(tray: Tray) {
     }
 
     const data = await response.json();
-    const downloadedTray = deserialize(JSON.stringify(data));
+
+    let serialized: string;
+    if (data.encrypted) {
+      const password = prompt("Enter decryption password:", "");
+      if (!password) {
+        throw new Error("Password required for encrypted data");
+      }
+      serialized = await decryptString(data.data, password);
+    } else {
+      if (typeof data.data === "string") {
+        serialized = data.data;
+      } else {
+        serialized = JSON.stringify(data.data);
+      }
+    }
+
+    const downloadedTray = deserialize(serialized);
 
     // ダウンロードされたtrayの処理（コメント解除して使う）
     // let parent = getTrayFromId(this.parentId);
