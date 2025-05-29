@@ -12,6 +12,27 @@ import { downloadData, uploadData } from "./networks";
 import { copyTray, deleteTray } from "./functions";
 export let selected_trays: Tray[] = [];
 
+function appendMenuItems(
+  menu: HTMLElement,
+  items: Array<{ action: string; label: string }>,
+) {
+  items.forEach(({ action, label }) => {
+    const item = document.createElement("div");
+    item.classList.add("menu-item");
+    item.dataset.action = action;
+    item.textContent = label;
+    menu.appendChild(item);
+  });
+}
+
+function clearSelectedTrays(): void {
+  selected_trays = [];
+  const checkboxes = document.querySelectorAll<HTMLInputElement>(".tray-checkbox");
+  checkboxes.forEach((checkbox) => {
+    checkbox.checked = false;
+  });
+}
+
 function resetAllTrays() {
   localStorage.removeItem("trayData");
   const rootTray = createDefaultRootTray();
@@ -35,13 +56,6 @@ export function createHamburgerMenu() {
   // document.body.appendChild(hamburger);
   leftBar.appendChild(hamburger);
 
-  const sessionList =document.createElement("div");
-  sessionList.classList.add("sessions-bottum")
-  sessionList.innerHTML =  "○"
-  
-
-
-
 
   const menu = document.createElement("div");
   menu.classList.add("hamburger-menu-items");
@@ -55,37 +69,27 @@ export function createHamburgerMenu() {
   // menu.style.borderRadius = '4px';
   // menu.style.padding = '10px';
   // menu.style.zIndex = '999';
-  menu.innerHTML = `
-        <div class="menu-item" data-action="reset">トレイをリセット</div>
-        <div class="menu-item" data-action="save">現在の状態を保存</div>
-        <div class="menu-item" data-action="load">保存した状態を読み込む</div>
-        <div class="menu-item" data-action="export">データのエクスポート</div>
-        <div class="menu-item" data-action="import">データのインポート</div>
-        <div class="menu-item" data-action="set_default_server">set_default_server</div>
-        <div class="menu-item" data-action="set_secret">set_secret</div>
-        <div class="menu-item" data-action="import_network_tray_directly_as_root">import_network_tray_directly_as_root</div>
-    
-    
-      `;
-  menu.innerHTML += `
-      <div class="menu-item" data-action="manageLabels">ラベル管理</div>
-      <div class="menu-item" data-action="exportLabels">ラベルをエクスポート</div>
-      <div class="menu-item" data-action="importLabels">ラベルをインポート</div>
-    `;
-  menu.innerHTML += `
-      <div class="menu-item" data-action="editTitle">ページタイトルを編集</div>
-    `;
-  menu.innerHTML += `
-      <div class="menu-item" data-action="uploadAll">Upload All</div>
-    `;
-  menu.innerHTML += `
-      <div class="menu-item" data-action="downloadAll">Download All</div>
-    `;
-  menu.innerHTML += `
-    <div class="menu-item" data-action="copySelected">Copy selected</div>
-    <div class="menu-item" data-action="cutSelected">Cut selected</div>
-
-  `;
+  appendMenuItems(menu, [
+    { action: "reset", label: "トレイをリセット" },
+    { action: "save", label: "現在の状態を保存" },
+    { action: "load", label: "保存した状態を読み込む" },
+    { action: "export", label: "データのエクスポート" },
+    { action: "import", label: "データのインポート" },
+    { action: "set_default_server", label: "set_default_server" },
+    { action: "set_secret", label: "set_secret" },
+    {
+      action: "import_network_tray_directly_as_root",
+      label: "import_network_tray_directly_as_root",
+    },
+    { action: "manageLabels", label: "ラベル管理" },
+    { action: "exportLabels", label: "ラベルをエクスポート" },
+    { action: "importLabels", label: "ラベルをインポート" },
+    { action: "editTitle", label: "ページタイトルを編集" },
+    { action: "uploadAll", label: "Upload All" },
+    { action: "downloadAll", label: "Download All" },
+    { action: "copySelected", label: "Copy selected" },
+    { action: "cutSelected", label: "Cut selected" },
+  ]);
 
   document.body.appendChild(menu);
 
@@ -117,64 +121,33 @@ export function createHamburgerMenu() {
     }
   });
 
+  const menuActions: Record<string, () => void> = {
+    reset: () => {
+      if (
+        confirm("すべてのトレイをリセットしますか？この操作は元に戻せません。")
+      ) {
+        resetAllTrays();
+      }
+    },
+    export: exportData,
+    import: importData,
+    set_default_server: set_default_server,
+    editTitle: editPageTitle,
+    uploadAll: () => uploadAllData(),
+    downloadAll: () => downloadAllData(),
+    cutSelected: cutSelected,
+    copySelected: copySelected,
+  };
+
   menu.addEventListener("click", (event: MouseEvent) => {
     const target = event.target as HTMLElement;
-    const action = target.getAttribute("data-action");
-    switch (action) {
-      case "reset":
-        if (
-          confirm(
-            "すべてのトレイをリセットしますか？この操作は元に戻せません。",
-          )
-        ) {
-          resetAllTrays();
-        }
-        break;
-      //   case "save":
-      //     saveCurrentState();
-      //     break;
-      // case "load":
-      //   loadSavedState();
-      //   break;
-      case "export":
-        exportData();
-        break;
-      case "import":
-        importData();
-        break;
-      case "set_default_server":
-        set_default_server();
-        break;
-      //   case "set_secret":
-      //     set_secret();
-      //   case "import_network_tray_directly_as_root":
-      //     import_network_tray_directly_as_root();
-      //     break;
-      //   case "manageLabels":
-      //     showLabelManager();
-      //     break;
-      //   case "exportLabels":
-      //     exportLabels();
-      //     break;
-      //   case "importLabels":
-      //     importLabels();
-      //     break;
-      case "editTitle":
-        editPageTitle();
-        break;
-      case "uploadAll":
-        uploadAllData();
-        break;
-      case "downloadAll":
-        downloadAllData();
-        break;
-      case "cutSelected":
-        cutSelected();
-        break;
-      case "copySelected":
-        copySelected();
-        break;
+    const action = target.getAttribute("data-action") || "";
+
+    const handler = menuActions[action];
+    if (handler) {
+      handler();
     }
+
     menu.style.display = "none";
   });
 
@@ -294,20 +267,11 @@ function cutSelected(): void {
   if (selected_trays.length !== 0) {
     // Copy the selected trays
     const t = new Tray(generateUUID(), generateUUID(), "selected Trays");
-    selected_trays.map((tt) => t.children.push(cloneTray(tt)));
+    selected_trays.forEach((tt) => t.children.push(cloneTray(tt)));
     copyTray(t);
 
-    selected_trays.map((t) => deleteTray(t));
-
-    // Clear the selected_trays array
-    selected_trays = [];
-
-    // Uncheck all checkboxes
-    const checkboxes: NodeListOf<HTMLInputElement> =
-      document.querySelectorAll(".tray-checkbox");
-    checkboxes.forEach((checkbox: HTMLInputElement) => {
-      checkbox.checked = false;
-    });
+    selected_trays.forEach((t) => deleteTray(t));
+    clearSelectedTrays();
   }
 }
 
@@ -315,17 +279,8 @@ function copySelected(): void {
   if (selected_trays.length !== 0) {
     // Copy the selected trays
     const t = new Tray(generateUUID(), generateUUID(), "selected Trays");
-    selected_trays.map((tt) => t.children.push(cloneTray(tt)));
+    selected_trays.forEach((tt) => t.children.push(cloneTray(tt)));
     copyTray(t);
-
-    // Clear the selected_trays array
-    selected_trays = [];
-
-    // Uncheck all checkboxes
-    const checkboxes: NodeListOf<HTMLInputElement> =
-      document.querySelectorAll(".tray-checkbox");
-    checkboxes.forEach((checkbox: HTMLInputElement) => {
-      checkbox.checked = false;
-    });
+    clearSelectedTrays();
   }
 }
