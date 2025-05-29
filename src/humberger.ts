@@ -56,13 +56,6 @@ export function createHamburgerMenu() {
   // document.body.appendChild(hamburger);
   leftBar.appendChild(hamburger);
 
-  const sessionList =document.createElement("div");
-  sessionList.classList.add("sessions-bottum")
-  sessionList.innerHTML =  "○"
-  
-
-
-
 
   const menu = document.createElement("div");
   menu.classList.add("hamburger-menu-items");
@@ -128,64 +121,33 @@ export function createHamburgerMenu() {
     }
   });
 
+  const menuActions: Record<string, () => void> = {
+    reset: () => {
+      if (
+        confirm("すべてのトレイをリセットしますか？この操作は元に戻せません。")
+      ) {
+        resetAllTrays();
+      }
+    },
+    export: exportData,
+    import: importData,
+    set_default_server: set_default_server,
+    editTitle: editPageTitle,
+    uploadAll: () => uploadAllData(),
+    downloadAll: () => downloadAllData(),
+    cutSelected: cutSelected,
+    copySelected: copySelected,
+  };
+
   menu.addEventListener("click", (event: MouseEvent) => {
     const target = event.target as HTMLElement;
-    const action = target.getAttribute("data-action");
-    switch (action) {
-      case "reset":
-        if (
-          confirm(
-            "すべてのトレイをリセットしますか？この操作は元に戻せません。",
-          )
-        ) {
-          resetAllTrays();
-        }
-        break;
-      //   case "save":
-      //     saveCurrentState();
-      //     break;
-      // case "load":
-      //   loadSavedState();
-      //   break;
-      case "export":
-        exportData();
-        break;
-      case "import":
-        importData();
-        break;
-      case "set_default_server":
-        set_default_server();
-        break;
-      //   case "set_secret":
-      //     set_secret();
-      //   case "import_network_tray_directly_as_root":
-      //     import_network_tray_directly_as_root();
-      //     break;
-      //   case "manageLabels":
-      //     showLabelManager();
-      //     break;
-      //   case "exportLabels":
-      //     exportLabels();
-      //     break;
-      //   case "importLabels":
-      //     importLabels();
-      //     break;
-      case "editTitle":
-        editPageTitle();
-        break;
-      case "uploadAll":
-        uploadAllData();
-        break;
-      case "downloadAll":
-        downloadAllData();
-        break;
-      case "cutSelected":
-        cutSelected();
-        break;
-      case "copySelected":
-        copySelected();
-        break;
+    const action = target.getAttribute("data-action") || "";
+
+    const handler = menuActions[action];
+    if (handler) {
+      handler();
     }
+
     menu.style.display = "none";
   });
 
