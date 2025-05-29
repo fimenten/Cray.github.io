@@ -96,10 +96,11 @@ export async function uploadData(tray: Tray) {
     encrypted: false,
   };
 
-  const password = prompt(
-    "Encryption password (leave blank for no encryption):",
-    "",
-  );
+  const password = tray.encryptionKey ??
+    prompt(
+      "Encryption password (leave blank for no encryption):",
+      "",
+    );
   if (password) {
     payload.data = await encryptString(serialized, password);
     payload.encrypted = true;
@@ -160,7 +161,7 @@ export async function downloadData(tray: Tray) {
 
     let serialized: string;
     if (data.encrypted) {
-      const password = prompt("Enter decryption password:", "");
+      const password = tray.encryptionKey ?? prompt("Enter decryption password:", "");
       if (!password) {
         throw new Error("Password required for encrypted data");
       }

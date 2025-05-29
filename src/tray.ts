@@ -37,6 +37,7 @@ export class Tray {
   flexDirection: "column" | "row";
   host_url: string | null;
   filename: string | null;
+  encryptionKey: string | null;
   isFolded: boolean;
   properties: Record<string, any>;
 
@@ -55,7 +56,8 @@ export class Tray {
     host_url: string | null = null,
     filename: string | null = null,
     isFold: boolean = true,
-    properties: Record<string, any> = {}
+    properties: Record<string, any> = {},
+    encryptionKey: string | null = null,
   ) {
     this.id = id;
     this.name = name;
@@ -68,6 +70,7 @@ export class Tray {
     this.created_dt = created_dt ? new Date(created_dt) : new Date();
     this.host_url = host_url;
     this.filename = filename;
+    this.encryptionKey = encryptionKey;
     this.flexDirection = flexDirection;
     this.properties = properties;
     // this.element = this.createElement();
