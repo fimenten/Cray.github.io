@@ -18,6 +18,49 @@ import {
 import { serialize, saveToIndexedDB } from "./io";
 import { cloneTray } from "./utils";
 
+function showSortDialog(tray: Tray) {
+  const propSet = new Set<string>();
+  propSet.add("created_dt");
+  tray.children.forEach((c) => {
+    Object.keys(c.properties).forEach((k) => propSet.add(k));
+  });
+
+  const dialog = document.createElement("div");
+  dialog.classList.add("sort-selection-dialog");
+  dialog.innerHTML = `
+      <h3>Sort Children</h3>
+      <label>Property:
+        <select id="sort-prop">
+          ${Array.from(propSet)
+            .map((p) => `<option value="${p}">${p}</option>`)
+            .join("")}
+        </select>
+      </label>
+      <label>Order:
+        <select id="sort-order">
+          <option value="asc">Ascending</option>
+          <option value="desc" selected>Descending</option>
+        </select>
+      </label>
+      <button id="sort-ok">Sort</button>
+      <button id="sort-cancel">Cancel</button>
+    `;
+
+  document.body.appendChild(dialog);
+
+  const okBtn = dialog.querySelector<HTMLButtonElement>("#sort-ok")!;
+  const cancelBtn = dialog.querySelector<HTMLButtonElement>("#sort-cancel")!;
+
+  okBtn.addEventListener("click", () => {
+    const prop = (dialog.querySelector("#sort-prop") as HTMLSelectElement).value;
+    const order = (dialog.querySelector("#sort-order") as HTMLSelectElement).value;
+    tray.sortChildren(prop, order === "desc");
+    dialog.remove();
+  });
+
+  cancelBtn.addEventListener("click", () => dialog.remove());
+}
+
 // ===== メニュー DOM を 1 回だけ生成 =====
 const menu: HTMLElement = buildMenu();
 document.body.appendChild(menu);
@@ -187,15 +230,7 @@ function executeMenuAction(tray: Tray, act: string) {
     }
 
     case "sortChildren": {
-      const prop = prompt(
-        "Sort by property (default created_dt)",
-        "created_dt",
-      );
-      if (prop !== null) {
-        const order = prompt("Order (asc or desc)", "desc");
-        const descending = order !== "asc";
-        tray.sortChildren(prop || "created_dt", descending);
-      }
+      showSortDialog(tray);
       break;
     }
 
