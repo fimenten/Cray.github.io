@@ -17,6 +17,8 @@ import {
 } from "./functions";
 import { serialize, saveToIndexedDB } from "./io";
 import { cloneTray } from "./utils";
+import store from "./store";
+import { openMenu, closeMenu } from "./state";
 
 function showSortDialog(tray: Tray) {
   const propSet = new Set<string>();
@@ -66,6 +68,9 @@ const menu: HTMLElement = buildMenu();
 document.body.appendChild(menu);
 menu.style.display = "none";       // 初期は非表示
 
+let currentTray: Tray | null = null;
+let focusedIndex = 0;
+
 // -- ビルド関数 --------------------------------------------------
 function buildMenu(): HTMLElement {
   const el = document.createElement("div");
@@ -99,15 +104,30 @@ function buildMenu(): HTMLElement {
 
 // ===== パブリック API ==========================================
 export function openContextMenu(tray: Tray, ev: MouseEvent | TouchEvent) {
-  // ――― HMR や再描画で切れていたら付け直す ―――
+  const pt =
+    ev instanceof MouseEvent
+      ? { x: ev.clientX, y: ev.clientY }
+      : { x: ev.touches[0].clientX, y: ev.touches[0].clientY };
+  openContextMenuAtPoint(tray, pt.x, pt.y);
+}
+
+export function openContextMenuByKeyboard(tray: Tray) {
+  const rect = tray.element.getBoundingClientRect();
+  openContextMenuAtPoint(tray, rect.left + 10, rect.top + 10);
+}
+
+function openContextMenuAtPoint(tray: Tray, x: number, y: number) {
   if (!menu.isConnected) document.body.appendChild(menu);
 
-  menu.style.display = "block";   // ← 先に表示
-  position(ev, menu);             // 幅・高さが 0 で計算されるのを防ぐ
+  currentTray = tray;
+  menu.style.display = "block";
+  positionAt(x, y, menu);
   hydrateMenu(tray);
   menu.focus();
-
-  console.log("openContextMenu OK")
+  focusedIndex = 0;
+  focusItem(focusedIndex);
+  menu.addEventListener("keydown", onMenuKeyDown);
+  store.dispatch(openMenu());
 
   const closeOnce = (e: PointerEvent) => {
     if (!menu.contains(e.target as Node)) {
@@ -121,6 +141,11 @@ export function openContextMenu(tray: Tray, ev: MouseEvent | TouchEvent) {
 
 export function closeContextMenu() {
   menu.style.display = "none";
+  menu.removeEventListener("keydown", onMenuKeyDown);
+  currentTray = null;
+  focusedIndex = 0;
+  focusItem(-1);
+  store.dispatch(closeMenu());
 }
 
 // ===== 内部ヘルパ ==============================================
@@ -144,27 +169,60 @@ function hydrateMenu(tray: Tray) {
 }
 
 function position(ev: MouseEvent | TouchEvent, el: HTMLElement) {
-  // ① クリック座標
   const pt =
     ev instanceof MouseEvent
       ? { x: ev.clientX, y: ev.clientY }
       : { x: ev.touches[0].clientX, y: ev.touches[0].clientY };
+  positionAt(pt.x, pt.y, el);
+}
 
-  // ② メニュー寸法（表示前に display:block 済み）
+function positionAt(x: number, y: number, el: HTMLElement) {
   const { width, height } = el.getBoundingClientRect();
 
-  // ③ 画面内に収める
-  let left = pt.x + width  > window.innerWidth  ? pt.x - width  : pt.x;
-  let top  = pt.y + height > window.innerHeight ? pt.y - height : pt.y;
+  let left = x + width > window.innerWidth ? x - width : x;
+  let top = y + height > window.innerHeight ? y - height : y;
 
   left = Math.max(0, left);
-  top  = Math.max(0, top);
+  top = Math.max(0, top);
 
-  // ④ 直接 left/top を書き込む
-  el.style.position = "fixed";      // 念押し
+  el.style.position = "fixed";
   el.style.left = `${left}px`;
-  el.style.top  = `${top}px`;
-  el.style.transform = "";          // transform はクリア
+  el.style.top = `${top}px`;
+  el.style.transform = "";
+}
+
+function focusItem(index: number) {
+  const items = menu.querySelectorAll<HTMLElement>(".menu-item");
+  items.forEach((item, i) => {
+    if (i === index) {
+      item.classList.add("focused");
+    } else {
+      item.classList.remove("focused");
+    }
+  });
+}
+
+function onMenuKeyDown(e: KeyboardEvent) {
+  const items = menu.querySelectorAll<HTMLElement>(".menu-item");
+  if (items.length === 0) return;
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    focusedIndex = (focusedIndex + 1) % items.length;
+    focusItem(focusedIndex);
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    focusedIndex = (focusedIndex - 1 + items.length) % items.length;
+    focusItem(focusedIndex);
+  } else if (e.key === "Enter") {
+    e.preventDefault();
+    const act = items[focusedIndex].getAttribute("data-act");
+    if (act && currentTray) {
+      executeMenuAction(currentTray, act);
+    }
+  } else if (e.key === "Escape") {
+    e.preventDefault();
+    closeContextMenu();
+  }
 }
 
 
