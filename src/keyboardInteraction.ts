@@ -4,6 +4,7 @@ import store from "./store";
 import { Tray } from "./tray";
 import { getTrayFromId, toggleEditMode } from "./utils";
 import { selected_trays, cutSelected, copySelected, deleteSelected } from "./humberger";
+import { openContextMenuByKeyboard } from "./contextMenu";
 
 
 export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
@@ -116,12 +117,22 @@ export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
         tray.addProperty(key, value);
       }
       break;
-    // case " ":
-    //   if (event.ctrlKey) {
-    //     event.preventDefault();
-    //     this.onContextMenu(event);
-    //   }
-    //   break;
+    case " ":
+      if (event.ctrlKey) {
+        event.preventDefault();
+        openContextMenuByKeyboard(tray);
+      }
+      break;
+    case "ContextMenu":
+      event.preventDefault();
+      openContextMenuByKeyboard(tray);
+      break;
+    case "F10":
+      if (event.shiftKey) {
+        event.preventDefault();
+        openContextMenuByKeyboard(tray);
+      }
+      break;
   }
 }
 export function moveFocus(
