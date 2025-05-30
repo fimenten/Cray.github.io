@@ -6,6 +6,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "type": "module",
   "devDependencies": {
     "@types/react": "^18.3.8",
     "@types/react-dom": "^18.3.0",
@@ -19,7 +20,8 @@
   },
   "scripts": {
     "build": "webpack --mode production",
-    "start": "webpack serve --mode development"
+    "start": "webpack serve --mode development",
+    "test": "tsc && node scripts/patch-dist.mjs && node --experimental-specifier-resolution=node --test tests/*.js"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.7",
