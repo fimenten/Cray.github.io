@@ -6,6 +6,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "type": "module",
   "devDependencies": {
     "@types/react": "^18.3.8",
     "@types/react-dom": "^18.3.0",
@@ -18,8 +19,9 @@
     "webpack-dev-server": "^5.1.0"
   },
   "scripts": {
-    "build": "webpack --mode production",
-    "start": "webpack serve --mode development"
+    "build": "webpack --config webpack.config.cjs --mode production",
+    "start": "webpack serve --config webpack.config.cjs --mode development",
+    "test": "tsc && node --experimental-specifier-resolution=node --test tests/*.js"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.7",
