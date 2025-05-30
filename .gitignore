@@ -2,5 +2,6 @@ node_modules
 trays
 past.txt
 tray_data.json
-dist
+# Ignore built assets except for GitHub Pages
+#dist
 
