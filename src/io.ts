@@ -215,6 +215,16 @@ export function serialize(tray: Tray) {
   return JSON.stringify(tray);
 }
 
+export function parseIsFolded(value: any): boolean {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    if (value.toLowerCase() === "true") return true;
+    if (value.toLowerCase() === "false") return false;
+  }
+  if (typeof value === "number") return Boolean(value);
+  return true;
+}
+
 function ddo(the_data: any) {
   // console.log("help");
   let url;
@@ -233,7 +243,7 @@ function ddo(the_data: any) {
     the_data.flexDirection,
     url,
     the_data.filename,
-    the_data.isFolded instanceof Boolean ? the_data.isFolded : true,
+    parseIsFolded(the_data.isFolded),
     the_data.properties ?? {},
     the_data.encryptionKey ?? null
   );
@@ -278,7 +288,7 @@ export function deserializeJSONL(data:string){
   
   const id2Tray:Map<string,Tray> = new Map()
   lines.forEach(td=>{
-    const t = new Tray(td.parentId,td.id,td.name,td.borderColor,td.labels,td.created_dt,td.flexDirection,td.host_url,td.filename,td.isFolded,td.properties ?? {},td.encryptionKey ?? null)
+    const t = new Tray(td.parentId,td.id,td.name,td.borderColor,td.labels,td.created_dt,td.flexDirection,td.host_url,td.filename,parseIsFolded(td.isFolded),td.properties ?? {},td.encryptionKey ?? null)
     id2Tray.set(td.id,t)
     const p = id2Tray.get(td.parentId)
     if (p){
