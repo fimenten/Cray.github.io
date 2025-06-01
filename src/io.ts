@@ -233,7 +233,7 @@ function ddo(the_data: any) {
     the_data.flexDirection,
     url,
     the_data.filename,
-    the_data.isFolded instanceof Boolean ? the_data.isFolded : true,
+    typeof the_data.isFolded === "boolean" ? the_data.isFolded : true,
     the_data.properties ?? {},
     the_data.encryptionKey ?? null
   );
