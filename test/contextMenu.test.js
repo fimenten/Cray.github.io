@@ -12,7 +12,12 @@ function createElement() {
     children: [],
     style: {},
     dataset: {},
-    classList: { add(){} },
+    classList: {
+      _cls: new Set(),
+      add(c){ this._cls.add(c); },
+      remove(c){ this._cls.delete(c); },
+      contains(c){ return this._cls.has(c); }
+    },
     appendChild(child){ child.parent = this; this.children.push(child); },
     querySelector(selector){
       if(selector === '#borderColorPicker'){
@@ -20,7 +25,13 @@ function createElement() {
       }
       return null;
     },
+    querySelectorAll(sel){
+      if(sel === '.menu-item') return this.children.filter(c=>c.className==='menu-item');
+      return [];
+    },
     getBoundingClientRect(){ return { width:100, height:100 }; },
+    addEventListener(){},
+    removeEventListener(){},
     focus(){}
   };
   return el;
@@ -58,4 +69,13 @@ test('open and close context menu', () => {
   assert.strictEqual(menu.style.display, 'block');
   ctx.closeContextMenu();
   assert.strictEqual(menu.style.display, 'none');
+});
+
+test('keyboard navigation opens menu and focuses first item', () => {
+  const tray = { borderColor: '#000', changeBorderColor(){}, element:{ getBoundingClientRect(){ return { left:0, top:0, width:50, height:20 }; } } };
+  ctx.openContextMenuKeyboard(tray);
+  const menu = body.children[body.children.length - 1];
+  const first = menu.children[0];
+  assert.ok(first.classList.contains('focused'));
+  ctx.closeContextMenu();
 });
