@@ -72,6 +72,25 @@ export function showMarkdownOutput(tray: Tray) {
         `);
 }
 
+export function copyMarkdownToClipboard(tray: Tray) {
+  const markdown = outputAsMarkdown(tray);
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(markdown).catch(() => {});
+  }
+}
+
+export function downloadMarkdown(tray: Tray) {
+  const markdown = outputAsMarkdown(tray);
+  const blob = new Blob([markdown], { type: "text/markdown" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "tray_structure.md";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
+}
+
 
 export function getEventCoordinates(
   event: MouseEvent | TouchEvent,
