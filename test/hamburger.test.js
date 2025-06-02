@@ -52,5 +52,6 @@ test('createHamburgerMenu adds items', () => {
 
 test('new session menu updates location', () => {
   ham.openNewSession();
-  assert.strictEqual(window.location.href, '/page?sessionId=new');
+  const match = window.location.href.match(/\/page\?sessionId=([0-9a-f-]{36})$/);
+  assert.ok(match, 'location should include UUID');
 });
