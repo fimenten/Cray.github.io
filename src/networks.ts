@@ -166,12 +166,14 @@ export async function downloadData(tray: Tray) {
         throw new Error("Password required for encrypted data");
       }
       serialized = await decryptString(data.data, password);
-    } else {
+    } else if ("data" in data) {
       if (typeof data.data === "string") {
         serialized = data.data;
       } else {
         serialized = JSON.stringify(data.data);
       }
+    } else {
+      serialized = typeof data === "string" ? data : JSON.stringify(data);
     }
 
     const downloadedTray = deserialize(serialized);
