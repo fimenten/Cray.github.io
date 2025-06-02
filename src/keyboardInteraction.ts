@@ -3,7 +3,7 @@ import { copyTray, cutTray, deleteTray, pasteFromClipboardInto, showMarkdownOutp
 import store from "./store";
 import { Tray } from "./tray";
 import { getTrayFromId, toggleEditMode } from "./utils";
-import { selected_trays, cutSelected, copySelected, deleteSelected } from "./humberger";
+import { selected_trays, cutSelected, copySelected, deleteSelected } from "./hamburger";
 
 
 export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {

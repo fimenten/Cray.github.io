@@ -8,7 +8,7 @@ import {
   loadFromIndexedDB,
   saveToIndexedDB,
 } from "./io";
-import { createHamburgerMenu, selected_trays } from "./humberger";
+import { createHamburgerMenu, selected_trays } from "./hamburger";
 // import { LabelManager } from "./label";
 import {
   downloadData,

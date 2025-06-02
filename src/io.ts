@@ -5,7 +5,7 @@ import {
   getUrlParameter,
   createDefaultRootTray,
 } from "./utils";
-import { createHamburgerMenu } from "./humberger";
+import { createHamburgerMenu } from "./hamburger";
 import { Tray, TrayId } from "./tray";
 import { createActionButtons } from "./actionbotton";
 import { graph } from "./render";
@@ -241,7 +241,6 @@ function ddo(the_data: any) {
     the_data.id,
     the_data.name,
     the_data.borderColor,
-    the_data.labels,
     the_data.created_dt,
     the_data.flexDirection,
     url,
@@ -272,7 +271,6 @@ export interface Traydata{
     name: string;
     // children: Tray[];
     childrenIds:TrayId[];
-    labels: string[];
     parentId: TrayId;
     borderColor: string;
     created_dt: Date;
@@ -289,7 +287,7 @@ export function deserializeJSONL(data:string){
   
   const id2Tray:Map<string,Tray> = new Map()
   lines.forEach(td=>{
-    const t = new Tray(td.parentId,td.id,td.name,td.borderColor,td.labels,td.created_dt,td.flexDirection,td.host_url,td.filename,td.isFolded,td.properties ?? {})
+    const t = new Tray(td.parentId,td.id,td.name,td.borderColor,td.created_dt,td.flexDirection,td.host_url,td.filename,td.isFolded,td.properties ?? {})
     id2Tray.set(td.id,t)
     const p = id2Tray.get(td.parentId)
     if (p){

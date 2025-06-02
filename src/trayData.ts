@@ -4,7 +4,6 @@ export interface Traydata{
     name: string;
     // children: Tray[];
     childrenIds:TrayId[];
-    labels: string[];
     parentId: TrayId;
     borderColor: string;
     created_dt: Date;
