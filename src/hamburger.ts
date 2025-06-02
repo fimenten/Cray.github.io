@@ -13,6 +13,30 @@ import { copyTray, deleteTray } from "./functions";
 
 export let selected_trays: Tray[] = [];
 
+export interface HamburgerMenuItem {
+  action: string;
+  label: string;
+}
+
+export const HAMBURGER_MENU_ITEMS: HamburgerMenuItem[] = [
+  { action: "reset", label: "トレイをリセット" },
+  { action: "save", label: "現在の状態を保存" },
+  { action: "load", label: "保存した状態を読み込む" },
+  { action: "export", label: "データのエクスポート" },
+  { action: "import", label: "データのインポート" },
+  { action: "set_default_server", label: "set_default_server" },
+  { action: "set_secret", label: "set_secret" },
+  {
+    action: "import_network_tray_directly_as_root",
+    label: "import_network_tray_directly_as_root",
+  },
+  { action: "editTitle", label: "ページタイトルを編集" },
+  { action: "uploadAll", label: "Upload All" },
+  { action: "downloadAll", label: "Download All" },
+  { action: "copySelected", label: "Copy selected" },
+  { action: "cutSelected", label: "Cut selected" },
+];
+
 function appendMenuItems(
   menu: HTMLElement,
   items: Array<{ action: string; label: string }>,
@@ -48,13 +72,6 @@ export function createHamburgerMenu() {
   const hamburger = document.createElement("div");
   hamburger.classList.add("hamburger-menu");
   hamburger.innerHTML = "☰";
-  // hamburger.style.position = 'fixed';
-  // hamburger.style.top = '10px';
-  // hamburger.style.right = '10px';
-  // hamburger.style.fontSize = '24px';
-  // hamburger.style.cursor = 'pointer';
-  // hamburger.style.zIndex = '1000';
-  // document.body.appendChild(hamburger);
   leftBar.appendChild(hamburger);
 
   const sessionButton = document.createElement("div");
@@ -69,31 +86,7 @@ export function createHamburgerMenu() {
   menu.style.display = "none";
   leftBar.appendChild(menu);
   menu.style.position = "fixed";
-  // menu.style.top = '40px';
-  // menu.style.right = '10px';
-  // menu.style.backgroundColor = 'white';
-  // menu.style.border = '1px solid #ccc';
-  // menu.style.borderRadius = '4px';
-  // menu.style.padding = '10px';
-  // menu.style.zIndex = '999';
-  appendMenuItems(menu, [
-    { action: "reset", label: "トレイをリセット" },
-    { action: "save", label: "現在の状態を保存" },
-    { action: "load", label: "保存した状態を読み込む" },
-    { action: "export", label: "データのエクスポート" },
-    { action: "import", label: "データのインポート" },
-    { action: "set_default_server", label: "set_default_server" },
-    { action: "set_secret", label: "set_secret" },
-    {
-      action: "import_network_tray_directly_as_root",
-      label: "import_network_tray_directly_as_root",
-    },
-    { action: "editTitle", label: "ページタイトルを編集" },
-    { action: "uploadAll", label: "Upload All" },
-    { action: "downloadAll", label: "Download All" },
-    { action: "copySelected", label: "Copy selected" },
-    { action: "cutSelected", label: "Cut selected" },
-  ]);
+  appendMenuItems(menu, HAMBURGER_MENU_ITEMS);
 
   document.body.appendChild(menu);
 
