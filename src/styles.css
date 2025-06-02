@@ -557,6 +557,45 @@ body > .tray > .tray-content {
   text-align: center;
 }
 
+.session-list-button {
+  padding: 10px;
+  font-size: 20px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.session-selection-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--menu-bg-color);
+  padding: 10px;
+  border: 1px solid var(--menu-border-color);
+  z-index: 1000;
+  border-radius: 5px;
+}
+
+.session-selection-dialog select {
+  display: block;
+  margin: 5px 0;
+  width: 100%;
+  padding: 5px;
+}
+
+.session-selection-dialog button {
+  margin-right: 5px;
+  padding: 5px;
+  background-color: var(--hover-bg-color);
+  border: 1px solid var(--menu-border-color);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.session-selection-dialog button:hover {
+  background-color: var(--tray-bg-color);
+}
+
 .hamburger-menu-items {
   position: fixed;
   background-color: white;

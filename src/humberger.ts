@@ -4,7 +4,7 @@ import {
   generateUUID,
   getRootElement,
 } from "./utils";
-import { exportData, importData } from "./io";
+import { exportData, importData, getAllSessionIds } from "./io";
 import { getUrlParameter } from "./utils";
 import { element2TrayMap } from "./app";
 import { Tray } from "./tray";
@@ -56,6 +56,12 @@ export function createHamburgerMenu() {
   // hamburger.style.zIndex = '1000';
   // document.body.appendChild(hamburger);
   leftBar.appendChild(hamburger);
+
+  const sessionButton = document.createElement("div");
+  sessionButton.classList.add("session-list-button");
+  sessionButton.innerHTML = "📑";
+  leftBar.appendChild(sessionButton);
+  sessionButton.addEventListener("click", showSessionList);
 
 
   const menu = document.createElement("div");
@@ -250,6 +256,31 @@ function downloadAllData(tray: null | Tray = null) {
 //   updateAllTrayDirections();
 //   window.addEventListener("resize", updateAllTrayDirections);
 // }
+
+async function showSessionList() {
+  const ids = (await getAllSessionIds()).filter((id) => id !== "trayData");
+  const dialog = document.createElement("div");
+  dialog.classList.add("session-selection-dialog");
+  dialog.innerHTML = `
+      <h3>Sessions</h3>
+      <select id="session-select">
+        ${ids.map((id) => `<option value="${id}">${id}</option>`).join("")}
+      </select>
+      <button id="session-open">Open</button>
+      <button id="session-cancel">Cancel</button>
+    `;
+  document.body.appendChild(dialog);
+  const openBtn = dialog.querySelector<HTMLButtonElement>("#session-open")!;
+  const cancelBtn = dialog.querySelector<HTMLButtonElement>("#session-cancel")!;
+  const select = dialog.querySelector<HTMLSelectElement>("#session-select")!;
+  openBtn.addEventListener("click", () => {
+    const id = select.value;
+    if (id) {
+      window.location.href = `${window.location.pathname}?sessionId=${id}`;
+    }
+  });
+  cancelBtn.addEventListener("click", () => dialog.remove());
+}
 
 function set_default_server() {
   let url = localStorage.getItem("defaultServer");

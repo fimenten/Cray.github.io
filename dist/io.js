@@ -121,6 +121,8 @@ export function loadFromIndexedDB() {
             if (savedData) {
                 try {
                     rootTray = deserialize(savedData.value);
+                    // const data = savedData.value as string
+                    // Object.assign(graph, JSON.parse(data));
                 }
                 catch (error) {
                     console.error("Error deserializing data:", error);
@@ -169,6 +171,20 @@ function fetchDataFromStore(db, key) {
         };
     });
 }
+export function getAllSessionIds() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const db = yield openDatabase();
+        return new Promise((resolve, reject) => {
+            const transaction = db.transaction("trays", "readonly");
+            const store = transaction.objectStore("trays");
+            const request = store.getAllKeys();
+            request.onsuccess = () => {
+                resolve(request.result.filter((k) => typeof k === "string"));
+            };
+            request.onerror = () => reject(request.error);
+        });
+    });
+}
 function initializeTray(rootTray) {
     // rootTray.isFolded = false;
     // Minimize DOM manipulation
@@ -187,6 +203,7 @@ export function serialize(tray) {
     return JSON.stringify(tray);
 }
 function ddo(the_data) {
+    var _a;
     // console.log("help");
     let url;
     if (the_data.host_url) {
@@ -195,12 +212,12 @@ function ddo(the_data) {
     else {
         url = the_data.url;
     }
-    let tray = new Tray(the_data.parentId, the_data.id, the_data.name, the_data.borderColor, the_data.labels, the_data.created_dt, the_data.flexDirection, url, the_data.filename, the_data.isFolded instanceof Boolean ? the_data.isFolded : true);
+    let tray = new Tray(the_data.parentId, the_data.id, the_data.name, the_data.borderColor, the_data.labels, the_data.created_dt, the_data.flexDirection, url, the_data.filename, the_data.isFolded instanceof Boolean ? the_data.isFolded : true, (_a = the_data.properties) !== null && _a !== void 0 ? _a : {});
     let children = the_data.children;
     if (children.length > 0) {
         children
             .map((d) => ddo(d))
-            // .sort((a, b) => a.created_dt.getTime() - b.created_dt.getTime())
+            // Sort older items first because addChild prepends
             .sort((a, b) => new Date(a.created_dt).getTime() - new Date(b.created_dt).getTime())
             .map((t) => tray.addChild(t));
     }
@@ -209,6 +226,35 @@ function ddo(the_data) {
 export function deserialize(data) {
     let the_data = JSON.parse(data);
     return ddo(the_data);
+}
+export function deserializeJSONL(data) {
+    const lines = data.split("\n").map((l) => JSON.parse(l));
+    const id2Tray = new Map();
+    lines.forEach(td => {
+        var _a;
+        const t = new Tray(td.parentId, td.id, td.name, td.borderColor, td.labels, td.created_dt, td.flexDirection, td.host_url, td.filename, td.isFolded, (_a = td.properties) !== null && _a !== void 0 ? _a : {});
+        id2Tray.set(td.id, t);
+        const p = id2Tray.get(td.parentId);
+        if (p) {
+            p.children.push(t);
+        }
+    });
+    const root = crawl(id2Tray);
+    return root;
+}
+function crawl(id2Tray) {
+    const start = id2Tray.get(id2Tray.keys().next().value);
+    let now = start;
+    while (true) {
+        const p = id2Tray.get(now === null || now === void 0 ? void 0 : now.parentId);
+        if (p) {
+            now = p;
+        }
+        else {
+            break;
+        }
+    }
+    return now;
 }
 export function loadFromLocalStorage(key = TRAY_DATA_KEY) {
     let rootTray;

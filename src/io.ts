@@ -191,6 +191,19 @@ function fetchDataFromStore(db: IDBDatabase, key: string): Promise<any> {
   });
 }
 
+export async function getAllSessionIds(): Promise<string[]> {
+  const db = await openDatabase();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction("trays", "readonly");
+    const store = transaction.objectStore("trays");
+    const request = store.getAllKeys();
+    request.onsuccess = () => {
+      resolve((request.result as string[]).filter((k) => typeof k === "string"));
+    };
+    request.onerror = () => reject(request.error);
+  });
+}
+
 function initializeTray(rootTray: Tray) {
   // rootTray.isFolded = false;
 
