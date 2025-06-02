@@ -237,7 +237,9 @@ function ddo(the_data: any) {
     the_data.properties ?? {},
     the_data.encryptionKey ?? null
   );
-  let children = the_data.children as [];
+  const children = Array.isArray(the_data.children)
+    ? (the_data.children as any[])
+    : [];
   if (children.length > 0) {
     children
       .map((d) => ddo(d))
