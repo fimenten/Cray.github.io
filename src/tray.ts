@@ -427,8 +427,24 @@ export class Tray {
     }
   }
 
+  private isImageUrl(text: string): boolean {
+    if (text.startsWith("data:image/")) return true;
+    try {
+      const u = new URL(text);
+      return /\.(png|jpe?g|gif|bmp|svg)$/i.test(u.pathname);
+    } catch {
+      return false;
+    }
+  }
+
   private updateTitleContent(titleElement: HTMLDivElement) {
-    if (this.isValidUrl(this.name)) {
+    if (this.isImageUrl(this.name)) {
+      const img = document.createElement("img");
+      img.src = this.name;
+      img.alt = this.name;
+      titleElement.innerHTML = "";
+      titleElement.appendChild(img);
+    } else if (this.isValidUrl(this.name)) {
       const a = document.createElement("a");
       a.href = this.name;
       a.textContent = this.name;

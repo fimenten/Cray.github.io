@@ -104,22 +104,37 @@ export function cutTray(tray: Tray) {
   navigator.clipboard.writeText(serialized);
 }
 
-export function pasteFromClipboardInto(tray: Tray) {
-  const serialized = navigator.clipboard.readText().then((str) => {
+export async function pasteFromClipboardInto(tray: Tray) {
+  if (navigator.clipboard.read) {
     try {
-      let newTray = deserialize(str);
-      if (!newTray) {
-        return;
+      const items = await navigator.clipboard.read();
+      for (const item of items) {
+        for (const type of item.types) {
+          if (type.startsWith("image/")) {
+            const blob = await item.getType(type);
+            const url = URL.createObjectURL(blob);
+            const newTray = new Tray(tray.id, generateUUID(), url);
+            tray.addChild(newTray);
+            return;
+          }
+        }
       }
-      tray.addChild(newTray);
     } catch {
-      const texts = str.split("\n").filter((line) => line.trim() !== "");
-      const trays = texts.map(
-        (text) => new Tray(tray.id, generateUUID(), text),
-      );
-      trays.map((t) => tray.addChild(t));
+      // ignore errors and fall back to readText
     }
-  });
+  }
+  const str = await navigator.clipboard.readText();
+  try {
+    let newTray = deserialize(str);
+    if (!newTray) {
+      return;
+    }
+    tray.addChild(newTray);
+  } catch {
+    const texts = str.split("\n").filter((line) => line.trim() !== "");
+    const trays = texts.map((text) => new Tray(tray.id, generateUUID(), text));
+    trays.map((t) => tray.addChild(t));
+  }
 }
 
 export function deleteTray(tray: Tray) {

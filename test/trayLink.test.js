@@ -30,6 +30,7 @@ function createElement(tag='div'){
   };
   if(tag === 'a') el.href = '';
   if(tag === 'input') el.type = '';
+  if(tag === 'img') el.src = '';
   return el;
 }
 
@@ -82,4 +83,24 @@ test('non url name stays text', () => {
   const t = new Tray('0','3','hello');
   const title = t.element.querySelector('.tray-title');
   assert.strictEqual(title.textContent, 'hello');
+});
+
+test('image url renders img', () => {
+  const t = new Tray('0','4','https://example.com/foo.png');
+  const title = t.element.querySelector('.tray-title');
+  const img = title.children[0];
+  assert.ok(img);
+  assert.strictEqual(img.src, 'https://example.com/foo.png');
+});
+
+test('finishTitleEdit converts to image', () => {
+  const t = new Tray('0','5','first');
+  let title = t.element.querySelector('.tray-title');
+  t.startTitleEdit(title);
+  title.textContent = 'https://foo.com/bar.jpg';
+  t.finishTitleEdit(title);
+  title = t.element.querySelector('.tray-title');
+  const img = title.children[0];
+  assert.ok(img);
+  assert.strictEqual(img.src, 'https://foo.com/bar.jpg');
 });
