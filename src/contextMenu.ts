@@ -20,6 +20,25 @@ import { cloneTray } from "./utils";
 import store from "./store";
 import { openMenu, closeMenu } from "./state";
 
+const menuItemDefs: Array<{ action: string; label: string }> = [
+  { action: "fetchTrayFromServer", label: "Fetch Tray from Server" },
+  { action: "networkSetting", label: "Network Setting" },
+  { action: "setEncryptKey", label: "Set Encrypt Key" },
+  { action: "openTrayInOther", label: "Open This in Other" },
+  { action: "toggleFlexDirection", label: "Toggle Flex Direction" },
+  { action: "meltTray", label: "Melt this Tray" },
+  { action: "expandAll", label: "Expand All" },
+  { action: "copy", label: "Copy" },
+  { action: "paste", label: "Paste" },
+  { action: "cut", label: "Cut" },
+  { action: "delete", label: "Remove" },
+  { action: "add_fetch_networkTray_to_child", label: "Add Fetch NetworkTray to Child" },
+  { action: "add_child_from_localStorage", label: "Add Child from Local Storage" },
+  { action: "addProperty", label: "Set Property" },
+  { action: "sortChildren", label: "Sort Children" },
+  { action: "outputMarkdown", label: "Output as Markdown" },
+];
+
 function showSortDialog(tray: Tray) {
   const propSet = new Set<string>();
   propSet.add("created_dt");
@@ -75,30 +94,16 @@ let focusedIndex = 0;
 function buildMenu(): HTMLElement {
   const el = document.createElement("div");
   el.className = "context-menu";
-  el.tabIndex = -1;                // フォーカス可
+  el.tabIndex = -1; // フォーカス可
 
-  el.innerHTML = /* html */ `
-    <div class="menu-item" data-act="fetchTrayFromServer">Fetch Tray from Server</div>
-    <div class="menu-item" data-act="networkSetting">Network Setting</div>
-    <div class="menu-item" data-act="setEncryptKey">Set Encrypt Key</div>
-    <div class="menu-item" data-act="openTrayInOther">Open This in Other</div>
-    <div class="menu-item" data-act="toggleFlexDirection">Toggle Flex Direction</div>
-    <div class="menu-item" data-act="meltTray">Melt this Tray</div>
-    <div class="menu-item" data-act="expandAll">Expand All</div>
-    <div class="menu-item" data-act="copy">Copy</div>
-    <div class="menu-item" data-act="paste">Paste</div>
-    <div class="menu-item" data-act="cut">Cut</div>
-    <div class="menu-item" data-act="delete">Remove</div>
-    <div class="menu-item" data-act="add_fetch_networkTray_to_child">Add Fetch NetworkTray to Child</div>
-    <div class="menu-item" data-act="add_child_from_localStorage">Add Child from Local Storage</div>
-    <div class="menu-item" data-act="addLabelTray">Add Label Tray</div>
-    <div class="menu-item" data-act="addLabel">Add Label</div>
-    <div class="menu-item" data-act="removeLabel">Edit Labels</div>
-    <div class="menu-item" data-act="addProperty">Set Property</div>
-    <div class="menu-item" data-act="sortChildren">Sort Children</div>
-    <div class="menu-item" data-act="outputMarkdown">Output as Markdown</div>
-    <div class="menu-item"><input type="color" id="borderColorPicker" /></div>
-  `;
+  el.innerHTML =
+    menuItemDefs
+      .map(
+        (m) =>
+          `<div class="menu-item" data-act="${m.action}">${m.label}</div>`,
+      )
+      .join("") +
+    `<div class="menu-item"><input type="color" id="borderColorPicker" /></div>`;
   return el;
 }
 
@@ -271,13 +276,6 @@ function executeMenuAction(tray: Tray, act: string) {
       tray.toggleFlexDirection?.();
       break;
 
-    // case "addLabel":
-    //   showLabelSelector(tray);
-    //   break;
-
-    // case "removeLabel":
-    //   showLabelRemover(tray);
-    //   break;
 
     case "outputMarkdown":
       showMarkdownOutput(tray)
@@ -308,7 +306,6 @@ function executeMenuAction(tray: Tray, act: string) {
     // ↓ 必要に応じて追加
     // case "add_fetch_networkTray_to_child":
     // case "add_child_from_localStorage":
-    // case "addLabelTray":
     //   tray.handleCustomAction?.(act);
     //   break;
 

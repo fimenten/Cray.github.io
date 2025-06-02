@@ -15,6 +15,27 @@ import { isElementInDocument } from "./domUtils";
 export let selected_trays: Tray[] = [];
 let sessionListContainer: HTMLElement | null = null;
 
+const hamburgerMenuItems: Array<{ action: string; label: string }> = [
+  { action: "reset", label: "トレイをリセット" },
+  { action: "save", label: "現在の状態を保存" },
+  { action: "load", label: "保存した状態を読み込む" },
+  { action: "export", label: "データのエクスポート" },
+  { action: "import", label: "データのインポート" },
+  { action: "set_default_server", label: "set_default_server" },
+  { action: "set_secret", label: "set_secret" },
+  { action: "open_new_session", label: "新しいセッションを開く" },
+  { action: "show_sessions", label: "セッション一覧" },
+  {
+    action: "import_network_tray_directly_as_root",
+    label: "import_network_tray_directly_as_root",
+  },
+  { action: "editTitle", label: "ページタイトルを編集" },
+  { action: "uploadAll", label: "Upload All" },
+  { action: "downloadAll", label: "Download All" },
+  { action: "copySelected", label: "Copy selected" },
+  { action: "cutSelected", label: "Cut selected" },
+];
+
 function appendMenuItems(
   menu: HTMLElement,
   items: Array<{ action: string; label: string }>,
@@ -72,29 +93,7 @@ export function createHamburgerMenu() {
   // menu.style.borderRadius = '4px';
   // menu.style.padding = '10px';
   // menu.style.zIndex = '999';
-  appendMenuItems(menu, [
-    { action: "reset", label: "トレイをリセット" },
-    { action: "save", label: "現在の状態を保存" },
-    { action: "load", label: "保存した状態を読み込む" },
-    { action: "export", label: "データのエクスポート" },
-    { action: "import", label: "データのインポート" },
-    { action: "set_default_server", label: "set_default_server" },
-    { action: "set_secret", label: "set_secret" },
-    { action: "open_new_session", label: "新しいセッションを開く" },
-    { action: "show_sessions", label: "セッション一覧" },
-    {
-      action: "import_network_tray_directly_as_root",
-      label: "import_network_tray_directly_as_root",
-    },
-    { action: "manageLabels", label: "ラベル管理" },
-    { action: "exportLabels", label: "ラベルをエクスポート" },
-    { action: "importLabels", label: "ラベルをインポート" },
-    { action: "editTitle", label: "ページタイトルを編集" },
-    { action: "uploadAll", label: "Upload All" },
-    { action: "downloadAll", label: "Download All" },
-    { action: "copySelected", label: "Copy selected" },
-    { action: "cutSelected", label: "Cut selected" },
-  ]);
+  appendMenuItems(menu, hamburgerMenuItems);
 
   document.body.appendChild(menu);
 
