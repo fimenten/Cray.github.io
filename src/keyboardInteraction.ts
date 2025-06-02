@@ -5,6 +5,7 @@ import { Tray } from "./tray";
 import { getTrayFromId, toggleEditMode } from "./utils";
 import { selected_trays, cutSelected, copySelected, deleteSelected } from "./hamburger";
 import { openContextMenuKeyboard } from "./contextMenu";
+import { undo } from "./history";
 
 
 export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
@@ -91,6 +92,12 @@ export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
       if (event.ctrlKey) {
         event.preventDefault();
         pasteFromClipboardInto(tray);
+      }
+      break;
+    case "z":
+      if (event.ctrlKey) {
+        event.preventDefault();
+        undo();
       }
       break;
     case "m":
