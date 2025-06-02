@@ -3,5 +3,6 @@ trays
 past.txt
 tray_data.json
 # Ignore built assets except for GitHub Pages
-#dist
+dist/*
+!dist/bundle.js
 
