@@ -18,6 +18,7 @@ export function fetchTrayList(tray: Tray) {
       return response.json();
     })
     .then((data) => {
+      console.log("Fetched tray list", data);
       showTraySelectionDialog(tray, url, data.files);
     })
     .catch((error) => {
@@ -83,6 +84,7 @@ export async function addTrayFromServer(
     }
 
     const payload = await response.json();
+    console.log("Fetched tray", payload);
 
     let serialized: string;
     if (payload.encrypted) {
@@ -175,6 +177,7 @@ export async function downloadData(tray: Tray) {
     }
 
     const data = await response.json();
+    console.log("Fetched data from server", data);
 
     let serialized: string;
     if (data.encrypted) {
