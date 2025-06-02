@@ -33,6 +33,7 @@ export const HAMBURGER_MENU_ITEMS: HamburgerMenuItem[] = [
   { action: "editTitle", label: "ページタイトルを編集" },
   { action: "uploadAll", label: "Upload All" },
   { action: "downloadAll", label: "Download All" },
+  { action: "newSession", label: "New Session" },
   { action: "copySelected", label: "Copy selected" },
   { action: "cutSelected", label: "Cut selected" },
 ];
@@ -132,6 +133,7 @@ export function createHamburgerMenu() {
     editTitle: editPageTitle,
     uploadAll: () => uploadAllData(),
     downloadAll: () => downloadAllData(),
+    newSession: openNewSession,
     cutSelected: cutSelected,
     copySelected: copySelected,
   };
@@ -270,6 +272,10 @@ async function showSessionList() {
     }
   });
   cancelBtn.addEventListener("click", () => dialog.remove());
+}
+
+export function openNewSession() {
+  window.location.href = `${window.location.pathname}?sessionId=new`;
 }
 
 function set_default_server() {

@@ -28,7 +28,10 @@ const documentStub = {
   querySelector(){return null;},
   addEventListener(){},
 };
-const windowStub = { addEventListener(){} };
+const windowStub = { 
+  addEventListener(){},
+  location:{ pathname:'/page', href:'' }
+};
 
 global.window = windowStub;
 
@@ -45,4 +48,9 @@ test('createHamburgerMenu adds items', () => {
   assert.strictEqual(menu.style.display, 'block');
   hamburger.onclick({ stopPropagation(){} });
   assert.strictEqual(menu.style.display, 'none');
+});
+
+test('new session menu updates location', () => {
+  ham.openNewSession();
+  assert.strictEqual(window.location.href, '/page?sessionId=new');
 });
