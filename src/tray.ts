@@ -737,6 +737,36 @@ export class Tray {
     saveToIndexedDB();
   }
 
+  moveInParent(offset: number) {
+    const parent = getTrayFromId(this.parentId) as Tray | undefined;
+    if (!parent) return;
+    const index = parent.children.indexOf(this);
+    const newIndex = index + offset;
+    if (index === -1 || newIndex < 0 || newIndex >= parent.children.length)
+      return;
+
+    parent.children.splice(index, 1);
+    parent.children.splice(newIndex, 0, this);
+
+    const content = parent.element.querySelector(
+      ".tray-content",
+    ) as HTMLElement | null;
+    if (content) {
+      const next = parent.children[newIndex + 1];
+      content.insertBefore(this.element, next ? next.element : null);
+    }
+
+    saveToIndexedDB();
+  }
+
+  moveUp() {
+    this.moveInParent(-1);
+  }
+
+  moveDown() {
+    this.moveInParent(1);
+  }
+
   // Default to ascending order
   sortChildren(property: string = "created_dt", descending: boolean = false) {
     this.children.sort((a, b) => {

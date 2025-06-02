@@ -31,6 +31,16 @@ export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
   }
 
   tray.element.focus();
+  if (event.ctrlKey && event.key === "ArrowUp") {
+    event.preventDefault();
+    tray.moveUp();
+    return;
+  }
+  if (event.ctrlKey && event.key === "ArrowDown") {
+    event.preventDefault();
+    tray.moveDown();
+    return;
+  }
   switch (event.key) {
     case "ArrowUp":
       event.preventDefault();
