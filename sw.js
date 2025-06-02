@@ -1,8 +1,8 @@
-const CACHE_NAME = 'cray-cache-v1';
+const CACHE_NAME = 'cray-cache-v2';
 const URLS = [
   './',
-  './dist/bundle.js',
-  './src/styles.css',
+  './bundle.js',
+  './styles.css',
   './manifest.webmanifest'
 ];
 
