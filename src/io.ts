@@ -88,6 +88,11 @@ export async function saveToIndexedDB(
 
       const tray = element2TrayMap.get(rootElement as HTMLElement) as Tray;
       const data = content ? content : serialize(tray);
+      // record current state for undo history
+      try {
+        const { recordState } = require('./history');
+        recordState(data);
+      } catch {}
 
       if (!data) {
         reject("Serialize failed");
@@ -147,11 +152,19 @@ export async function loadFromIndexedDB(
       rootTray = createDefaultRootTray();
     }
 
-    initializeTray(rootTray);
+    renderRootTray(rootTray);
+    try {
+      const { recordState } = require('./history');
+      recordState(serialize(rootTray));
+    } catch {}
   } catch (error) {
     console.error("Error loading from IndexedDB:", error);
     const rootTray = createDefaultRootTray();
-    initializeTray(rootTray);
+    renderRootTray(rootTray);
+    try {
+      const { recordState } = require('./history');
+      recordState(serialize(rootTray));
+    } catch {}
   }
 }
 
@@ -204,7 +217,7 @@ export async function getAllSessionIds(): Promise<string[]> {
   });
 }
 
-function initializeTray(rootTray: Tray) {
+export function renderRootTray(rootTray: Tray) {
   // rootTray.isFolded = false;
 
   // Minimize DOM manipulation
