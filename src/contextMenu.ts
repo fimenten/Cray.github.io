@@ -121,7 +121,7 @@ export function buildMenu(): HTMLElement {
 
 
 // ===== パブリック API ==========================================
-export function openContextMenu(tray: Tray, ev: MouseEvent | TouchEvent) {
+export function openContextMenu(tray: Tray, ev: MouseEvent | TouchEvent | { clientX: number; clientY: number }) {
   // ――― HMR や再描画で切れていたら付け直す ―――
   if (!menu.isConnected) document.body.appendChild(menu);
 
@@ -129,6 +129,7 @@ export function openContextMenu(tray: Tray, ev: MouseEvent | TouchEvent) {
   position(ev, menu);             // 幅・高さが 0 で計算されるのを防ぐ
   hydrateMenu(tray);
   menu.focus();
+  setupKeyboardNavigation(tray);
 
   console.log("openContextMenu OK")
 
@@ -141,9 +142,22 @@ export function openContextMenu(tray: Tray, ev: MouseEvent | TouchEvent) {
   document.addEventListener("pointerdown", closeOnce);
 }
 
+export function openContextMenuKeyboard(tray: Tray) {
+  const rect = tray.element.getBoundingClientRect();
+  const dummy = { clientX: rect.left + rect.width / 2, clientY: rect.top + rect.height / 2 } as MouseEvent;
+  openContextMenu(tray, dummy);
+}
+
 
 export function closeContextMenu() {
   menu.style.display = "none";
+  if (keyHandler) {
+    menu.removeEventListener("keydown", keyHandler);
+    keyHandler = null;
+  }
+  menu.querySelectorAll<HTMLElement>(".menu-item").forEach((el) =>
+    el.classList.remove("focused")
+  );
 }
 
 // ===== 内部ヘルパ ==============================================
@@ -166,12 +180,52 @@ function hydrateMenu(tray: Tray) {
   };
 }
 
-function position(ev: MouseEvent | TouchEvent, el: HTMLElement) {
+let keyHandler: ((e: KeyboardEvent) => void) | null = null;
+function setupKeyboardNavigation(tray: Tray) {
+  const items = Array.from(menu.querySelectorAll<HTMLElement>(".menu-item"));
+  let index = 0;
+
+  const focusItem = (i: number) => {
+    items.forEach((el) => el.classList.remove("focused"));
+    const item = items[i];
+    item.classList.add("focused");
+    (item as HTMLElement).focus?.();
+  };
+
+  focusItem(index);
+
+  keyHandler = (e: KeyboardEvent) => {
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        index = (index + 1) % items.length;
+        focusItem(index);
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        index = (index - 1 + items.length) % items.length;
+        focusItem(index);
+        break;
+      case "Enter":
+        e.preventDefault();
+        items[index].click();
+        break;
+      case "Escape":
+        e.preventDefault();
+        closeContextMenu();
+        break;
+    }
+  };
+
+  menu.addEventListener("keydown", keyHandler);
+}
+
+function position(ev: MouseEvent | TouchEvent | { clientX: number; clientY: number }, el: HTMLElement) {
   // ① クリック座標
   const pt =
-    ev instanceof MouseEvent
-      ? { x: ev.clientX, y: ev.clientY }
-      : { x: ev.touches[0].clientX, y: ev.touches[0].clientY };
+    'clientX' in ev
+      ? { x: (ev as any).clientX, y: (ev as any).clientY }
+      : { x: (ev as TouchEvent).touches[0].clientX, y: (ev as TouchEvent).touches[0].clientY };
 
   // ② メニュー寸法（表示前に display:block 済み）
   const { width, height } = el.getBoundingClientRect();

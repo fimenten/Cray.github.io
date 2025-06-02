@@ -4,6 +4,7 @@ import store from "./store";
 import { Tray } from "./tray";
 import { getTrayFromId, toggleEditMode } from "./utils";
 import { selected_trays, cutSelected, copySelected, deleteSelected } from "./hamburger";
+import { openContextMenuKeyboard } from "./contextMenu";
 
 
 export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
@@ -98,6 +99,22 @@ export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
         showMarkdownOutput(tray)
         break
       }
+    case " ":
+      if (event.ctrlKey) {
+        event.preventDefault();
+        openContextMenuKeyboard(tray);
+      }
+      break;
+    case "ContextMenu":
+      event.preventDefault();
+      openContextMenuKeyboard(tray);
+      break;
+    case "F10":
+      if (event.shiftKey) {
+        event.preventDefault();
+        openContextMenuKeyboard(tray);
+      }
+      break;
     // case " ":
     //   if (event.ctrlKey) {
     //     event.preventDefault();
