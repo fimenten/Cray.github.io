@@ -233,7 +233,7 @@ function ddo(the_data: any) {
     the_data.flexDirection,
     url,
     the_data.filename,
-    the_data.isFold instanceof Boolean ? the_data.isFold : true,
+    the_data.isFolded instanceof Boolean ? the_data.isFolded : true,
   );
   let children = the_data.children as [];
   if (children.length > 0) {

@@ -1,182 +1,245 @@
-/* -----------------------------------------------------------
- *  contextMenu.ts ― コンテキストメニュー生成 & 操作
- *  2025-05-06 完全刷新版
- *  - メニュー DOM をシングルトンで再利用
- *  - 強制リフロー無し (transform で配置)
- *  - 累積イベントリスナー発生を防止
- * ---------------------------------------------------------- */
+import { cloneTray, generateUUID, getTrayFromId, getWhiteColor } from "./utils";
+import { Tray } from "./tray";
+import { deserialize, saveToIndexedDB, serialize } from "./io";
+import { showLabelRemover, showLabelSelector } from "./label";
 import { fetchTrayList, setNetworkOption } from "./networks";
-import { meltTray, 
-// expandAll,
-deleteTray, pasteFromClipboardInto, showMarkdownOutput, } from "./functions";
-import { serialize, saveToIndexedDB } from "./io";
-import { cloneTray } from "./utils";
-// ===== メニュー DOM を 1 回だけ生成 =====
-const menu = buildMenu();
-document.body.appendChild(menu);
-menu.style.display = "none"; // 初期は非表示
-// -- ビルド関数 --------------------------------------------------
-function buildMenu() {
-    const el = document.createElement("div");
-    el.className = "context-menu";
-    el.tabIndex = -1; // フォーカス可
-    el.innerHTML = /* html */ `
-    <div class="menu-item" data-act="fetchTrayFromServer">Fetch Tray from Server</div>
-    <div class="menu-item" data-act="networkSetting">Network Setting</div>
-    <div class="menu-item" data-act="openTrayInOther">Open This in Other</div>
-    <div class="menu-item" data-act="toggleFlexDirection">Toggle Flex Direction</div>
-    <div class="menu-item" data-act="meltTray">Melt this Tray</div>
-    <div class="menu-item" data-act="expandAll">Expand All</div>
-    <div class="menu-item" data-act="copy">Copy</div>
-    <div class="menu-item" data-act="paste">Paste</div>
-    <div class="menu-item" data-act="cut">Cut</div>
-    <div class="menu-item" data-act="delete">Remove</div>
-    <div class="menu-item" data-act="add_fetch_networkTray_to_child">Add Fetch NetworkTray to Child</div>
-    <div class="menu-item" data-act="add_child_from_localStorage">Add Child from Local Storage</div>
-    <div class="menu-item" data-act="addLabelTray">Add Label Tray</div>
-    <div class="menu-item" data-act="addLabel">Add Label</div>
-    <div class="menu-item" data-act="removeLabel">Edit Labels</div>
-    <div class="menu-item" data-act="outputMarkdown">Output as Markdown</div>
-    <div class="menu-item"><input type="color" id="borderColorPicker" /></div>
-  `;
-    return el;
-}
-// ===== パブリック API ==========================================
-export function openContextMenu(tray, ev) {
-    // ――― HMR や再描画で切れていたら付け直す ―――
-    if (!menu.isConnected)
-        document.body.appendChild(menu);
-    menu.style.display = "block"; // ← 先に表示
-    position(ev, menu); // 幅・高さが 0 で計算されるのを防ぐ
-    hydrateMenu(tray);
-    menu.focus();
-    console.log("openContextMenu OK");
-    const closeOnce = (e) => {
-        if (!menu.contains(e.target)) {
-            closeContextMenu();
-            document.removeEventListener("pointerdown", closeOnce);
+import { meltTray, showMarkdownOutput } from "./functions";
+export function onContextMenu(tray, event) {
+    event.preventDefault();
+    event.stopPropagation();
+    // Remove existing context menu
+    const existingMenu = document.querySelector(".context-menu");
+    existingMenu === null || existingMenu === void 0 ? void 0 : existingMenu.remove();
+    // Determine the color to show
+    const showColor = tray.borderColor || getWhiteColor();
+    // Create the context menu
+    const menu = document.createElement("div");
+    menu.classList.add("context-menu");
+    menu.setAttribute("tabindex", "-1");
+    menu.innerHTML = `
+      <div class="menu-item" data-action="fetchTrayFromServer" tabindex="0">Fetch Tray from Server</div>
+      <div class="menu-item" data-action="networkSetting" tabindex="1">networkSetting</div>
+      <div class="menu-item" data-action="open_this_in_other" tabindex="2">Open This in Other</div>
+      <div class="menu-item" data-action="toggleFlexDirection" tabindex="3">Toggle Flex Direction</div>
+      <div class="menu-item" data-action="meltTray" tabindex="0">Melt this tray</div>
+      <div class="menu-item" data-action="expandAll" tabindex="0">Expand All</div>
+
+      <div class="menu-item" data-action="copy" tabindex="0">Copy</div>
+      <div class="menu-item" data-action="paste" tabindex="0">Paste</div>
+      <div class="menu-item" data-action="cut" tabindex="0">Cut</div>
+      <div class="menu-item" data-action="delete" tabindex="0">Remove</div>
+      <div class="menu-item" data-action="add_fetch_networkTray_to_child" tabindex="0">Add Fetch NetworkTray to Child</div>
+      <div class="menu-item" data-action="add_child_from_localStorage" tabindex="0">Add Child from Local Storage</div>
+      <div class="menu-item" data-action="addLabelTray" tabindex="0">Add Label Tray</div>
+      <div class="menu-item" data-action="addLabel" tabindex="0">Add Label</div>
+      <div class="menu-item" data-action="removeLabel" tabindex="0">Edit Labels</div>
+      <div class="menu-item" data-action="outputMarkdown" tabindex="0">Output as Markdown</div>
+      <div class="menu-item" data-action="addTemplateTray" tabindex="0">Add Template Tray</div>
+      <div class="menu-item" tabindex="0">
+        <input type="color" id="borderColorPicker" value="${showColor}">
+      </div>
+    `;
+    document.body.appendChild(menu);
+    positionMenu(event, menu);
+    // Add event listeners
+    const menuItems = menu.querySelectorAll(".menu-item");
+    let currentFocus = 0;
+    const handler = (e) => {
+        if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+            menuItems[currentFocus].classList.remove("focused");
+            currentFocus =
+                e.key === "ArrowDown"
+                    ? (currentFocus + 1) % menuItems.length
+                    : (currentFocus - 1 + menuItems.length) % menuItems.length;
+            menuItems[currentFocus].classList.add("focused");
+            menuItems[currentFocus].focus();
+        }
+        else if (e.key === "Enter") {
+            menuItems[currentFocus].click();
+        }
+        else if (e.key === "Escape") {
+            menu.remove();
         }
     };
-    document.addEventListener("pointerdown", closeOnce);
-}
-export function closeContextMenu() {
-    menu.style.display = "none";
-}
-// ===== 内部ヘルパ ==============================================
-function hydrateMenu(tray) {
-    var _a;
-    // カラーピッカー
-    const picker = menu.querySelector("#borderColorPicker");
-    picker.value = (_a = tray.borderColor) !== null && _a !== void 0 ? _a : "#ffffff";
-    picker.onchange = (e) => {
-        var _a;
-        const v = e.target.value;
-        tray.borderColor = v;
-        (_a = tray.changeBorderColor) === null || _a === void 0 ? void 0 : _a.call(tray, v);
-        closeContextMenu();
-    };
-    // メニュークリック → Action 実行
-    menu.onclick = (e) => {
+    document.addEventListener("keydown", handler.bind(tray));
+    menuItems[0].classList.add("focused");
+    menuItems[0].focus();
+    const colorPicker = menu.querySelector("#borderColorPicker");
+    colorPicker.addEventListener("change", (e) => {
         const target = e.target;
-        const act = target.getAttribute("data-act");
-        if (act)
-            executeMenuAction(tray, act);
+        tray.borderColor = target.value;
+        tray.changeBorderColor(target.value);
+        tray.updateAppearance();
+        menu.remove();
+    });
+    const handleMenuClick = (e) => {
+        const action = e.target.getAttribute("data-action");
+        if (action)
+            executeMenuAction(tray, action, event, menu);
     };
+    const handleOutsideClick = (e) => {
+        if (!menu.contains(e.target)) {
+            menu.remove();
+            document.removeEventListener("click", handleOutsideClick);
+        }
+    };
+    menu.addEventListener("click", handleMenuClick);
+    document.addEventListener("click", handleOutsideClick);
+    // this.setupKeyboardNavigation(this.element);
 }
-function position(ev, el) {
-    // ① クリック座標
-    const pt = ev instanceof MouseEvent
-        ? { x: ev.clientX, y: ev.clientY }
-        : { x: ev.touches[0].clientX, y: ev.touches[0].clientY };
-    // ② メニュー寸法（表示前に display:block 済み）
-    const { width, height } = el.getBoundingClientRect();
-    // ③ 画面内に収める
-    let left = pt.x + width > window.innerWidth ? pt.x - width : pt.x;
-    let top = pt.y + height > window.innerHeight ? pt.y - height : pt.y;
-    left = Math.max(0, left);
-    top = Math.max(0, top);
-    // ④ 直接 left/top を書き込む
-    el.style.position = "fixed"; // 念押し
-    el.style.left = `${left}px`;
-    el.style.top = `${top}px`;
-    el.style.transform = ""; // transform はクリア
+export function positionMenu(event, menu) {
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    // Determine the initial position based on the event type
+    let left;
+    let top;
+    if (event instanceof MouseEvent) {
+        // For mouse events, use clientX and clientY
+        left = event.clientX;
+        top = event.clientY;
+    }
+    else if (event instanceof TouchEvent && event.touches.length > 0) {
+        // For touch events, use the first touch point's clientX and clientY
+        left = event.touches[0].clientX;
+        top = event.touches[0].clientY;
+    }
+    else {
+        // Default position if event data is not available
+        left = 0;
+        top = 0;
+    }
+    menu.style.visibility = "hidden";
+    menu.style.display = "block";
+    menu.style.position = "absolute";
+    setTimeout(() => {
+        const menuWidth = menu.offsetWidth;
+        const menuHeight = menu.offsetHeight;
+        // Adjust position to fit within the viewport
+        left = left > viewportWidth / 2 ? left - menuWidth : left;
+        top = top > viewportHeight / 2 ? top - menuHeight : top;
+        left = Math.max(0, Math.min(left, viewportWidth - menuWidth));
+        top = Math.max(0, Math.min(top, viewportHeight - menuHeight));
+        menu.style.left = `${left}px`;
+        menu.style.top = `${top}px`;
+        menu.style.visibility = "visible";
+    }, 0);
 }
-// ===== アクションディスパッチ =================================
-function executeMenuAction(tray, act) {
-    var _a;
-    switch (act) {
+export function copyTray(tray) {
+    const serialized = serialize(cloneTray(tray));
+    navigator.clipboard.writeText(serialized);
+}
+export function renameTray(tray) {
+    const title = tray.element.querySelector(".tray-title");
+    if (!title) {
+        return;
+    }
+    title.setAttribute("contenteditable", "true");
+    // title.focus();
+    saveToIndexedDB();
+}
+export function cutTray(tray) {
+    const serialized = serialize(cloneTray(tray));
+    navigator.clipboard.writeText(serialized);
+}
+export function pasteTray(tray) {
+    const serialized = navigator.clipboard.readText().then((str) => {
+        try {
+            let newTray = deserialize(str);
+            if (!newTray) {
+                return;
+            }
+            tray.addChild(newTray);
+        }
+        catch (_a) {
+            const texts = str.split("\n").filter((line) => line.trim() !== "");
+            const trays = texts.map((text) => new Tray(tray.id, generateUUID(), text));
+            trays.map((t) => tray.addChild(t));
+        }
+    });
+}
+export function deleteTray(tray) {
+    const parent = getTrayFromId(tray.parentId);
+    const indexInParent = parent.children.findIndex((child) => child.id === tray.id);
+    parent.removeChild(tray.id);
+    tray.element.remove();
+    tray.moveFocusAfterDelete(parent, indexInParent);
+    saveToIndexedDB();
+}
+export function executeMenuAction(tray, action, event, menu) {
+    switch (action) {
         case "copy":
-            navigator.clipboard.writeText(serialize(cloneTray(tray)));
+            copyTray(tray);
             break;
-        case "paste":
-            pasteFromClipboardInto(tray);
+        case "rename":
+            renameTray(tray);
             break;
         case "cut":
-            navigator.clipboard.writeText(serialize(cloneTray(tray)));
-            deleteTray(tray);
+            cutTray(tray);
+            break;
+        case "paste":
+            pasteTray(tray);
+            saveToIndexedDB();
+            break;
+        case "addLabel":
+            showLabelSelector(tray, event);
+            break;
+        case "removeLabel":
+            showLabelRemover(tray);
             break;
         case "delete":
             deleteTray(tray);
             break;
+        case "toggleFlexDirection":
+            tray.toggleFlexDirection();
+            break;
         case "networkSetting":
             setNetworkOption(tray);
+            saveToIndexedDB();
             break;
         case "meltTray":
             meltTray(tray);
+            saveToIndexedDB();
             break;
-        // case "expandAll":
-        //   expandAll(tray);
-        //   break;
-        case "toggleFlexDirection":
-            (_a = tray.toggleFlexDirection) === null || _a === void 0 ? void 0 : _a.call(tray);
+        case "expandAll":
+            expandAll(tray);
             break;
-        // case "addLabel":
-        //   showLabelSelector(tray);
+        //   case "add_fetch_networkTray_to_child":
+        // this.add_fetch_networkTray_to_child();
+        // break;
+        // case "open_this_in_other":
+        //   this.open_this_in_other();
         //   break;
-        // case "removeLabel":
-        //   showLabelRemover(tray);
-        //   break;
-        case "outputMarkdown":
-            showMarkdownOutput(tray);
-            break;
         case "fetchTrayFromServer":
             fetchTrayList(tray);
             break;
-        // case "openTrayInOther":
-        // openTrayInOther(tray);
-        // break;
-        // ↓ 必要に応じて追加
-        // case "add_fetch_networkTray_to_child":
-        // case "add_child_from_localStorage":
-        // case "addLabelTray":
-        //   tray.handleCustomAction?.(act);
+        //   case "addLabelTray":
+        //     this.addLabelTray();
+        //     break;
+        case "outputMarkdown":
+            showMarkdownOutput(tray);
+            break;
+        // case "addTemplateTray":
+        //   console.log("Add Template Tray clicked");
+        //   this.showTemplateSelectionPopup(event);
         //   break;
-        default:
-            console.warn(`Unknown context-menu action: ${act}`);
     }
-    // 共有ストレージの永続化など
-    saveToIndexedDB === null || saveToIndexedDB === void 0 ? void 0 : saveToIndexedDB();
-    closeContextMenu();
+    menu.remove();
+    saveToIndexedDB;
 }
-/* ===== 推奨 CSS (参考) =========================================
-.context-menu {
-  position: fixed;
-  z-index: 10000;
-  padding: 4px 0;
-  background: #1e1e1e;
-  color: #fff;
-  border-radius: 6px;
-  font-size: 13px;
-  user-select: none;
-  will-change: transform;
-  contain: layout;
+export function toggleEditMode(tray) {
+    const titleElement = tray.element.querySelector(".tray-title");
+    if (!titleElement) {
+        return;
+    }
+    if (titleElement.getAttribute("contenteditable") === "true") {
+        tray.finishTitleEdit(titleElement);
+    }
+    else {
+        tray.startTitleEdit(titleElement);
+    }
 }
-.context-menu .menu-item {
-  padding: 4px 16px;
-  white-space: nowrap;
-  cursor: pointer;
+export function expandAll(tray) {
+    tray.isFolded = false;
+    tray.children.map((t) => expandAll(t));
+    tray.updateAppearance();
 }
-.context-menu .menu-item:hover {
-  background: #3c3c3c;
-}
-============================================================== */

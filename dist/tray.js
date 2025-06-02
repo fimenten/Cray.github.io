@@ -1,12 +1,13 @@
 import { getTrayFromId, getRandomColor, getWhiteColor } from "./utils";
 import { deserialize, saveToIndexedDB, } from "./io";
 import { selected_trays } from "./humberger";
-import { uploadData, addTrayFromServer, } from "./networks";
+import { removeLabel } from "./label";
+import { downloadData, uploadData, } from "./networks";
 import { element2TrayMap } from "./app";
+import { onContextMenu } from "./contextMenu";
 import { handleKeyDown } from "./keyboardInteraction";
 import { setLastFocused } from "./state";
 import store from "./store";
-import { openContextMenu } from "./contextMenu";
 export class Tray {
     constructor(parentId, id, name, color = null, labels = [], created_dt = null, flexDirection = "column", host_url = null, filename = null, isFold = true) {
         this.id = id;
@@ -69,9 +70,12 @@ export class Tray {
         contextMenuButton.addEventListener("click", this.onContextMenuButtonClick.bind(this));
         const labelsElement = document.createElement("div");
         labelsElement.classList.add("tray-labels");
+        if (!this.labels) {
+            labelsElement.style.display = "none";
+        }
         title.addEventListener("contextmenu", (event) => {
             event.stopPropagation();
-            openContextMenu(this, event);
+            onContextMenu(this, event);
         });
         title.addEventListener("dblclick", (event) => {
             title.setAttribute("contenteditable", "true");
@@ -150,11 +154,7 @@ export class Tray {
         uploadButton.addEventListener("click", (e) => uploadData(this));
         const downloadButton = document.createElement("button");
         downloadButton.textContent = "Download";
-        downloadButton.addEventListener("click", (e) => {
-            if ((this.host_url) && (this.filename)) {
-                addTrayFromServer(getTrayFromId(this.parentId), this.host_url, this.filename);
-            }
-        });
+        downloadButton.addEventListener("click", (e) => downloadData(this));
         // const autoUploadButton = document.createElement("button");
         // autoUploadButton.textContent = `Auto Upload: ${
         //   this.autoUpload ? "On" : "Off"
@@ -177,9 +177,6 @@ export class Tray {
         titleContainer.style.justifyContent = "space-between";
         tray.addEventListener("focus", (e) => store.dispatch(setLastFocused(this)));
         tray.addEventListener("click", (e) => {
-            store.dispatch(setLastFocused(this));
-        });
-        tray.addEventListener("touchstart", (e) => {
             store.dispatch(setLastFocused(this));
         });
         return tray;
@@ -259,6 +256,48 @@ export class Tray {
             }
             clearTimeout(longPressTimer);
         });
+    }
+    // updateLabels(): void {
+    //   let labelContainer = this.element.querySelector(
+    //     ".tray-labels"
+    //   ) as HTMLElement | null;
+    //   if (!labelContainer) {
+    //     const titleContainer = this.element.querySelector(
+    //       ".tray-title-container"
+    //     ) as HTMLElement | null;
+    //     if (titleContainer) {
+    //       labelContainer = document.createElement("div");
+    //       labelContainer.classList.add("tray-labels");
+    //       titleContainer.appendChild(labelContainer);
+    //     }
+    //   }
+    //   if (labelContainer) {
+    //     labelContainer.innerHTML = "";
+    //     if (this.labels && this.labels.length > 0) {
+    //       labelContainer.style.display = "block";
+    //     }
+    //     this.labels.forEach((labelName: string) => {
+    //       const labelColor = globalLabelManager.getLabel(labelName);
+    //       if (labelColor) {
+    //         const labelElement = document.createElement("span");
+    //         labelElement.classList.add("tray-label");
+    //         labelElement.textContent = labelName;
+    //         labelElement.style.backgroundColor = labelColor;
+    //         labelElement.addEventListener("click", (event: MouseEvent) =>
+    //           this.onLabelClick(tray,event, labelName)
+    //         );
+    //         labelContainer.appendChild(labelElement);
+    //         globalLabelManager.registLabeledTray(labelName, this);
+    //       }
+    //     });
+    //     // saveToIndexedDB();
+    //   }
+    // }
+    onLabelClick(tray, event, labelName) {
+        event.stopPropagation();
+        if (confirm(`Do you want to remove the label "${labelName}"?`)) {
+            removeLabel(tray, labelName);
+        }
     }
     updateFlexDirection() {
         const content = this.element.querySelector(".tray-content");
@@ -407,7 +446,7 @@ export class Tray {
         this.showContextMenu(event);
     }
     showContextMenu(event) {
-        openContextMenu(this, event);
+        onContextMenu(this, event);
     }
     finishTitleEdit(titleElement) {
         titleElement.setAttribute("contenteditable", "false");
@@ -506,6 +545,7 @@ export class Tray {
             const color = this.borderColor == getWhiteColor()
                 ? getRandomColor()
                 : this.borderColor;
+            console.log(this.borderColor === getWhiteColor(), color, this.borderColor);
             this.borderColor = color;
             this.updateBorderColor(this.borderColor);
             this.updateAppearance();

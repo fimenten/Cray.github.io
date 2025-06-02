@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { deserialize, serialize } from "./io";
 import { getTrayFromId } from "./utils";
-import { deleteTray } from "./functions";
+import { deleteTray } from "./contextMenu";
 export function fetchTrayList(tray) {
     const defaultServer = localStorage.getItem("defaultServer") || "";
     const url = prompt("Enter server URL:", defaultServer);
@@ -71,7 +71,6 @@ export function addTrayFromServer(parent, host_url, filename) {
                 throw new Error("Network response was not ok");
             }
             const data = yield response.json();
-            console.log(data);
             parent.addChild(deserialize(JSON.stringify(data)));
         }
         catch (error) {

@@ -53,20 +53,12 @@ export function cloneTray(tray) {
     ret.id = generateUUID();
     return ret;
 }
-export function toggleEditMode(tray) {
-    const titleElement = tray.element.querySelector(".tray-title");
-    if (!titleElement) {
-        return;
+export function getEventCoordinates(event) {
+    if (event instanceof MouseEvent) {
+        return [event.clientX, event.clientY];
     }
-    if (titleElement.getAttribute("contenteditable") === "true") {
-        tray.finishTitleEdit(titleElement);
+    else if (event instanceof TouchEvent && event.touches.length > 0) {
+        return [event.touches[0].clientX, event.touches[0].clientY];
     }
-    else {
-        tray.startTitleEdit(titleElement);
-    }
-}
-export function expandAll(tray) {
-    tray.isFolded = false;
-    tray.children.map((t) => expandAll(t));
-    tray.updateAppearance();
+    return [0, 0];
 }
