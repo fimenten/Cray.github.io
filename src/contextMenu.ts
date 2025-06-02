@@ -10,13 +10,38 @@ import { Tray } from "./tray";
 import { fetchTrayList, setNetworkOption } from "./networks";
 import {
   meltTray,
-  // expandAll,
   deleteTray,
   pasteFromClipboardInto,
   showMarkdownOutput,
 } from "./functions";
 import { serialize, saveToIndexedDB } from "./io";
 import { cloneTray } from "./utils";
+
+export interface ContextMenuItem {
+  act: string;
+  label: string;
+}
+
+export const CONTEXT_MENU_ITEMS: ContextMenuItem[] = [
+  { act: "fetchTrayFromServer", label: "Fetch Tray from Server" },
+  { act: "networkSetting", label: "Network Setting" },
+  { act: "openTrayInOther", label: "Open This in Other" },
+  { act: "toggleFlexDirection", label: "Toggle Flex Direction" },
+  { act: "meltTray", label: "Melt this Tray" },
+  { act: "expandAll", label: "Expand All" },
+  { act: "copy", label: "Copy" },
+  { act: "paste", label: "Paste" },
+  { act: "cut", label: "Cut" },
+  { act: "delete", label: "Remove" },
+  {
+    act: "add_fetch_networkTray_to_child",
+    label: "Add Fetch NetworkTray to Child",
+  },
+  { act: "add_child_from_localStorage", label: "Add Child from Local Storage" },
+  { act: "addProperty", label: "Set Property" },
+  { act: "sortChildren", label: "Sort Children" },
+  { act: "outputMarkdown", label: "Output as Markdown" },
+];
 
 function showSortDialog(tray: Tray) {
   const propSet = new Set<string>();
@@ -67,29 +92,30 @@ document.body.appendChild(menu);
 menu.style.display = "none";       // 初期は非表示
 
 // -- ビルド関数 --------------------------------------------------
-function buildMenu(): HTMLElement {
+export function buildMenu(): HTMLElement {
   const el = document.createElement("div");
   el.className = "context-menu";
-  el.tabIndex = -1;                // フォーカス可
+  el.tabIndex = -1; // フォーカス可
 
-  el.innerHTML = /* html */ `
-    <div class="menu-item" data-act="fetchTrayFromServer">Fetch Tray from Server</div>
-    <div class="menu-item" data-act="networkSetting">Network Setting</div>
-    <div class="menu-item" data-act="openTrayInOther">Open This in Other</div>
-    <div class="menu-item" data-act="toggleFlexDirection">Toggle Flex Direction</div>
-    <div class="menu-item" data-act="meltTray">Melt this Tray</div>
-    <div class="menu-item" data-act="expandAll">Expand All</div>
-    <div class="menu-item" data-act="copy">Copy</div>
-    <div class="menu-item" data-act="paste">Paste</div>
-    <div class="menu-item" data-act="cut">Cut</div>
-    <div class="menu-item" data-act="delete">Remove</div>
-    <div class="menu-item" data-act="add_fetch_networkTray_to_child">Add Fetch NetworkTray to Child</div>
-    <div class="menu-item" data-act="add_child_from_localStorage">Add Child from Local Storage</div>
-    <div class="menu-item" data-act="addProperty">Set Property</div>
-    <div class="menu-item" data-act="sortChildren">Sort Children</div>
-    <div class="menu-item" data-act="outputMarkdown">Output as Markdown</div>
-    <div class="menu-item"><input type="color" id="borderColorPicker" /></div>
-  `;
+  for (const item of CONTEXT_MENU_ITEMS) {
+    const div = document.createElement("div");
+    div.className = "menu-item";
+    if (!("dataset" in div)) {
+      (div as any).dataset = {};
+    }
+    (div as any).dataset.act = item.act;
+    div.textContent = item.label;
+    el.appendChild(div);
+  }
+
+  const colorDiv = document.createElement("div");
+  colorDiv.className = "menu-item";
+  const picker = document.createElement("input");
+  picker.type = "color";
+  picker.id = "borderColorPicker";
+  colorDiv.appendChild(picker);
+  el.appendChild(colorDiv);
+
   return el;
 }
 
