@@ -4,7 +4,7 @@ import {
   generateUUID,
   getRootElement,
 } from "./utils";
-import { exportData, importData } from "./io";
+import { exportData, importData, listSessions } from "./io";
 import { getUrlParameter } from "./utils";
 import { element2TrayMap } from "./app";
 import { Tray } from "./tray";
@@ -12,6 +12,7 @@ import { downloadData, uploadData } from "./networks";
 import { copyTray, deleteTray } from "./functions";
 
 export let selected_trays: Tray[] = [];
+let sessionListContainer: HTMLElement | null = null;
 
 function appendMenuItems(
   menu: HTMLElement,
@@ -79,6 +80,7 @@ export function createHamburgerMenu() {
     { action: "set_default_server", label: "set_default_server" },
     { action: "set_secret", label: "set_secret" },
     { action: "open_new_session", label: "新しいセッションを開く" },
+    { action: "show_sessions", label: "セッション一覧" },
     {
       action: "import_network_tray_directly_as_root",
       label: "import_network_tray_directly_as_root",
@@ -136,6 +138,7 @@ export function createHamburgerMenu() {
     set_default_server: set_default_server,
     editTitle: editPageTitle,
     open_new_session: openNewSession,
+    show_sessions: toggleSessionList,
     uploadAll: () => uploadAllData(),
     downloadAll: () => downloadAllData(),
     cutSelected: cutSelected,
@@ -186,6 +189,69 @@ function openNewSession() {
   const url = new URL(window.location.href);
   url.searchParams.set("sessionId", "new");
   window.location.href = url.toString();
+}
+
+async function toggleSessionList() {
+  if (!sessionListContainer) {
+    sessionListContainer = document.createElement("div");
+    sessionListContainer.classList.add("session-list");
+    document.body.appendChild(sessionListContainer);
+  }
+  if (sessionListContainer.style.display === "block") {
+    sessionListContainer.style.display = "none";
+    return;
+  }
+  const rect = document
+    .querySelector(".hamburger-menu")!
+    .getBoundingClientRect();
+  sessionListContainer.style.left = `${rect.right}px`;
+  sessionListContainer.style.top = `${rect.bottom}px`;
+  sessionListContainer.style.position = "fixed";
+  sessionListContainer.style.backgroundColor = "white";
+  sessionListContainer.style.border = "1px solid #ccc";
+  sessionListContainer.style.padding = "10px";
+  sessionListContainer.style.zIndex = "1002";
+  sessionListContainer.innerHTML = "";
+  const sessions = await listSessions();
+  sessions.forEach((s) => {
+    const item = document.createElement("div");
+    item.classList.add("session-item");
+    const nameSpan = document.createElement("span");
+    nameSpan.textContent = s.title;
+    item.appendChild(nameSpan);
+    const openBtn = document.createElement("button");
+    openBtn.textContent = "開く";
+    openBtn.addEventListener("click", () => {
+      const url = new URL(window.location.href);
+      url.searchParams.set("sessionId", s.id);
+      window.location.href = url.toString();
+    });
+    const renameBtn = document.createElement("button");
+    renameBtn.textContent = "✎";
+    renameBtn.addEventListener("click", () => {
+      const newName = prompt("新しいセッション名", nameSpan.textContent || "");
+      if (newName && newName.trim()) {
+        nameSpan.textContent = newName.trim();
+        localStorage.setItem(s.id + "_title", newName.trim());
+      }
+    });
+    item.appendChild(openBtn);
+    item.appendChild(renameBtn);
+    sessionListContainer!.appendChild(item);
+  });
+  sessionListContainer.style.display = "block";
+  // close when clicking outside
+  const hide = (e: MouseEvent) => {
+    if (
+      sessionListContainer &&
+      !sessionListContainer.contains(e.target as Node) &&
+      (e.target as HTMLElement).closest(".menu-item") === null
+    ) {
+      sessionListContainer.style.display = "none";
+      document.removeEventListener("click", hide);
+    }
+  };
+  document.addEventListener("click", hide);
 }
 
 // function updateAllTrayDirections() {

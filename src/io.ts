@@ -333,3 +333,21 @@ export function loadFromLocalStorage(key: string = TRAY_DATA_KEY): void {
   document.body.appendChild(rootTray.element);
   createHamburgerMenu();
 }
+
+export async function listSessions(): Promise<Array<{ id: string; title: string }>> {
+  const db = await openDatabase();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("trays", "readonly");
+    const store = tx.objectStore("trays");
+    const request = store.getAllKeys();
+    request.onsuccess = () => {
+      const ids = request.result as string[];
+      const sessions = ids.map((id) => ({
+        id,
+        title: localStorage.getItem(id + "_title") || id,
+      }));
+      resolve(sessions);
+    };
+    request.onerror = () => reject(request.error);
+  });
+}
