@@ -80,8 +80,9 @@ export async function addTrayFromServer(
     if (!response.ok) {
       throw new Error("Network response was not ok");
     }
-
+    
     const data = await response.json();
+    console.log(data)
     parent.addChild(deserialize(JSON.stringify(data)));
   } catch (error) {
     console.error("Error:", error);

@@ -1,16 +1,20 @@
-import { getTrayFromId } from "./utils";
+import { deserialize, saveToIndexedDB, serialize } from "./io";
+import { Tray } from "./tray";
+import { cloneTray, generateUUID, getTrayFromId } from "./utils";
 export function meltTray(tray) {
     const parentTray = getTrayFromId(tray.parentId);
     tray.children.map((t) => {
         parentTray.addChild(t);
     });
 }
-export function outputAsMarkdown(tray) {
-    let markdown = "- " + tray.name + "\n";
-    if (tray.children.length > 0) {
-        tray.children.forEach((child) => {
-            markdown += outputAsMarkdown(child).replace("\n", "\n ");
-        });
+export function outputAsMarkdown(tray, depth = 0) {
+    // 深さに応じたスペース（ここでは2スペースずつ）
+    const indent = "  ".repeat(depth);
+    // 現ノードを出力
+    let markdown = `${indent}- ${tray.name}\n`;
+    // 子要素は depth+1 で再帰
+    for (const child of tray.children) {
+        markdown += outputAsMarkdown(child, depth + 1);
     }
     return markdown;
 }
@@ -61,4 +65,54 @@ export function showMarkdownOutput(tray) {
             </body>
           </html>
         `);
+}
+export function getEventCoordinates(event) {
+    if (event instanceof MouseEvent) {
+        return [event.clientX, event.clientY];
+    }
+    else if (event instanceof TouchEvent && event.touches.length > 0) {
+        return [event.touches[0].clientX, event.touches[0].clientY];
+    }
+    return [0, 0];
+}
+export function copyTray(tray) {
+    const serialized = serialize(cloneTray(tray));
+    navigator.clipboard.writeText(serialized);
+}
+export function renameTray(tray) {
+    const title = tray.element.querySelector(".tray-title");
+    if (!title) {
+        return;
+    }
+    title.setAttribute("contenteditable", "true");
+    // title.focus();
+    saveToIndexedDB();
+}
+export function cutTray(tray) {
+    const serialized = serialize(cloneTray(tray));
+    navigator.clipboard.writeText(serialized);
+}
+export function pasteFromClipboardInto(tray) {
+    const serialized = navigator.clipboard.readText().then((str) => {
+        try {
+            let newTray = deserialize(str);
+            if (!newTray) {
+                return;
+            }
+            tray.addChild(newTray);
+        }
+        catch (_a) {
+            const texts = str.split("\n").filter((line) => line.trim() !== "");
+            const trays = texts.map((text) => new Tray(tray.id, generateUUID(), text));
+            trays.map((t) => tray.addChild(t));
+        }
+    });
+}
+export function deleteTray(tray) {
+    const parent = getTrayFromId(tray.parentId);
+    const indexInParent = parent.children.findIndex((child) => child.id === tray.id);
+    parent.removeChild(tray.id);
+    tray.element.remove();
+    tray.moveFocusAfterDelete(parent, indexInParent);
+    saveToIndexedDB();
 }

@@ -1,11 +1,10 @@
 import { generateUUID } from "./utils";
 import { getUrlParameter } from "./utils";
 import { loadFromIndexedDB, } from "./io";
-import { LabelManager } from "./label";
 export const element2TrayMap = new WeakMap();
 export const id2TrayData = new Map();
 const TRAY_DATA_KEY = "trayData";
-export const globalLabelManager = new LabelManager();
+// export const globalLabelManager = new LabelManager();
 window.addEventListener("DOMContentLoaded", () => {
     // const actionButtons = createActionButtons();
     // Attempt alternative insertion if needed

@@ -4,7 +4,7 @@ import { getUrlParameter } from "./utils";
 import { element2TrayMap } from "./app";
 import { Tray } from "./tray";
 import { downloadData, uploadData } from "./networks";
-import { copyTray, deleteTray } from "./contextMenu";
+import { copyTray, deleteTray } from "./functions";
 export let selected_trays = [];
 function resetAllTrays() {
     localStorage.removeItem("trayData");
@@ -28,6 +28,9 @@ export function createHamburgerMenu() {
     // hamburger.style.zIndex = '1000';
     // document.body.appendChild(hamburger);
     leftBar.appendChild(hamburger);
+    const sessionList = document.createElement("div");
+    sessionList.classList.add("sessions-bottum");
+    sessionList.innerHTML = "○";
     const menu = document.createElement("div");
     menu.classList.add("hamburger-menu-items");
     menu.style.display = "none";

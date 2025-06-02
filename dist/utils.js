@@ -53,12 +53,20 @@ export function cloneTray(tray) {
     ret.id = generateUUID();
     return ret;
 }
-export function getEventCoordinates(event) {
-    if (event instanceof MouseEvent) {
-        return [event.clientX, event.clientY];
+export function toggleEditMode(tray) {
+    const titleElement = tray.element.querySelector(".tray-title");
+    if (!titleElement) {
+        return;
     }
-    else if (event instanceof TouchEvent && event.touches.length > 0) {
-        return [event.touches[0].clientX, event.touches[0].clientY];
+    if (titleElement.getAttribute("contenteditable") === "true") {
+        tray.finishTitleEdit(titleElement);
     }
-    return [0, 0];
+    else {
+        tray.startTitleEdit(titleElement);
+    }
+}
+export function expandAll(tray) {
+    tray.isFolded = false;
+    tray.children.map((t) => expandAll(t));
+    tray.updateAppearance();
 }
