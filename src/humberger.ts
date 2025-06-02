@@ -78,6 +78,7 @@ export function createHamburgerMenu() {
     { action: "import", label: "データのインポート" },
     { action: "set_default_server", label: "set_default_server" },
     { action: "set_secret", label: "set_secret" },
+    { action: "open_new_session", label: "新しいセッションを開く" },
     {
       action: "import_network_tray_directly_as_root",
       label: "import_network_tray_directly_as_root",
@@ -134,6 +135,7 @@ export function createHamburgerMenu() {
     import: importData,
     set_default_server: set_default_server,
     editTitle: editPageTitle,
+    open_new_session: openNewSession,
     uploadAll: () => uploadAllData(),
     downloadAll: () => downloadAllData(),
     cutSelected: cutSelected,
@@ -178,6 +180,12 @@ function editPageTitle() {
       alert("ページタイトルを更新しました。");
     }
   }
+}
+
+function openNewSession() {
+  const url = new URL(window.location.href);
+  url.searchParams.set("sessionId", "new");
+  window.location.href = url.toString();
 }
 
 // function updateAllTrayDirections() {
