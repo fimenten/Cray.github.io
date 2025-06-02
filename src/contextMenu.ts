@@ -12,7 +12,8 @@ import {
   meltTray,
   deleteTray,
   pasteFromClipboardInto,
-  showMarkdownOutput,
+  copyMarkdownToClipboard,
+  downloadMarkdown,
 } from "./functions";
 import { serialize, saveToIndexedDB } from "./io";
 import { cloneTray } from "./utils";
@@ -40,7 +41,8 @@ export const CONTEXT_MENU_ITEMS: ContextMenuItem[] = [
   { act: "add_child_from_localStorage", label: "Add Child from Local Storage" },
   { act: "addProperty", label: "Set Property" },
   { act: "sortChildren", label: "Sort Children" },
-  { act: "outputMarkdown", label: "Output as Markdown" },
+  { act: "copyMarkdown", label: "Copy Markdown" },
+  { act: "downloadMarkdown", label: "Download Markdown" },
 ];
 
 function showSortDialog(tray: Tray) {
@@ -282,8 +284,12 @@ function executeMenuAction(tray: Tray, act: string) {
       break;
 
 
-    case "outputMarkdown":
-      showMarkdownOutput(tray)
+    case "copyMarkdown":
+      copyMarkdownToClipboard(tray);
+      break;
+
+    case "downloadMarkdown":
+      downloadMarkdown(tray);
       break;
 
     case "fetchTrayFromServer":
