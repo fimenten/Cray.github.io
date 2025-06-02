@@ -4,6 +4,7 @@ import {
   getRootElement,
   getUrlParameter,
   createDefaultRootTray,
+  generateUUID,
 } from "./utils";
 import { createHamburgerMenu } from "./humberger";
 import { Tray, TrayId } from "./tray";
@@ -215,15 +216,18 @@ export function serialize(tray: Tray) {
   return JSON.stringify(tray);
 }
 
-function ddo(the_data: any) {
-  // console.log("help");
+function ddo(the_data: any): Tray {
+  if (!the_data || typeof the_data !== "object") {
+    return new Tray("0", generateUUID(), "Untitled");
+  }
+
   let url;
   if (the_data.host_url) {
     url = the_data.host_url;
   } else {
     url = the_data.url;
   }
-  let tray = new Tray(
+  const tray = new Tray(
     the_data.parentId,
     the_data.id,
     the_data.name,
@@ -235,21 +239,24 @@ function ddo(the_data: any) {
     the_data.filename,
     typeof the_data.isFolded === "boolean" ? the_data.isFolded : true,
     the_data.properties ?? {},
-    the_data.encryptionKey ?? null
+    the_data.encryptionKey ?? null,
   );
-  const children = Array.isArray(the_data.children)
+
+  const childrenArray = Array.isArray(the_data.children)
     ? (the_data.children as any[])
     : [];
-  if (children.length > 0) {
-    children
+
+  if (childrenArray.length > 0) {
+    childrenArray
       .map((d) => ddo(d))
       // Sort older items first because addChild prepends
       .sort(
         (a, b) =>
           new Date(a.created_dt).getTime() - new Date(b.created_dt).getTime(),
       )
-      .map((t) => tray.addChild(t));
+      .forEach((t) => tray.addChild(t));
   }
+
   return tray;
 }
 
