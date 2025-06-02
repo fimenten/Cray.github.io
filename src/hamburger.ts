@@ -25,7 +25,6 @@ export const HAMBURGER_MENU_ITEMS: HamburgerMenuItem[] = [
   { action: "export", label: "データのエクスポート" },
   { action: "import", label: "データのインポート" },
   { action: "set_default_server", label: "set_default_server" },
-  { action: "set_secret", label: "set_secret" },
   {
     action: "import_network_tray_directly_as_root",
     label: "import_network_tray_directly_as_root",
@@ -287,11 +286,6 @@ function set_default_server() {
   }
   localStorage.setItem("defaultServer", url);
 }
-// function set_secret() {
-//   let secret = localStorage.getItem("secretKey");
-//   secret = prompt("set secretKey", secret);
-//   localStorage.setItem("secretKey", secret);
-// }
 export function cutSelected(): void {
   if (selected_trays.length !== 0) {
     // Copy the selected trays
