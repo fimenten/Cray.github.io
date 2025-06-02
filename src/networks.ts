@@ -82,8 +82,25 @@ export async function addTrayFromServer(
       throw new Error("Network response was not ok");
     }
 
-    const data = await response.json();
-    parent.addChild(deserialize(JSON.stringify(data)));
+    const payload = await response.json();
+
+    let serialized: string;
+    if (payload.encrypted) {
+      const password = parent.encryptionKey ?? prompt("Enter decryption password:", "");
+      if (!password) {
+        throw new Error("Password required for encrypted data");
+      }
+      serialized = await decryptString(payload.data, password);
+    } else {
+      if (typeof payload.data === "string") {
+        serialized = payload.data;
+      } else {
+        serialized = JSON.stringify(payload.data);
+      }
+    }
+
+    const childTray = deserialize(serialized);
+    parent.addChild(childTray);
   } catch (error) {
     console.error("Error:", error);
     alert("Failed to add tray from server.");
