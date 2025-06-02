@@ -10,6 +10,7 @@ import { element2TrayMap } from "./app";
 import { Tray } from "./tray";
 import { downloadData, uploadData } from "./networks";
 import { copyTray, deleteTray } from "./functions";
+import { isElementInDocument } from "./domUtils";
 
 export let selected_trays: Tray[] = [];
 let sessionListContainer: HTMLElement | null = null;
@@ -192,26 +193,27 @@ function openNewSession() {
 }
 
 async function toggleSessionList() {
-  if (!sessionListContainer) {
+  if (!isElementInDocument(sessionListContainer)) {
     sessionListContainer = document.createElement("div");
     sessionListContainer.classList.add("session-list");
     document.body.appendChild(sessionListContainer);
   }
-  if (sessionListContainer.style.display === "block") {
-    sessionListContainer.style.display = "none";
+  const container = sessionListContainer!;
+  if (container.style.display === "block") {
+    container.style.display = "none";
     return;
   }
   const rect = document
     .querySelector(".left-bar")!
     .getBoundingClientRect();
-  sessionListContainer.style.left = `${rect.right}px`;
-  sessionListContainer.style.top = `${rect.bottom}px`;
-  sessionListContainer.style.position = "fixed";
-  sessionListContainer.style.backgroundColor = "white";
-  sessionListContainer.style.border = "1px solid #ccc";
-  sessionListContainer.style.padding = "10px";
-  sessionListContainer.style.zIndex = "1002";
-  sessionListContainer.innerHTML = "";
+  container.style.left = `${rect.right}px`;
+  container.style.top = `${rect.bottom}px`;
+  container.style.position = "fixed";
+  container.style.backgroundColor = "white";
+  container.style.border = "1px solid #ccc";
+  container.style.padding = "10px";
+  container.style.zIndex = "1002";
+  container.innerHTML = "";
   const sessions = await listSessions();
   sessions.forEach((s) => {
     const item = document.createElement("div");
@@ -241,17 +243,17 @@ async function toggleSessionList() {
     });
     item.appendChild(openBtn);
     item.appendChild(renameBtn);
-    sessionListContainer!.appendChild(item);
+    container.appendChild(item);
   });
-  sessionListContainer.style.display = "block";
+  container.style.display = "block";
   const onClickOutside = (event: MouseEvent) => {
     const target = event.target as HTMLElement;
     if (
-      sessionListContainer &&
-      !sessionListContainer.contains(target) &&
+      container &&
+      !container.contains(target) &&
       target.getAttribute("data-action") !== "show_sessions"
     ) {
-      sessionListContainer.style.display = "none";
+      container.style.display = "none";
       document.removeEventListener("click", onClickOutside);
     }
   };
