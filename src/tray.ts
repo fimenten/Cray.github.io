@@ -113,7 +113,7 @@ export class Tray {
     const title = document.createElement("div");
     title.classList.add("tray-title");
     title.setAttribute("contenteditable", "false");
-    title.textContent = this.name;
+    this.updateTitleContent(title);
 
     const contextMenuButton = document.createElement("button");
     contextMenuButton.classList.add("tray-context-menu-button");
@@ -418,6 +418,28 @@ export class Tray {
     saveToIndexedDB();
   }
 
+  private isValidUrl(text: string): boolean {
+    try {
+      const u = new URL(text);
+      return u.protocol === "http:" || u.protocol === "https:";
+    } catch {
+      return false;
+    }
+  }
+
+  private updateTitleContent(titleElement: HTMLDivElement) {
+    if (this.isValidUrl(this.name)) {
+      const a = document.createElement("a");
+      a.href = this.name;
+      a.textContent = this.name;
+      a.target = "_blank";
+      titleElement.innerHTML = "";
+      titleElement.appendChild(a);
+    } else {
+      titleElement.textContent = this.name;
+    }
+  }
+
   setupTitleEditing(titleElement: HTMLDivElement) {
     titleElement.addEventListener("dblclick", (event) => {
       event.stopPropagation();
@@ -491,7 +513,7 @@ export class Tray {
   startTitleEdit(titleElement: HTMLDivElement) {
     this.isEditing = true;
     titleElement.setAttribute("contenteditable", "true");
-    // titleElement.focus();
+    titleElement.textContent = this.name;
 
     const range = document.createRange();
     range.selectNodeContents(titleElement);
@@ -518,7 +540,7 @@ export class Tray {
   cancelTitleEdit(titleElement: HTMLDivElement) {
     this.isEditing = false;
     titleElement.setAttribute("contenteditable", "false");
-    titleElement.textContent = this.name;
+    this.updateTitleContent(titleElement);
   }
   onContextMenuButtonClick(event: MouseEvent) {
     event.preventDefault();
@@ -533,7 +555,7 @@ export class Tray {
   finishTitleEdit(titleElement: HTMLDivElement) {
     titleElement.setAttribute("contenteditable", "false");
     this.name = (titleElement.textContent || "").trim();
-    titleElement.textContent = this.name;
+    this.updateTitleContent(titleElement);
     // titleElement.removeEventListener("keydown", this.keyDownHandler);
     // titleElement.removeEventListener("blur", this.blurHandler);
     this.isEditing = false;
