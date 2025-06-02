@@ -19,7 +19,7 @@
     "webpack-dev-server": "^5.1.0"
   },
   "scripts": {
-    "build": "webpack --config webpack.config.cjs --mode production && cp index.html dist/index.html && sed -i 's|src/styles.css|styles.css|' dist/index.html && sed -i 's|dist/bundle.js|bundle.js|' dist/index.html && cp src/styles.css dist/styles.css",
+    "build": "webpack --config webpack.config.cjs --mode production && cp index.html dist/index.html && sed -i 's|src/styles.css|styles.css|' dist/index.html && sed -i 's|dist/bundle.js|bundle.js|' dist/index.html && cp src/styles.css dist/styles.css && cp manifest.webmanifest dist/manifest.webmanifest && cp sw.js dist/sw.js",
     "start": "webpack serve --config webpack.config.cjs --mode development",
     "test": "tsc && node --experimental-specifier-resolution=node --test tests/*.js"
   },
