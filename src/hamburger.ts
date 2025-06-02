@@ -275,7 +275,8 @@ async function showSessionList() {
 }
 
 export function openNewSession() {
-  window.location.href = `${window.location.pathname}?sessionId=new`;
+  const id = generateUUID();
+  window.location.href = `${window.location.pathname}?sessionId=${id}`;
 }
 
 function set_default_server() {
