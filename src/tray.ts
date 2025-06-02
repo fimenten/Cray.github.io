@@ -436,6 +436,7 @@ export class Tray {
     this.isFolded = !this.isFolded;
     this.foldChildren();
     this.updateAppearance();
+    saveToIndexedDB();
   }
 
   foldChildren() {
