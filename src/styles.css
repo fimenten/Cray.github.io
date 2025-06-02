@@ -631,3 +631,22 @@ body > .tray {
 .action-button:active {
   transform: scale(0.95);
 }
+
+.session-list {
+  position: fixed;
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 10px;
+  z-index: 1002;
+}
+
+.session-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.session-item button {
+  margin-left: 5px;
+}
