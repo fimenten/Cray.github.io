@@ -7,7 +7,7 @@ import {
   loadFromIndexedDB,
   saveToIndexedDB,
 } from "./io";
-import { createHamburgerMenu, selected_trays } from "./humberger";
+import { createHamburgerMenu, selected_trays } from "./hamburger";
 import {
   downloadData,
   showUploadNotification,
@@ -30,7 +30,6 @@ export class Tray {
   id: TrayId;
   name: string;
   children: Tray[];
-  labels: string[];
   parentId: TrayId;
   borderColor: string;
   created_dt: Date;
@@ -49,7 +48,6 @@ export class Tray {
     id: TrayId,
     name: string,
     color: string | null = null,
-    labels: string[] = [],
     created_dt: Date | null = null,
     flexDirection: "column" | "row" = "column",
     host_url: string | null = null,
@@ -60,7 +58,6 @@ export class Tray {
     this.id = id;
     this.name = name;
     this.children = [];
-    this.labels = labels;
 
     this.parentId = parentId;
     this.isFolded = isFold;
@@ -125,8 +122,6 @@ export class Tray {
       "click",
       this.onContextMenuButtonClick.bind(this)
     );
-    const labelsElement = document.createElement("div");
-    labelsElement.classList.add("tray-labels");
 
 
     title.addEventListener("contextmenu", (event) => {
@@ -164,7 +159,6 @@ export class Tray {
     titleContainer.appendChild(contextMenuButton);
     titleContainer.appendChild(createdTime);
     titleContainer.appendChild(checkboxContainer);
-    titleContainer.appendChild(labelsElement);
 
     // titleContainer.appendChild(clickArea)
     tray.appendChild(titleContainer);

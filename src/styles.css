@@ -133,10 +133,7 @@
 }
 
 /* Menu Styles */
-.context-menu,
-.label-menu,
-.label-selector,
-.label-remover {
+.context-menu {
   position: fixed;
   background-color: var(--menu-bg-color);
   border: 1px solid var(--menu-border-color);
@@ -145,33 +142,15 @@
   z-index: 1000;
 }
 
-.menu-item,
-.label-item {
+.menu-item {
   padding: 5px;
   cursor: pointer;
 }
 
-.menu-item:hover,
-.label-item:hover {
+.menu-item:hover {
   background-color: var(--hover-bg-color);
 }
 
-/* Tray Labels */
-.tray-labels {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 5px;
-}
-
-.tray-label {
-  display: inline-block;
-  background-color: var(--hover-bg-color);
-  border-radius: 3px;
-  font-size: 12px;
-  padding: 2px 5px;
-  color: white;
-}
 
 /* Drag Indicators */
 .tray.drag-top::before,
@@ -308,26 +287,6 @@
   background-color: var(--tray-bg-color);
 }
 
-/* Label Manager */
-.label-manager {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: var(--menu-bg-color);
-  padding: 10px;
-  border-radius: 5px;
-}
-
-.label-selector select,
-.label-selector input,
-.label-selector button,
-.label-remover select,
-.label-remover button {
-  margin: 5px 0;
-  padding: 5px;
-  cursor: pointer;
-}
 
 .context-menu .menu-item.focused {
   background-color: #f0f0f0;
@@ -450,11 +409,6 @@
   /* align-self: flex-end; */
 }
 
-.tray.network-tray .tray-labels {
-  width: 100%;
-  margin-top: 2px;
-  font-size: 0.7em;
-}
 
 .tray.network-tray .network-tray-info,
 .tray.network-tray .network-tray-buttons {

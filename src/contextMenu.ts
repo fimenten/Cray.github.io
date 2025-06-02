@@ -85,9 +85,6 @@ function buildMenu(): HTMLElement {
     <div class="menu-item" data-act="delete">Remove</div>
     <div class="menu-item" data-act="add_fetch_networkTray_to_child">Add Fetch NetworkTray to Child</div>
     <div class="menu-item" data-act="add_child_from_localStorage">Add Child from Local Storage</div>
-    <div class="menu-item" data-act="addLabelTray">Add Label Tray</div>
-    <div class="menu-item" data-act="addLabel">Add Label</div>
-    <div class="menu-item" data-act="removeLabel">Edit Labels</div>
     <div class="menu-item" data-act="addProperty">Set Property</div>
     <div class="menu-item" data-act="sortChildren">Sort Children</div>
     <div class="menu-item" data-act="outputMarkdown">Output as Markdown</div>
@@ -204,13 +201,6 @@ function executeMenuAction(tray: Tray, act: string) {
       tray.toggleFlexDirection?.();
       break;
 
-    // case "addLabel":
-    //   showLabelSelector(tray);
-    //   break;
-
-    // case "removeLabel":
-    //   showLabelRemover(tray);
-    //   break;
 
     case "outputMarkdown":
       showMarkdownOutput(tray)
@@ -241,7 +231,6 @@ function executeMenuAction(tray: Tray, act: string) {
     // ↓ 必要に応じて追加
     // case "add_fetch_networkTray_to_child":
     // case "add_child_from_localStorage":
-    // case "addLabelTray":
     //   tray.handleCustomAction?.(act);
     //   break;
 

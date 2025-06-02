@@ -4,7 +4,6 @@ import { Tray } from "./tray";
 interface TrayData {
   id: string;
   name: string;
-  labels: string[];
   parentId: string | null;
   borderColor: string;
   created_dt: string; // ISO string format
@@ -34,8 +33,7 @@ function serializeToSaneJson(root: Tray): SerializedData {
     // Extract serializable properties
     const trayData: TrayData = {
       id: tray.id,
-      name: tray.name,
-      labels: tray.labels,
+        name: tray.name,
       parentId: tray.parentId,
       borderColor: tray.borderColor,
       created_dt: tray.created_dt.toISOString(),
