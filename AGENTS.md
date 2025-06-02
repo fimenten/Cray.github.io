@@ -5,7 +5,7 @@ This project uses TypeScript and Node's built in test runner.
 * Before running tests, compile the TypeScript sources to a CommonJS directory named `cjs`.
   Example:
   ```bash
-  npx tsc --module commonjs --outDir cjs
+  npm run build
   ```
 * Run tests with:
   ```bash
