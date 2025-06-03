@@ -3,8 +3,10 @@ import { deserialize, serialize } from "./io";
 import { getTrayFromId } from "./utils";
 import { deleteTray } from "./functions";
 
-let lastSerialized = "";
-let intervalId: number | null = null;
+import type { TrayId } from "./tray";
+
+const lastSerializedMap = new Map<TrayId, string>();
+const intervalIds = new Map<TrayId, number>();
 
 export function newestTimestamp(tray: Tray): number {
   let latest = new Date(tray.created_dt).getTime();
@@ -17,7 +19,8 @@ export function newestTimestamp(tray: Tray): number {
 
 export async function syncTray(tray: Tray) {
   const current = serialize(tray);
-  if (current === lastSerialized) return;
+  const last = lastSerializedMap.get(tray.id) || "";
+  if (current === last) return;
   let remote: Tray | undefined;
   try {
     remote = await downloadData(tray);
@@ -29,18 +32,27 @@ export async function syncTray(tray: Tray) {
     deleteTray(tray);
     parent.addChild(remote);
     parent.updateAppearance();
-    lastSerialized = serialize(remote);
+    lastSerializedMap.set(tray.id, serialize(remote));
     return;
   }
   await uploadData(tray);
-  lastSerialized = current;
+  lastSerializedMap.set(tray.id, current);
 }
 
 export function startAutoUpload(tray: Tray) {
-  if (intervalId !== null) clearInterval(intervalId);
-  intervalId = window.setInterval(() => {
+  stopAutoUpload(tray);
+  const id = window.setInterval(() => {
     syncTray(tray).catch(console.error);
   }, 60000);
+  intervalIds.set(tray.id, id);
+}
+
+export function stopAutoUpload(tray: Tray) {
+  const id = intervalIds.get(tray.id);
+  if (id !== undefined) {
+    clearInterval(id);
+    intervalIds.delete(tray.id);
+  }
 }
 export function fetchTrayList(tray: Tray) {
   const defaultServer = localStorage.getItem("defaultServer") || "";

@@ -52,3 +52,18 @@ test('syncTray uploads when local newer', async () => {
   assert.strictEqual(parent.child,null);
   assert.strictEqual(posted,true);
 });
+
+test('startAutoUpload schedules sync and stopAutoUpload clears it', () => {
+  let callback;
+  let cleared;
+  global.setInterval = (fn, ms) => { callback = fn; return 123; };
+  global.clearInterval = id => { cleared = id; };
+  win.setInterval = global.setInterval;
+  win.clearInterval = global.clearInterval;
+  const nets = load({io:{serialize:JSON.stringify,deserialize:JSON.parse},utils:{getTrayFromId:()=>({})},functions:{deleteTray(){}}});
+  const tray = {id:'1',parentId:'p',host_url:'u',filename:'f',created_dt:new Date(),children:[],element:{remove(){}}};
+  nets.startAutoUpload(tray);
+  assert.ok(callback);
+  nets.stopAutoUpload(tray);
+  assert.strictEqual(cleared,123);
+});

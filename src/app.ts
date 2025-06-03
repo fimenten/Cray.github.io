@@ -64,7 +64,7 @@ window.addEventListener("DOMContentLoaded", async () => {
     const tray = element2TrayMap.get(root as HTMLElement) as Tray;
     if (tray) {
       await syncTray(tray);
-      startAutoUpload(tray);
+      if (tray.autoUpload) startAutoUpload(tray);
     }
   }
 

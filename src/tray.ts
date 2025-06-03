@@ -15,6 +15,8 @@ import {
   fetchTrayList,
   setNetworkOption,
   addTrayFromServer,
+  startAutoUpload,
+  stopAutoUpload,
 } from "./networks";
 import { meltTray } from "./functions";
 import { id2TrayData, element2TrayMap} from "./app";
@@ -38,6 +40,8 @@ export class Tray {
   filename: string | null;
   isFolded: boolean;
   properties: Record<string, any>;
+
+  autoUpload: boolean;
 
   isEditing: boolean;
   isSelected: boolean;
@@ -67,6 +71,7 @@ export class Tray {
     this.filename = filename;
     this.flexDirection = flexDirection;
     this.properties = properties;
+    this.autoUpload = false;
     // this.element = this.createElement();
     // this.element = null
     this.isEditing = false;
@@ -217,22 +222,19 @@ export class Tray {
     downloadButton.textContent = "Download";
     downloadButton.addEventListener("click", (e) => {
       if ((this.host_url)&&(this.filename)){
-        addTrayFromServer(getTrayFromId(this.parentId) as Tray,this.host_url,this.filename)}})      
+        addTrayFromServer(getTrayFromId(this.parentId) as Tray,this.host_url,this.filename)}})
 
-    // const autoUploadButton = document.createElement("button");
-    // autoUploadButton.textContent = `Auto Upload: ${
-    //   this.autoUpload ? "On" : "Off"
-    // }`;
-    // autoUploadButton.style.backgroundColor = this.autoUpload ? "green" : "";
-    // autoUploadButton.style.color = this.autoUpload ? "white" : "";
-    // autoUploadButton.addEventListener("click", () => this.toggleAutoUpload());
+    const autoUploadButton = document.createElement("button");
+    autoUploadButton.textContent = `Auto Upload: ${this.autoUpload ? "On" : "Off"}`;
+    if (this.autoUpload) autoUploadButton.classList.add("auto-upload-on");
+    autoUploadButton.addEventListener("click", () => this.toggleAutoUpload(autoUploadButton));
 
     // Add buttons to the container
     buttonContainer.appendChild(urlButton);
     buttonContainer.appendChild(filenameElement);
     buttonContainer.appendChild(uploadButton);
     buttonContainer.appendChild(downloadButton);
-    // buttonContainer.appendChild(autoUploadButton);
+    buttonContainer.appendChild(autoUploadButton);
 
     titleContainer.appendChild(networkInfoElement);
     if (this.filename != null) {
@@ -315,6 +317,23 @@ export class Tray {
     this.updateFlexDirection();
     this.updateChildrenAppearance(); // Add this line
     saveToIndexedDB();
+  }
+
+  toggleAutoUpload(button?: HTMLButtonElement) {
+    this.autoUpload = !this.autoUpload;
+    if (this.autoUpload) {
+      startAutoUpload(this);
+    } else {
+      stopAutoUpload(this);
+    }
+    if (button) {
+      button.textContent = `Auto Upload: ${this.autoUpload ? "On" : "Off"}`;
+      if (this.autoUpload) {
+        button.classList.add("auto-upload-on");
+      } else {
+        button.classList.remove("auto-upload-on");
+      }
+    }
   }
 
   setupEventListeners(element: HTMLElement): void {
