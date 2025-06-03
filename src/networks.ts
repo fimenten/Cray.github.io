@@ -2,6 +2,46 @@ import { Tray } from "./tray";
 import { deserialize, serialize } from "./io";
 import { getTrayFromId } from "./utils";
 import { deleteTray } from "./functions";
+
+let lastSerialized = "";
+let intervalId: number | null = null;
+
+export function newestTimestamp(tray: Tray): number {
+  let latest = new Date(tray.created_dt).getTime();
+  for (const child of tray.children) {
+    const t = newestTimestamp(child);
+    if (t > latest) latest = t;
+  }
+  return latest;
+}
+
+export async function syncTray(tray: Tray) {
+  const current = serialize(tray);
+  if (current === lastSerialized) return;
+  let remote: Tray | undefined;
+  try {
+    remote = await downloadData(tray);
+  } catch (e) {
+    remote = undefined;
+  }
+  if (remote && newestTimestamp(remote) > newestTimestamp(tray)) {
+    const parent = getTrayFromId(tray.parentId) as Tray;
+    deleteTray(tray);
+    parent.addChild(remote);
+    parent.updateAppearance();
+    lastSerialized = serialize(remote);
+    return;
+  }
+  await uploadData(tray);
+  lastSerialized = current;
+}
+
+export function startAutoUpload(tray: Tray) {
+  if (intervalId !== null) clearInterval(intervalId);
+  intervalId = window.setInterval(() => {
+    syncTray(tray).catch(console.error);
+  }, 60000);
+}
 export function fetchTrayList(tray: Tray) {
   const defaultServer = localStorage.getItem("defaultServer") || "";
   const url = prompt("Enter server URL:", defaultServer);
