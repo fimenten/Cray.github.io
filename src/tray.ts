@@ -761,10 +761,12 @@ export class Tray {
 
   moveUp() {
     this.moveInParent(-1);
+    this.element.focus();
   }
 
   moveDown() {
     this.moveInParent(1);
+    this.element.focus();
   }
 
   // Default to ascending order
