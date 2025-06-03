@@ -16,6 +16,8 @@ import {
   uploadData,
   fetchTrayList,
   setNetworkOption,
+  startAutoUpload,
+  syncTray,
 } from "./networks";
 import { meltTray } from "./functions";
 import { Tray, TrayId } from "./tray";
@@ -33,7 +35,7 @@ const TRAY_DATA_KEY = "trayData";
 // export const globalLabelManager = new LabelManager();
 
 
-window.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("DOMContentLoaded", async () => {
   // const actionButtons = createActionButtons();
   // Attempt alternative insertion if needed
   // document.body.appendChild(actionButtons);
@@ -45,15 +47,24 @@ window.addEventListener("DOMContentLoaded", () => {
     );
   }
   if (sessionId) {
-    loadFromIndexedDB(sessionId);
+    await loadFromIndexedDB(sessionId);
   } else {
-    loadFromIndexedDB();
+    await loadFromIndexedDB();
   }
   console.log("loaded");
   if (sessionId) {
     const savedTitle = localStorage.getItem(sessionId + "_title");
     if (savedTitle) {
       document.title = savedTitle;
+    }
+  }
+
+  const root = getRootElement();
+  if (root) {
+    const tray = element2TrayMap.get(root as HTMLElement) as Tray;
+    if (tray) {
+      await syncTray(tray);
+      startAutoUpload(tray);
     }
   }
 
