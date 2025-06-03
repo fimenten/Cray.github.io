@@ -98,3 +98,37 @@ test('ctrl+ArrowUp moves tray up', () => {
 
   assert.deepStrictEqual(parent.children.map(t=>t.id), [a.id,c.id,b.id]);
 });
+
+test('ctrl+ArrowDown keeps focus on moved tray', () => {
+  const parent = new Tray('0','p3','parent');
+  idMap.set(parent.id, parent);
+  const first = new Tray(parent.id,'f3','F');
+  idMap.set(first.id, first);
+  const target = new Tray(parent.id,'t3','T');
+  idMap.set(target.id, target);
+  parent.addChild(first);
+  parent.addChild(target);
+  let focused = null;
+  target.element.focus = () => { focused = target.element; };
+
+  ki.handleKeyDown(target, { key:'ArrowDown', ctrlKey:true, preventDefault(){}, stopPropagation(){} });
+
+  assert.strictEqual(focused, target.element);
+});
+
+test('ctrl+ArrowUp keeps focus on moved tray', () => {
+  const parent = new Tray('0','p4','parent');
+  idMap.set(parent.id, parent);
+  const target = new Tray(parent.id,'t4','T');
+  idMap.set(target.id, target);
+  const last = new Tray(parent.id,'l4','L');
+  idMap.set(last.id, last);
+  parent.addChild(target);
+  parent.addChild(last);
+  let focused = null;
+  target.element.focus = () => { focused = target.element; };
+
+  ki.handleKeyDown(target, { key:'ArrowUp', ctrlKey:true, preventDefault(){}, stopPropagation(){} });
+
+  assert.strictEqual(focused, target.element);
+});
