@@ -581,7 +581,12 @@ export class Tray {
   onDragStart(event: DragEvent): void {
     event.stopPropagation();
     if (event.dataTransfer) {
-      event.dataTransfer.setData("text/plain", this.id);
+      if (selected_trays.length > 0 && selected_trays.includes(this)) {
+        const ids = selected_trays.map((t) => t.id).join(",");
+        event.dataTransfer.setData("text/plain", ids);
+      } else {
+        event.dataTransfer.setData("text/plain", this.id);
+      }
       event.dataTransfer.effectAllowed = "move";
     }
   }
@@ -620,30 +625,34 @@ export class Tray {
     }
     this.updateAppearance();
 
-    const movingId = event.dataTransfer?.getData("text/plain");
-    if (!movingId) return; // If there's no data, exit early
+    const movingData = event.dataTransfer?.getData("text/plain");
+    if (!movingData) return; // If there's no data, exit early
 
-    const movingTray = getTrayFromId(movingId);
-    if (!movingTray) return; // Exit if the tray doesn't exist
-
-    const parentTray = getTrayFromId(movingTray.parentId);
-
-    if (parentTray) {
-      parentTray.removeChild(movingId);
-    }
-
-    this.children.unshift(movingTray);
-    // movingTray.parent = this as Tray;
-    movingTray.parentId = this.id;
+    const ids = movingData.split(",");
+    const traysToMove = ids
+      .map((id) => getTrayFromId(id))
+      .filter((t): t is Tray => !!t);
 
     const content = this.element.querySelector(
       ".tray-content"
     ) as HTMLElement | null;
-    if (content) {
-      content.insertBefore(movingTray.element, content.firstChild);
-    }
 
-    movingTray.element.style.display = "block";
+    traysToMove.forEach((movingTray) => {
+      const parentTray = getTrayFromId(movingTray.parentId);
+      if (parentTray) {
+        parentTray.removeChild(movingTray.id);
+      }
+
+      this.children.unshift(movingTray);
+      movingTray.parentId = this.id;
+
+      if (content) {
+        content.insertBefore(movingTray.element, content.firstChild);
+      }
+
+      movingTray.element.style.display = "block";
+    });
+
     this.isFolded = false;
     this.updateAppearance();
 
