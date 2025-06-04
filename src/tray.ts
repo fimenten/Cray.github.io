@@ -14,7 +14,7 @@ import {
   uploadData,
   fetchTrayList,
   setNetworkOption,
-  addTrayFromServer,
+  updateData,
   startAutoUpload,
   stopAutoUpload,
 } from "./networks";
@@ -218,11 +218,11 @@ export class Tray {
     uploadButton.textContent = "Upload";
     uploadButton.addEventListener("click", (e) => uploadData(this));
 
-    const downloadButton = document.createElement("button");
-    downloadButton.textContent = "Download";
-    downloadButton.addEventListener("click", (e) => {
-      if ((this.host_url)&&(this.filename)){
-        addTrayFromServer(getTrayFromId(this.parentId) as Tray,this.host_url,this.filename)}})
+    const updateButton = document.createElement("button");
+    updateButton.textContent = "Update";
+    updateButton.addEventListener("click", () => {
+      updateData(this).catch((e) => alert(e.message));
+    });
 
     const autoUploadButton = document.createElement("button");
     autoUploadButton.textContent = `Auto Upload: ${this.autoUpload ? "On" : "Off"}`;
@@ -233,7 +233,7 @@ export class Tray {
     buttonContainer.appendChild(urlButton);
     buttonContainer.appendChild(filenameElement);
     buttonContainer.appendChild(uploadButton);
-    buttonContainer.appendChild(downloadButton);
+    buttonContainer.appendChild(updateButton);
     buttonContainer.appendChild(autoUploadButton);
 
     titleContainer.appendChild(networkInfoElement);

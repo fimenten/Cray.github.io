@@ -212,6 +212,55 @@ export async function downloadData(tray: Tray) {
   }
 }
 
+export async function updateData(tray: Tray) {
+  if (!tray.filename || !tray.host_url) {
+    return;
+  }
+
+  const current = serialize(tray);
+  const last = lastSerializedMap.get(tray.id);
+
+  let remote: Tray | undefined;
+  try {
+    remote = await downloadData(tray);
+  } catch (error) {
+    throw error;
+  }
+
+  if (!last) {
+    if (remote) {
+      const parent = getTrayFromId(tray.parentId) as Tray;
+      deleteTray(tray);
+      parent.addChild(remote);
+      parent.updateAppearance();
+      lastSerializedMap.set(tray.id, serialize(remote));
+    } else {
+      await uploadData(tray);
+      lastSerializedMap.set(tray.id, current);
+    }
+    return;
+  }
+
+  const remoteSerialized = remote ? serialize(remote) : "";
+  const localChanged = current !== last;
+  const remoteChanged = remote ? remoteSerialized !== last : false;
+
+  if (localChanged && remoteChanged) {
+    throw new Error("Data conflict");
+  }
+
+  if (remoteChanged) {
+    const parent = getTrayFromId(tray.parentId) as Tray;
+    deleteTray(tray);
+    parent.addChild(remote as Tray);
+    parent.updateAppearance();
+    lastSerializedMap.set(tray.id, remoteSerialized);
+  } else if (localChanged) {
+    await uploadData(tray);
+    lastSerializedMap.set(tray.id, current);
+  }
+}
+
 export function showUploadNotification(message: string, isError = false) {
   const notification = document.createElement("div");
   notification.textContent = message;
