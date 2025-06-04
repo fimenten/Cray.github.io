@@ -25,3 +25,14 @@ test('getRandomColor format', () => {
 test('getWhiteColor returns constant', () => {
   assert.strictEqual(utils.getWhiteColor(), '#f5f5f5');
 });
+
+test('expandChildrenOneLevel expands direct children', () => {
+  const child1 = { isFolded: true, updateAppearance(){ this.updated = true; } };
+  const child2 = { isFolded: true, updateAppearance(){ this.updated = true; } };
+  const tray = { children: [child1, child2] };
+  utils.expandChildrenOneLevel(tray);
+  assert.strictEqual(child1.isFolded, false);
+  assert.strictEqual(child2.isFolded, false);
+  assert.ok(child1.updated);
+  assert.ok(child2.updated);
+});

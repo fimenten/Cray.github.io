@@ -56,6 +56,11 @@ test('buildMenu creates items', () => {
   assert.strictEqual(m.children.length, ctx.CONTEXT_MENU_ITEMS.length + 1);
 });
 
+test('menu items include expandChildrenOneLevel', () => {
+  const found = ctx.CONTEXT_MENU_ITEMS.some(i => i.act === 'expandChildrenOneLevel');
+  assert.ok(found);
+});
+
 test('open and close context menu', () => {
   const menuBefore = body.children.length;
   const tray = { borderColor: '#000', changeBorderColor(){} };
