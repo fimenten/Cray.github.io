@@ -1,4 +1,5 @@
 import { Tray } from "./tray";
+import { generateUUID } from "./utils";
 
 /** 再帰的に Tray → Markdown */
 export function trayToMarkdown(tray: Tray, depth = 0): string {
@@ -30,4 +31,20 @@ export function exportMarkdown(root: Tray) {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+}
+
+/** Parse a markdown list and append the entries as children of the given tray. */
+export function addMarkdownToTray(markdown: string, parent: Tray) {
+  const lines = markdown.split(/\r?\n/).filter((l) => l.trim() !== "");
+  const lastAt: Tray[] = [];
+  for (const line of lines) {
+    const indentMatch = line.match(/^(\s*)/);
+    const indent = indentMatch ? Math.floor(indentMatch[1].length / 2) : 0;
+    const trimmed = line.trim().replace(/^[-*]\s*/, "");
+    const p = indent === 0 ? parent : lastAt[indent - 1] || parent;
+    const child = new Tray(p.id, generateUUID(), trimmed);
+    p.addChild(child);
+    lastAt[indent] = child;
+    lastAt.length = indent + 1;
+  }
 }

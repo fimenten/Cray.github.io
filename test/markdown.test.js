@@ -11,6 +11,7 @@ const body = {
 };
 function createElement(tag){
   const el = {
+    tagName: tag.toUpperCase(),
     children: [],
     style: {},
     dataset: {},
@@ -21,6 +22,16 @@ function createElement(tag){
       contains(c){ return this._cls.has(c); }
     },
     appendChild(child){ child.parent=this; this.children.push(child); },
+    append(child){ this.appendChild(child); },
+    insertBefore(child, ref){
+      child.parent=this;
+      if(!ref){ this.children.push(child); }
+      else{
+        const i = this.children.indexOf(ref);
+        if(i>=0) this.children.splice(i,0,child); else this.children.push(child);
+      }
+    },
+    setAttribute(){},
     querySelector(){ return null; },
     querySelectorAll(){ return []; },
     getBoundingClientRect(){ return { width:100, height:100 }; },
@@ -58,6 +69,8 @@ global.window = windowStub;
 
 delete require.cache[require.resolve('../cjs/functions.js')];
 const fns = require('../cjs/functions.js');
+delete require.cache[require.resolve('../cjs/tray.js')];
+const { Tray } = require('../cjs/tray.js');
 
 test('copyMarkdownToClipboard writes markdown', async () => {
   clipboardText = undefined;
@@ -75,4 +88,19 @@ test('downloadMarkdown triggers anchor click', () => {
   assert.strictEqual(createdAnchor.download, 'tray_structure.md');
   assert.strictEqual(createdAnchor.href, 'blob:1');
   assert.strictEqual(body.children.length, start);
+});
+
+test('pasteFromClipboardInto handles markdown indentation', async () => {
+  navigator.clipboard.read = undefined;
+  navigator.clipboard.readText = async () => '- parent\n  - child\n    - grand\n  - child2\n';
+  const root = new Tray('0','r','root');
+  await fns.pasteFromClipboardInto(root);
+  assert.strictEqual(root.children.length, 1);
+  const parent = root.children[0];
+  assert.strictEqual(parent.name, 'parent');
+  assert.strictEqual(parent.children.length, 2);
+  assert.strictEqual(parent.children[0].name, 'child2');
+  const child = parent.children[1];
+  assert.strictEqual(child.name, 'child');
+  assert.strictEqual(child.children[0].name, 'grand');
 });
