@@ -41,6 +41,16 @@ export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
     tray.moveDown();
     return;
   }
+  if (event.ctrlKey && event.key === "ArrowRight") {
+    event.preventDefault();
+    tray.indentRight();
+    return;
+  }
+  if (event.ctrlKey && event.key === "ArrowLeft") {
+    event.preventDefault();
+    tray.indentLeft();
+    return;
+  }
   switch (event.key) {
     case "ArrowUp":
       event.preventDefault();

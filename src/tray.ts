@@ -797,6 +797,60 @@ export class Tray {
     this.element.focus();
   }
 
+  indentRight() {
+    const parent = getTrayFromId(this.parentId) as Tray | undefined;
+    if (!parent) return;
+    const index = parent.children.indexOf(this);
+    const next = parent.children[index + 1];
+    if (!next) return;
+
+    parent.removeChild(this.id);
+    next.addChild(this);
+    next.isFolded = false;
+    next.updateAppearance();
+
+    if (parent.children.length === 0) {
+      parent.updateAppearance();
+    }
+
+    this.element.focus();
+    saveToIndexedDB();
+  }
+
+  indentLeft() {
+    const parent = getTrayFromId(this.parentId) as Tray | undefined;
+    if (!parent) return;
+    const grand = getTrayFromId(parent.parentId) as Tray | undefined;
+    if (!grand) return;
+
+    const parentIndex = grand.children.indexOf(parent);
+
+    parent.removeChild(this.id);
+
+    this.parentId = grand.id;
+    grand.children.splice(parentIndex + 1, 0, this);
+
+    const gpContent = grand.element.querySelector(
+      ".tray-content"
+    ) as HTMLElement | null;
+    if (gpContent) {
+      gpContent.insertBefore(this.element, parent.element.nextSibling);
+    }
+
+    if (grand.children.length === 1) {
+      const color =
+        grand.borderColor == getWhiteColor()
+          ? getRandomColor()
+          : grand.borderColor;
+      grand.borderColor = color;
+      grand.updateBorderColor(grand.borderColor);
+    }
+
+    grand.updateAppearance();
+    this.element.focus();
+    saveToIndexedDB();
+  }
+
   // Default to ascending order
   sortChildren(property: string = "created_dt", descending: boolean = false) {
     this.children.sort((a, b) => {
