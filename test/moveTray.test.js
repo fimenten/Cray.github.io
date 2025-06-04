@@ -132,3 +132,34 @@ test('ctrl+ArrowUp keeps focus on moved tray', () => {
 
   assert.strictEqual(focused, target.element);
 });
+
+test('ctrl+ArrowRight nests tray under next sibling', () => {
+  const parent = new Tray('0','p5','parent');
+  idMap.set(parent.id, parent);
+  const first = new Tray(parent.id,'f5','F'); idMap.set(first.id, first);
+  const target = new Tray(parent.id,'t5','T'); idMap.set(target.id, target);
+  const next = new Tray(parent.id,'n5','N'); idMap.set(next.id, next);
+  parent.addChild(next);
+  parent.addChild(target);
+  parent.addChild(first); // order first, target, next
+
+  ki.handleKeyDown(target, { key:'ArrowRight', ctrlKey:true, preventDefault(){}, stopPropagation(){} });
+
+  assert.ok(!parent.children.includes(target));
+  assert.strictEqual(next.children[0], target);
+  assert.strictEqual(target.parentId, next.id);
+});
+
+test('ctrl+ArrowLeft moves tray to parent level', () => {
+  const root = new Tray('0','root','root'); idMap.set(root.id, root);
+  const parent = new Tray(root.id,'p6','parent'); idMap.set(parent.id, parent);
+  const target = new Tray(parent.id,'t6','T'); idMap.set(target.id, target);
+  root.addChild(parent);
+  parent.addChild(target);
+
+  ki.handleKeyDown(target, { key:'ArrowLeft', ctrlKey:true, preventDefault(){}, stopPropagation(){} });
+
+  assert.ok(!parent.children.includes(target));
+  assert.strictEqual(root.children[1], target);
+  assert.strictEqual(target.parentId, root.id);
+});
