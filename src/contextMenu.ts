@@ -16,7 +16,7 @@ import {
   downloadMarkdown,
 } from "./functions";
 import { serialize, saveToIndexedDB } from "./io";
-import { cloneTray } from "./utils";
+import { cloneTray, expandChildrenOneLevel } from "./utils";
 
 export interface ContextMenuItem {
   act: string;
@@ -30,6 +30,7 @@ export const CONTEXT_MENU_ITEMS: ContextMenuItem[] = [
   { act: "toggleFlexDirection", label: "Toggle Flex Direction" },
   { act: "meltTray", label: "Melt this Tray" },
   { act: "expandAll", label: "Expand All" },
+  { act: "expandChildrenOneLevel", label: "Expand Children 1 Level" },
   { act: "copy", label: "Copy" },
   { act: "paste", label: "Paste" },
   { act: "cut", label: "Cut" },
@@ -278,6 +279,9 @@ function executeMenuAction(tray: Tray, act: string) {
     // case "expandAll":
     //   expandAll(tray);
     //   break;
+    case "expandChildrenOneLevel":
+      expandChildrenOneLevel(tray);
+      break;
 
     case "toggleFlexDirection":
       tray.toggleFlexDirection?.();

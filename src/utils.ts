@@ -85,3 +85,10 @@ export function expandAll(tray: Tray) {
   tray.children.map((t) => expandAll(t));
   tray.updateAppearance();
 }
+
+export function expandChildrenOneLevel(tray: Tray) {
+  tray.children.forEach((child) => {
+    child.isFolded = false;
+    child.updateAppearance();
+  });
+}
