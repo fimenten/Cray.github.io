@@ -1,6 +1,7 @@
 import { deserialize, saveToIndexedDB, serialize } from "./io";
 import { Tray } from "./tray";
 import { cloneTray, generateUUID, getTrayFromId } from "./utils";
+import { addMarkdownToTray } from "./markdown";
 
 export function meltTray(tray: Tray) {
   const parentTray = getTrayFromId(tray.parentId) as Tray;
@@ -150,9 +151,7 @@ export async function pasteFromClipboardInto(tray: Tray) {
     }
     tray.addChild(newTray);
   } catch {
-    const texts = str.split("\n").filter((line) => line.trim() !== "");
-    const trays = texts.map((text) => new Tray(tray.id, generateUUID(), text));
-    trays.map((t) => tray.addChild(t));
+    addMarkdownToTray(str, tray);
   }
 }
 
