@@ -126,6 +126,12 @@ export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
         copyMarkdownToClipboard(tray);
         break
       }
+    case "j":
+      if (event.ctrlKey) {
+        event.preventDefault();
+        tray.toggleCheckbox();
+      }
+      break;
     case " ":
       if (event.ctrlKey) {
         event.preventDefault();
