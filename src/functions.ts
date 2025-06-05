@@ -5,9 +5,18 @@ import { addMarkdownToTray } from "./markdown";
 
 export function meltTray(tray: Tray) {
   const parentTray = getTrayFromId(tray.parentId) as Tray;
-  tray.children.map((t) => {
-    parentTray.addChild(t);
+  if (!parentTray) return;
+
+  tray.children.forEach((child) => {
+    parentTray.addChild(child);
   });
+  tray.children.length = 0;
+
+  parentTray.removeChild(tray.id);
+  tray.element.remove();
+
+  parentTray.element.focus();
+  saveToIndexedDB();
 }
 export function outputAsMarkdown(tray: Tray, depth = 0): string {
   // 深さに応じたスペース（ここでは2スペースずつ）
