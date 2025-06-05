@@ -523,6 +523,13 @@ body > .tray > .tray-content {
   text-align: center;
 }
 
+.selection-menu-button {
+  padding: 10px;
+  font-size: 20px;
+  cursor: pointer;
+  text-align: center;
+}
+
 .session-selection-dialog {
   position: fixed;
   top: 50%;
@@ -556,6 +563,16 @@ body > .tray > .tray-content {
 }
 
 .hamburger-menu-items {
+  position: fixed;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px;
+  z-index: 1001;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.selection-menu-items {
   position: fixed;
   background-color: white;
   border: 1px solid #ccc;
