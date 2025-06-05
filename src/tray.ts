@@ -845,13 +845,13 @@ export class Tray {
     parent.removeChild(this.id);
 
     this.parentId = grand.id;
-    grand.children.splice(parentIndex + 1, 0, this);
+    grand.children.splice(parentIndex, 0, this);
 
     const gpContent = grand.element.querySelector(
       ".tray-content"
     ) as HTMLElement | null;
     if (gpContent) {
-      gpContent.insertBefore(this.element, parent.element.nextSibling);
+      gpContent.insertBefore(this.element, parent.element);
     }
 
     if (grand.children.length === 1) {
