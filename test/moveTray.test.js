@@ -150,7 +150,7 @@ test('ctrl+ArrowRight nests tray under next sibling', () => {
   assert.strictEqual(target.parentId, next.id);
 });
 
-test('ctrl+ArrowLeft moves tray to parent level', () => {
+test('ctrl+ArrowLeft moves tray above parent', () => {
   const root = new Tray('0','root','root'); idMap.set(root.id, root);
   const parent = new Tray(root.id,'p6','parent'); idMap.set(parent.id, parent);
   const target = new Tray(parent.id,'t6','T'); idMap.set(target.id, target);
@@ -160,6 +160,7 @@ test('ctrl+ArrowLeft moves tray to parent level', () => {
   ki.handleKeyDown(target, { key:'ArrowLeft', ctrlKey:true, preventDefault(){}, stopPropagation(){} });
 
   assert.ok(!parent.children.includes(target));
-  assert.strictEqual(root.children[1], target);
+  assert.strictEqual(root.children[0], target);
+  assert.strictEqual(root.children[1], parent);
   assert.strictEqual(target.parentId, root.id);
 });
