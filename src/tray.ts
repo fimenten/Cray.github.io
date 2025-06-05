@@ -312,6 +312,23 @@ export class Tray {
     this.isSelected = isChecked; // isSelectedの状態を更新
   }
 
+  toggleCheckbox(): void {
+    const newState = !this.isSelected;
+    this.isSelected = newState;
+    const checkbox = this.element.querySelector<HTMLInputElement>(
+      ".tray-checkbox"
+    );
+    if (checkbox) {
+      checkbox.checked = newState;
+    }
+    const updated = selected_trays.filter((t) => t.id !== this.id);
+    if (newState) {
+      updated.push(this);
+    }
+    selected_trays.length = 0;
+    selected_trays.push(...updated);
+  }
+
   toggleFlexDirection() {
     this.flexDirection = this.flexDirection === "column" ? "row" : "column";
     this.updateFlexDirection();
