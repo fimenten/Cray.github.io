@@ -41,8 +41,9 @@ delete require.cache[require.resolve('../cjs/hamburger.js')];
 const ham = require('../cjs/hamburger.js');
 
 test('createHamburgerMenu adds items', () => {
-  const { hamburger, menu } = ham.createHamburgerMenu();
-  assert.strictEqual(menu.children.length, ham.HAMBURGER_MENU_ITEMS.length);
+  const { hamburger, menu, selectionMenu } = ham.createHamburgerMenu();
+  assert.strictEqual(menu.children.length, ham.GENERAL_MENU_ITEMS.length);
+  assert.strictEqual(selectionMenu.children.length, ham.SELECTION_MENU_ITEMS.length);
   // trigger click
   hamburger.onclick({ stopPropagation(){} });
   assert.strictEqual(menu.style.display, 'block');

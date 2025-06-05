@@ -18,7 +18,7 @@ export interface HamburgerMenuItem {
   label: string;
 }
 
-export const HAMBURGER_MENU_ITEMS: HamburgerMenuItem[] = [
+export const GENERAL_MENU_ITEMS: HamburgerMenuItem[] = [
   { action: "reset", label: "トレイをリセット" },
   { action: "save", label: "現在の状態を保存" },
   { action: "load", label: "保存した状態を読み込む" },
@@ -33,6 +33,9 @@ export const HAMBURGER_MENU_ITEMS: HamburgerMenuItem[] = [
   { action: "uploadAll", label: "Upload All" },
   { action: "downloadAll", label: "Download All" },
   { action: "newSession", label: "New Session" },
+];
+
+export const SELECTION_MENU_ITEMS: HamburgerMenuItem[] = [
   { action: "copySelected", label: "Copy selected" },
   { action: "cutSelected", label: "Cut selected" },
 ];
@@ -80,13 +83,25 @@ export function createHamburgerMenu() {
   leftBar.appendChild(sessionButton);
   sessionButton.addEventListener("click", showSessionList);
 
+  const selectionButton = document.createElement("div");
+  selectionButton.classList.add("selection-menu-button");
+  selectionButton.innerHTML = "✔";
+  leftBar.appendChild(selectionButton);
+
+  const selectionMenu = document.createElement("div");
+  selectionMenu.classList.add("selection-menu-items");
+  selectionMenu.style.display = "none";
+  leftBar.appendChild(selectionMenu);
+  selectionMenu.style.position = "fixed";
+  appendMenuItems(selectionMenu, SELECTION_MENU_ITEMS);
+
 
   const menu = document.createElement("div");
   menu.classList.add("hamburger-menu-items");
   menu.style.display = "none";
   leftBar.appendChild(menu);
   menu.style.position = "fixed";
-  appendMenuItems(menu, HAMBURGER_MENU_ITEMS);
+  appendMenuItems(menu, GENERAL_MENU_ITEMS);
 
   document.body.appendChild(menu);
 
@@ -110,11 +125,28 @@ export function createHamburgerMenu() {
     event.stopPropagation();
   });
 
+  selectionButton.addEventListener("click", (event) => {
+    selectionMenu.style.display =
+      selectionMenu.style.display === "none" ? "block" : "none";
+    if (selectionMenu.style.display === "block") {
+      const rect = leftBar.getBoundingClientRect();
+      selectionMenu.style.left = `${rect.right}px`;
+      selectionMenu.style.top = `${rect.top}px`;
+    }
+    event.stopPropagation();
+  });
+
   document.addEventListener("click", (event: MouseEvent) => {
     const target = event.target as HTMLElement;
 
-    if (!menu.contains(target) && target !== hamburger) {
+    if (
+      !menu.contains(target) &&
+      target !== hamburger &&
+      !selectionMenu.contains(target) &&
+      target !== selectionButton
+    ) {
       menu.style.display = "none";
+      selectionMenu.style.display = "none";
     }
   });
 
@@ -149,6 +181,18 @@ export function createHamburgerMenu() {
     menu.style.display = "none";
   });
 
+  selectionMenu.addEventListener("click", (event: MouseEvent) => {
+    const target = event.target as HTMLElement;
+    const action = target.getAttribute("data-action") || "";
+
+    const handler = menuActions[action];
+    if (handler) {
+      handler();
+    }
+
+    selectionMenu.style.display = "none";
+  });
+
   // ホバー効果の追加
   menuItems.forEach((item) => {
     item.addEventListener("mouseover", () => {
@@ -159,7 +203,7 @@ export function createHamburgerMenu() {
     });
   });
 
-  return { hamburger, menu, leftBar };
+  return { hamburger, menu, selectionMenu, leftBar };
 }
 function editPageTitle() {
   const currentTitle = document.title;
