@@ -261,16 +261,14 @@ function ddo(the_data: any) {
     typeof the_data.isFolded === "boolean" ? the_data.isFolded : true,
     the_data.properties ?? {}
   );
-  let children = the_data.children as [];
+  const children = the_data.children as [];
   if (children.length > 0) {
+    // Process children in reverse since addChild prepends
     children
+      .slice()
+      .reverse()
       .map((d) => ddo(d))
-      // Sort older items first because addChild prepends
-      .sort(
-        (a, b) =>
-          new Date(a.created_dt).getTime() - new Date(b.created_dt).getTime(),
-      )
-      .map((t) => tray.addChild(t));
+      .forEach((t) => tray.addChild(t));
   }
   return tray;
 }
