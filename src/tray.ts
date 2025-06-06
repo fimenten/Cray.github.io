@@ -455,22 +455,12 @@ export class Tray {
   }
 
   private isValidUrl(text: string): boolean {
-    try {
-      const u = new URL(text);
-      return u.protocol === "http:" || u.protocol === "https:";
-    } catch {
-      return false;
-    }
+    return /^https?:\/\/\S+/i.test(text);
   }
 
   private isImageUrl(text: string): boolean {
     if (text.startsWith("data:image/")) return true;
-    try {
-      const u = new URL(text);
-      return /\.(png|jpe?g|gif|bmp|svg)$/i.test(u.pathname);
-    } catch {
-      return false;
-    }
+    return /^https?:\/\/\S+\.(png|jpe?g|gif|bmp|svg)(\?.*)?$/i.test(text);
   }
 
   private updateTitleContent(titleElement: HTMLDivElement) {
