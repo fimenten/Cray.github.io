@@ -4,7 +4,7 @@ const { test } = require('node:test');
 // setup minimal DOM before requiring utils
 const body = { children: [], appendChild(el){ this.children.push(el); }, removeChild(el){ this.children = this.children.filter(c=>c!==el); } };
 const doc = { body, createElement(){ return { style:{}, appendChild(){}, querySelector(){return null;} }; }, querySelector(){ return null; } };
-const win = { addEventListener(){}, location:{ href:'', replace(u){ this.href = u; } } };
+const win = { addEventListener(){}, location:{ href:'', search:'', replace(u){ this.href = u; } } };
 global.document = doc;
 global.window = win;
 
@@ -35,4 +35,14 @@ test('expandChildrenOneLevel expands direct children', () => {
   assert.strictEqual(child2.isFolded, false);
   assert.ok(child1.updated);
   assert.ok(child2.updated);
+});
+
+test('getUrlParameter returns value when present', () => {
+  window.location.search = '?foo=bar&baz=qux';
+  assert.strictEqual(utils.getUrlParameter('baz'), 'qux');
+});
+
+test('getUrlParameter returns empty string when missing', () => {
+  window.location.search = '?foo=bar';
+  assert.strictEqual(utils.getUrlParameter('baz'), '');
 });

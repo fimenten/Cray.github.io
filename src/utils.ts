@@ -25,12 +25,8 @@ export function getWhiteColor() {
 }
 
 export function getUrlParameter(name: string) {
-  name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-  var regex = new RegExp("[\\?&]" + name + "=([^&#]*)");
-  var results = regex.exec(location.search);
-  return results === null
-    ? ""
-    : decodeURIComponent(results[1].replace(/\+/g, " ")).trim();
+  const params = new URLSearchParams(window.location.search);
+  return (params.get(name) || "").trim();
 }
 export function getRootElement() {
   const rootTrayElement = document.querySelector("body > div.tray");
