@@ -237,10 +237,12 @@ export class Tray {
 
     networkContainer.appendChild(infoContainer);
     networkContainer.appendChild(actionsContainer);
-    networkContainer.appendChild(createdTime);
 
     if (this.filename != null) {
+      networkContainer.appendChild(createdTime);
       titleContainer.appendChild(networkContainer);
+    } else {
+      titleContainer.appendChild(createdTime);
     }
 
     titleContainer.style.display = "flex";
