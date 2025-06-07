@@ -355,8 +355,8 @@
 
 .network-tray-buttons {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  flex-direction: row;
+  align-items: center;
   margin-left: 5px;
   gap: 2px;
 }
@@ -368,7 +368,7 @@
   border: none;
   border-radius: 2px;
   background-color: #f0f0f0;
-  width: 100%;
+  width: auto;
   text-align: left;
 }
 
@@ -403,7 +403,7 @@
 }
 
 .tray.network-tray .tray-checkbox-container {
-  order: -2;
+  order: 1;
   margin-right: 2px;
 }
 
