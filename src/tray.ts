@@ -162,7 +162,6 @@ export class Tray {
     titleContainer.appendChild(title);
     titleContainer.appendChild(rightFoldBotton);
     titleContainer.appendChild(contextMenuButton);
-    titleContainer.appendChild(createdTime);
     titleContainer.appendChild(checkboxContainer);
 
     // titleContainer.appendChild(clickArea)
@@ -184,9 +183,8 @@ export class Tray {
     //   titleElement.style.pointerEvents = "none";
     // }
     // this.setupEventListeners(tray);
-    const networkInfoElement = document.createElement("div");
-    networkInfoElement.classList.add("network-tray-info");
-    // this.updateNetworkInfo(networkInfoElement);
+    const infoContainer = document.createElement("div");
+    infoContainer.classList.add("network-tray-info");
     const urlButton = document.createElement("button");
     urlButton.textContent = "URL";
     // Set button color based on host_url validity
@@ -205,14 +203,18 @@ export class Tray {
     const filenameElement = document.createElement("div");
     filenameElement.textContent = `${this.filename}`;
 
-    // Append elements to the container
+    infoContainer.appendChild(urlButton);
+    infoContainer.appendChild(filenameElement);
 
-    const buttonContainer = document.createElement("div");
-    buttonContainer.classList.add("network-tray-buttons");
-    buttonContainer.style.display = "flex";
-    buttonContainer.style.flexDirection = "column";
-    buttonContainer.style.alignItems = "flex-start";
-    buttonContainer.style.gap = "5px"; // Add some space between buttons
+    const networkContainer = document.createElement("div");
+    networkContainer.classList.add("network-tray-buttons");
+    networkContainer.style.display = "flex";
+    networkContainer.style.flexDirection = "column";
+    networkContainer.style.alignItems = "flex-start";
+    networkContainer.style.gap = "5px";
+
+    const actionsContainer = document.createElement("div");
+    actionsContainer.classList.add("network-tray-actions");
 
     const uploadButton = document.createElement("button");
     uploadButton.textContent = "Upload";
@@ -229,16 +231,16 @@ export class Tray {
     if (this.autoUpload) autoUploadButton.classList.add("auto-upload-on");
     autoUploadButton.addEventListener("click", () => this.toggleAutoUpload(autoUploadButton));
 
-    // Add buttons to the container
-    buttonContainer.appendChild(urlButton);
-    buttonContainer.appendChild(filenameElement);
-    buttonContainer.appendChild(uploadButton);
-    buttonContainer.appendChild(updateButton);
-    buttonContainer.appendChild(autoUploadButton);
+    actionsContainer.appendChild(uploadButton);
+    actionsContainer.appendChild(updateButton);
+    actionsContainer.appendChild(autoUploadButton);
 
-    titleContainer.appendChild(networkInfoElement);
+    networkContainer.appendChild(infoContainer);
+    networkContainer.appendChild(actionsContainer);
+    networkContainer.appendChild(createdTime);
+
     if (this.filename != null) {
-      titleContainer.appendChild(buttonContainer);
+      titleContainer.appendChild(networkContainer);
     }
 
     titleContainer.style.display = "flex";
