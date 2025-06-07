@@ -381,6 +381,18 @@
   background-color: #e0e0e0;
 }
 
+.network-tray-actions {
+  display: flex;
+  gap: 2px;
+  width: 100%;
+}
+
+.network-tray-actions button {
+  width: auto;
+  flex: 1;
+  text-align: center;
+}
+
 /* Adjust Tray Title Container for Network Tray */
 .tray.network-tray .tray-title-container {
   display: flex;
@@ -410,8 +422,6 @@
 .tray.network-tray .tray-created-time {
   font-size: 0.6em;
   color: #888;
-  margin-left: auto;
-  /* align-self: flex-end; */
 }
 
 
