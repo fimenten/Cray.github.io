@@ -158,12 +158,51 @@ export class Tray {
     rightFoldBotton.textContent = "▼";
     rightFoldBotton.addEventListener("click", this.toggleFold.bind(this));
     rightFoldBotton.style.display = "none";
+    const urlButton = document.createElement("button");
+    urlButton.textContent = "URL";
+    if (this.host_url && this.host_url.trim() !== "") {
+      urlButton.style.backgroundColor = "green";
+      urlButton.style.color = "white";
+    } else {
+      urlButton.style.backgroundColor = "gray";
+      urlButton.style.color = "white";
+    }
+    urlButton.title = this.host_url || "No URL set";
+
+    const buttonContainer = document.createElement("div");
+    buttonContainer.classList.add("network-tray-buttons");
+    buttonContainer.style.display = "flex";
+    buttonContainer.style.flexDirection = "row";
+    buttonContainer.style.alignItems = "center";
+    buttonContainer.style.gap = "5px";
+
+    const uploadButton = document.createElement("button");
+    uploadButton.textContent = "Upload";
+    uploadButton.addEventListener("click", () => uploadData(this));
+
+    const updateButton = document.createElement("button");
+    updateButton.textContent = "Update";
+    updateButton.addEventListener("click", () => {
+      updateData(this).catch((e) => alert(e.message));
+    });
+
+    const autoUploadButton = document.createElement("button");
+    autoUploadButton.textContent = `Auto Upload: ${this.autoUpload ? "On" : "Off"}`;
+    if (this.autoUpload) autoUploadButton.classList.add("auto-upload-on");
+    autoUploadButton.addEventListener("click", () => this.toggleAutoUpload(autoUploadButton));
+
+    buttonContainer.appendChild(uploadButton);
+    buttonContainer.appendChild(updateButton);
+    buttonContainer.appendChild(autoUploadButton);
+
     titleContainer.appendChild(foldButton);
+    titleContainer.appendChild(urlButton);
     titleContainer.appendChild(title);
     titleContainer.appendChild(rightFoldBotton);
-    titleContainer.appendChild(contextMenuButton);
+    titleContainer.appendChild(buttonContainer);
     titleContainer.appendChild(createdTime);
     titleContainer.appendChild(checkboxContainer);
+    titleContainer.appendChild(contextMenuButton);
 
     // titleContainer.appendChild(clickArea)
     tray.appendChild(titleContainer);
@@ -183,63 +222,6 @@ export class Tray {
     //   titleElement.setAttribute("contenteditable", "false");
     //   titleElement.style.pointerEvents = "none";
     // }
-    // this.setupEventListeners(tray);
-    const networkInfoElement = document.createElement("div");
-    networkInfoElement.classList.add("network-tray-info");
-    // this.updateNetworkInfo(networkInfoElement);
-    const urlButton = document.createElement("button");
-    urlButton.textContent = "URL";
-    // Set button color based on host_url validity
-    if (this.host_url && this.host_url.trim() !== "") {
-      urlButton.style.backgroundColor = "green";
-      urlButton.style.color = "white";
-    } else {
-      urlButton.style.backgroundColor = "gray";
-      urlButton.style.color = "white";
-    }
-
-    // Add tooltip functionality
-    urlButton.title = this.host_url || "No URL set";
-
-    // Create filename element
-    const filenameElement = document.createElement("div");
-    filenameElement.textContent = `${this.filename}`;
-
-    // Append elements to the container
-
-    const buttonContainer = document.createElement("div");
-    buttonContainer.classList.add("network-tray-buttons");
-    buttonContainer.style.display = "flex";
-    buttonContainer.style.flexDirection = "column";
-    buttonContainer.style.alignItems = "flex-start";
-    buttonContainer.style.gap = "5px"; // Add some space between buttons
-
-    const uploadButton = document.createElement("button");
-    uploadButton.textContent = "Upload";
-    uploadButton.addEventListener("click", (e) => uploadData(this));
-
-    const updateButton = document.createElement("button");
-    updateButton.textContent = "Update";
-    updateButton.addEventListener("click", () => {
-      updateData(this).catch((e) => alert(e.message));
-    });
-
-    const autoUploadButton = document.createElement("button");
-    autoUploadButton.textContent = `Auto Upload: ${this.autoUpload ? "On" : "Off"}`;
-    if (this.autoUpload) autoUploadButton.classList.add("auto-upload-on");
-    autoUploadButton.addEventListener("click", () => this.toggleAutoUpload(autoUploadButton));
-
-    // Add buttons to the container
-    buttonContainer.appendChild(urlButton);
-    buttonContainer.appendChild(filenameElement);
-    buttonContainer.appendChild(uploadButton);
-    buttonContainer.appendChild(updateButton);
-    buttonContainer.appendChild(autoUploadButton);
-
-    titleContainer.appendChild(networkInfoElement);
-    if (this.filename != null) {
-      titleContainer.appendChild(buttonContainer);
-    }
 
     titleContainer.style.display = "flex";
     titleContainer.style.alignItems = "center";
