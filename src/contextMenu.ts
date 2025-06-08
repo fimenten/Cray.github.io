@@ -7,7 +7,7 @@
  * ---------------------------------------------------------- */
 
 import { Tray } from "./tray";
-import { fetchTrayList, setNetworkOption, removeDataFromServer, clearStoredPassword, updateStoredPassword } from "./networks";
+import { fetchTrayList, setNetworkOption, removeDataFromServer } from "./networks";
 import {
   meltTray,
   deleteTray,
@@ -27,8 +27,6 @@ export const CONTEXT_MENU_ITEMS: ContextMenuItem[] = [
   { act: "fetchTrayFromServer", label: "Fetch Tray from Server" },
   { act: "networkSetting", label: "Network Setting" },
   { act: "removeFromServer", label: "Remove from Server" },
-  { act: "updatePassword", label: "Update Password" },
-  { act: "clearPassword", label: "Clear Stored Password" },
   { act: "openTrayInOther", label: "Open This in Other" },
   { act: "toggleFlexDirection", label: "Toggle Flex Direction" },
   { act: "meltTray", label: "Melt this Tray" },
@@ -309,13 +307,6 @@ function executeMenuAction(tray: Tray, act: string) {
       }
       break;
 
-    case "updatePassword":
-      updateStoredPassword();
-      break;
-
-    case "clearPassword":
-      clearStoredPassword();
-      break;
 
     case "addProperty": {
       const key = prompt("Property name:", "priority") || "priority";

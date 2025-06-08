@@ -54,19 +54,21 @@ export function stopAutoUpload(tray: Tray) {
     intervalIds.delete(tray.id);
   }
 }
+function getPasswordForServer(serverUrl: string): string | null {
+  const serverPasswords = JSON.parse(localStorage.getItem("serverPasswords") || "{}");
+  return serverPasswords[serverUrl] || null;
+}
+
 export function fetchTrayList(tray: Tray) {
   const defaultServer = localStorage.getItem("defaultServer") || "";
   const url = prompt("Enter server URL:", defaultServer);
   if (!url) return;
 
-  const password = localStorage.getItem("trayPassword") || prompt("Enter password:");
+  const password = getPasswordForServer(url);
   if (!password) {
-    alert("Password is required for secure access.");
+    alert("No password configured for this server. Please set up server passwords in the hamburger menu.");
     return;
   }
-
-  // Store password for future use
-  localStorage.setItem("trayPassword", password);
 
   fetch(`${url}/tray/list_auth`, {
     method: "GET",
@@ -141,9 +143,9 @@ export async function addTrayFromServer(
   filename: string,
 ) {
   try {
-    const password = localStorage.getItem("trayPassword");
+    const password = getPasswordForServer(host_url);
     if (!password) {
-      alert("Password is required for secure access.");
+      alert("No password configured for this server. Please set up server passwords in the hamburger menu.");
       return;
     }
 
@@ -156,8 +158,7 @@ export async function addTrayFromServer(
     });
 
     if (response.status === 401) {
-      localStorage.removeItem("trayPassword");
-      alert("Authentication failed. Please check your password.");
+      alert("Authentication failed. Please check your password in the hamburger menu.");
       return;
     }
 
@@ -182,9 +183,9 @@ export async function uploadData(tray: Tray) {
     return;
   }
 
-  const password = localStorage.getItem("trayPassword");
+  const password = getPasswordForServer(tray.host_url);
   if (!password) {
-    showUploadNotification("Password is required for secure upload.", true);
+    showUploadNotification("No password configured for this server. Please set up server passwords in the hamburger menu.", true);
     return;
   }
 
@@ -200,8 +201,7 @@ export async function uploadData(tray: Tray) {
     });
 
     if (response.status === 401) {
-      localStorage.removeItem("trayPassword");
-      showUploadNotification("Authentication failed. Please check your password.", true);
+      showUploadNotification("Authentication failed. Please check your password in the hamburger menu.", true);
       return;
     }
 
@@ -227,9 +227,9 @@ export async function downloadData(tray: Tray) {
     return;
   }
 
-  const password = localStorage.getItem("trayPassword");
+  const password = getPasswordForServer(tray.host_url);
   if (!password) {
-    showUploadNotification("Password is required for secure download.", true);
+    showUploadNotification("No password configured for this server. Please set up server passwords in the hamburger menu.", true);
     return;
   }
 
@@ -243,8 +243,7 @@ export async function downloadData(tray: Tray) {
     });
 
     if (response.status === 401) {
-      localStorage.removeItem("trayPassword");
-      showUploadNotification("Authentication failed. Please check your password.", true);
+      showUploadNotification("Authentication failed. Please check your password in the hamburger menu.", true);
       return;
     }
 
@@ -367,18 +366,6 @@ export function showNetworkOptions(tray: Tray) {
   if (filename) tray.filename = filename;
 }
 
-export function clearStoredPassword() {
-  localStorage.removeItem("trayPassword");
-  showUploadNotification("Stored password cleared.");
-}
-
-export function updateStoredPassword() {
-  const password = prompt("Enter new password:");
-  if (password) {
-    localStorage.setItem("trayPassword", password);
-    showUploadNotification("Password updated.");
-  }
-}
 
 export async function removeDataFromServer(tray: Tray) {
   if (!tray.filename) {
@@ -390,9 +377,9 @@ export async function removeDataFromServer(tray: Tray) {
     return;
   }
 
-  const password = localStorage.getItem("trayPassword");
+  const password = getPasswordForServer(tray.host_url);
   if (!password) {
-    showUploadNotification("Password is required for secure removal.", true);
+    showUploadNotification("No password configured for this server. Please set up server passwords in the hamburger menu.", true);
     return;
   }
 
@@ -406,8 +393,7 @@ export async function removeDataFromServer(tray: Tray) {
     });
 
     if (response.status === 401) {
-      localStorage.removeItem("trayPassword");
-      showUploadNotification("Authentication failed. Please check your password.", true);
+      showUploadNotification("Authentication failed. Please check your password in the hamburger menu.", true);
       return;
     }
 

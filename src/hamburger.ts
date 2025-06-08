@@ -25,6 +25,7 @@ export const GENERAL_MENU_ITEMS: HamburgerMenuItem[] = [
   { action: "export", label: "データのエクスポート" },
   { action: "import", label: "データのインポート" },
   { action: "set_default_server", label: "set_default_server" },
+  { action: "manage_server_passwords", label: "Manage Server Passwords" },
   {
     action: "import_network_tray_directly_as_root",
     label: "import_network_tray_directly_as_root",
@@ -161,6 +162,7 @@ export function createHamburgerMenu() {
     export: exportData,
     import: importData,
     set_default_server: set_default_server,
+    manage_server_passwords: showServerPasswordManager,
     editTitle: editPageTitle,
     uploadAll: () => uploadAllData(),
     downloadAll: () => downloadAllData(),
@@ -357,4 +359,104 @@ export function deleteSelected(): void {
     selected_trays.forEach((t) => deleteTray(t));
     clearSelectedTrays();
   }
+}
+
+function showServerPasswordManager() {
+  const serverPasswords = JSON.parse(localStorage.getItem("serverPasswords") || "{}");
+  
+  const dialog = document.createElement("div");
+  dialog.classList.add("server-password-dialog");
+  dialog.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    z-index: 10000;
+    min-width: 400px;
+    max-height: 70vh;
+    overflow-y: auto;
+  `;
+  
+  dialog.innerHTML = `
+    <h3>Manage Server Passwords</h3>
+    <div id="server-list"></div>
+    <div style="margin-top: 15px;">
+      <input type="text" id="new-server" placeholder="Server URL" style="width: 200px; margin-right: 10px;">
+      <input type="password" id="new-password" placeholder="Password" style="width: 150px; margin-right: 10px;">
+      <button id="add-server">Add</button>
+    </div>
+    <div style="margin-top: 15px;">
+      <button id="close-dialog">Close</button>
+    </div>
+  `;
+  
+  document.body.appendChild(dialog);
+  
+  function updateServerList() {
+    const serverList = dialog.querySelector("#server-list")!;
+    serverList.innerHTML = "";
+    
+    Object.entries(serverPasswords).forEach(([server, password]) => {
+      const row = document.createElement("div");
+      row.style.cssText = "display: flex; align-items: center; margin-bottom: 10px; padding: 10px; border: 1px solid #eee; border-radius: 4px;";
+      row.innerHTML = `
+        <span style="flex: 1; font-weight: bold;">${server}</span>
+        <span style="flex: 1; font-family: monospace;">••••••••</span>
+        <button class="edit-btn" data-server="${server}" style="margin-left: 10px;">Edit</button>
+        <button class="delete-btn" data-server="${server}" style="margin-left: 5px;">Delete</button>
+      `;
+      serverList.appendChild(row);
+    });
+  }
+  
+  updateServerList();
+  
+  dialog.addEventListener("click", (e) => {
+    const target = e.target as HTMLElement;
+    
+    if (target.classList.contains("delete-btn")) {
+      const server = target.getAttribute("data-server")!;
+      if (confirm(`Delete password for ${server}?`)) {
+        delete serverPasswords[server];
+        localStorage.setItem("serverPasswords", JSON.stringify(serverPasswords));
+        updateServerList();
+      }
+    }
+    
+    if (target.classList.contains("edit-btn")) {
+      const server = target.getAttribute("data-server")!;
+      const newPassword = prompt(`Enter new password for ${server}:`, "");
+      if (newPassword !== null) {
+        serverPasswords[server] = newPassword;
+        localStorage.setItem("serverPasswords", JSON.stringify(serverPasswords));
+        updateServerList();
+      }
+    }
+    
+    if (target.id === "add-server") {
+      const serverInput = dialog.querySelector("#new-server") as HTMLInputElement;
+      const passwordInput = dialog.querySelector("#new-password") as HTMLInputElement;
+      
+      const server = serverInput.value.trim();
+      const password = passwordInput.value;
+      
+      if (server && password) {
+        serverPasswords[server] = password;
+        localStorage.setItem("serverPasswords", JSON.stringify(serverPasswords));
+        serverInput.value = "";
+        passwordInput.value = "";
+        updateServerList();
+      } else {
+        alert("Please enter both server URL and password");
+      }
+    }
+    
+    if (target.id === "close-dialog") {
+      dialog.remove();
+    }
+  });
 }
