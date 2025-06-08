@@ -7,6 +7,12 @@ const win = { addEventListener(){}, location:{ href:'', replace(){} } };
 
 global.document = doc;
 global.window = win;
+global.localStorage = {
+  data: {},
+  getItem(key) { return this.data[key] || null; },
+  setItem(key, value) { this.data[key] = value; },
+  removeItem(key) { delete this.data[key]; }
+};
 
 function load(stubs){
   Object.keys(stubs).forEach(m=>{
@@ -28,6 +34,7 @@ function remote(created){
 
 test('updateData adopts newer remote when no local change', async () => {
   let posted = false;
+  global.localStorage.setItem('trayPassword', 'test-password');
   global.fetch = async (url, opts)=>{
     if(opts.method==='GET') return { ok:true, json: async ()=>remote('2020-02-01') };
     if(opts.method==='POST'){ posted=true; return {ok:true,text:async()=>''}; }
@@ -42,6 +49,7 @@ test('updateData adopts newer remote when no local change', async () => {
 
 test('updateData uploads when only local changed', async () => {
   let posted = false;
+  global.localStorage.setItem('trayPassword', 'test-password');
   // first call for baseline
   global.fetch = async (url, opts)=>{
     if(opts.method==='GET') return { ok:true, json: async ()=>remote('2020-01-01') };
@@ -65,6 +73,7 @@ test('updateData uploads when only local changed', async () => {
 });
 
 test('updateData throws conflict when both changed', async () => {
+  global.localStorage.setItem('trayPassword', 'test-password');
   global.fetch = async (url, opts)=>{
     if(opts.method==='GET') return { ok:true, json: async ()=>remote('2020-01-01') };
     if(opts.method==='POST') return { ok:true, text:async()=>'' };

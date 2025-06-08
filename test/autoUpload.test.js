@@ -6,6 +6,12 @@ const doc = { body, createElement(){ return { style:{}, textContent:'', appendCh
 const win = { addEventListener(){}, location:{ href:'', replace(){} } };
 global.document = doc;
 global.window = win;
+global.localStorage = {
+  data: {},
+  getItem(key) { return this.data[key] || null; },
+  setItem(key, value) { this.data[key] = value; },
+  removeItem(key) { delete this.data[key]; }
+};
 
 function load(stubs){
   Object.keys(stubs).forEach(m=>{
@@ -27,6 +33,7 @@ test('newestTimestamp finds latest date', () => {
 
 test('syncTray adopts newer remote data', async () => {
   let posted = false;
+  global.localStorage.setItem('trayPassword', 'test-password');
   global.fetch = async (url, opts)=>{
     if(opts.method==='GET') return { ok:true, json: async ()=>({id:'1',parentId:'p',name:'r',created_dt:new Date('2020-02-01'),children:[]}) };
     if(opts.method==='POST'){ posted=true; return {ok:true,text:async()=>''}; }
@@ -41,6 +48,7 @@ test('syncTray adopts newer remote data', async () => {
 
 test('syncTray uploads when local newer', async () => {
   let posted = false;
+  global.localStorage.setItem('trayPassword', 'test-password');
   global.fetch = async (url, opts)=>{
     if(opts.method==='GET') return { ok:true, json: async ()=>({id:'1',parentId:'p',name:'r',created_dt:new Date('2020-01-01'),children:[]}) };
     if(opts.method==='POST'){ posted=true; return {ok:true,text:async()=>''}; }
