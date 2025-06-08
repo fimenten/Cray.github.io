@@ -59,17 +59,36 @@ export function fetchTrayList(tray: Tray) {
   const url = prompt("Enter server URL:", defaultServer);
   if (!url) return;
 
-  fetch(`${url}/tray/list`, {
+  const password = localStorage.getItem("trayPassword") || prompt("Enter password:");
+  if (!password) {
+    alert("Password is required for secure access.");
+    return;
+  }
+
+  // Store password for future use
+  localStorage.setItem("trayPassword", password);
+
+  fetch(`${url}/tray/list_auth`, {
     method: "GET",
+    headers: {
+      "Authorization": password,
+    },
   })
     .then((response) => {
+      if (response.status === 401) {
+        localStorage.removeItem("trayPassword");
+        alert("Authentication failed. Please check your password.");
+        return;
+      }
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
       return response.json();
     })
     .then((data) => {
-      showTraySelectionDialog(tray, url, data.files);
+      if (data) {
+        showTraySelectionDialog(tray, url, data.files);
+      }
     })
     .catch((error) => {
       console.error("Error:", error);
@@ -122,12 +141,25 @@ export async function addTrayFromServer(
   filename: string,
 ) {
   try {
-    const response = await fetch(`${host_url}/tray/load`, {
+    const password = localStorage.getItem("trayPassword");
+    if (!password) {
+      alert("Password is required for secure access.");
+      return;
+    }
+
+    const response = await fetch(`${host_url}/tray/load_auth`, {
       method: "GET",
       headers: {
-        filename: filename,
+        "Authorization": password,
+        "filename": filename,
       },
     });
+
+    if (response.status === 401) {
+      localStorage.removeItem("trayPassword");
+      alert("Authentication failed. Please check your password.");
+      return;
+    }
 
     if (!response.ok) {
       throw new Error("Network response was not ok");
@@ -150,15 +182,28 @@ export async function uploadData(tray: Tray) {
     return;
   }
 
+  const password = localStorage.getItem("trayPassword");
+  if (!password) {
+    showUploadNotification("Password is required for secure upload.", true);
+    return;
+  }
+
   try {
-    const response = await fetch(`${tray.host_url}/tray/save`, {
+    const response = await fetch(`${tray.host_url}/tray/upload_auth`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        filename: tray.filename, // filenameはnullでないことが保証される
+        "Authorization": password,
+        "filename": tray.filename,
       },
       body: JSON.stringify({ data: data }),
     });
+
+    if (response.status === 401) {
+      localStorage.removeItem("trayPassword");
+      showUploadNotification("Authentication failed. Please check your password.", true);
+      return;
+    }
 
     if (!response.ok) {
       throw new Error("Network response was not ok");
@@ -182,13 +227,26 @@ export async function downloadData(tray: Tray) {
     return;
   }
 
+  const password = localStorage.getItem("trayPassword");
+  if (!password) {
+    showUploadNotification("Password is required for secure download.", true);
+    return;
+  }
+
   try {
-    const response = await fetch(`${tray.host_url}/tray/load`, {
+    const response = await fetch(`${tray.host_url}/tray/load_auth`, {
       method: "GET",
       headers: {
-        filename: tray.filename, // filenameはnullでないことが保証される
+        "Authorization": password,
+        "filename": tray.filename,
       },
     });
+
+    if (response.status === 401) {
+      localStorage.removeItem("trayPassword");
+      showUploadNotification("Authentication failed. Please check your password.", true);
+      return;
+    }
 
     if (!response.ok) {
       throw new Error("Network response was not ok");
@@ -197,17 +255,10 @@ export async function downloadData(tray: Tray) {
     const data = await response.json();
     const downloadedTray = deserialize(JSON.stringify(data));
 
-    // ダウンロードされたtrayの処理（コメント解除して使う）
-    // let parent = getTrayFromId(this.parentId);
-    // parent.addChild(downloadedTray);
-    // parent.updateAppearance();
-    // this.element = downloadedTray.element;
-    // notifyUser('データのダウンロードに成功しました。');
-
     return downloadedTray;
   } catch (error) {
     console.error("Error:", error);
-    showUploadNotification("データのダウンロードに失敗しました。");
+    showUploadNotification("データのダウンロードに失敗しました。", true);
     throw error;
   }
 }
@@ -314,6 +365,62 @@ export function showNetworkOptions(tray: Tray) {
 
   if (url) tray.host_url = url;
   if (filename) tray.filename = filename;
+}
+
+export function clearStoredPassword() {
+  localStorage.removeItem("trayPassword");
+  showUploadNotification("Stored password cleared.");
+}
+
+export function updateStoredPassword() {
+  const password = prompt("Enter new password:");
+  if (password) {
+    localStorage.setItem("trayPassword", password);
+    showUploadNotification("Password updated.");
+  }
+}
+
+export async function removeDataFromServer(tray: Tray) {
+  if (!tray.filename) {
+    showUploadNotification("No filename specified for removal.", true);
+    return;
+  }
+  if (!tray.host_url) {
+    showUploadNotification("No server URL specified for removal.", true);
+    return;
+  }
+
+  const password = localStorage.getItem("trayPassword");
+  if (!password) {
+    showUploadNotification("Password is required for secure removal.", true);
+    return;
+  }
+
+  try {
+    const response = await fetch(`${tray.host_url}/tray/remove`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": password,
+        "filename": tray.filename,
+      },
+    });
+
+    if (response.status === 401) {
+      localStorage.removeItem("trayPassword");
+      showUploadNotification("Authentication failed. Please check your password.", true);
+      return;
+    }
+
+    if (!response.ok) {
+      throw new Error("Network response was not ok");
+    }
+
+    showUploadNotification("File removed from server successfully.");
+  } catch (error) {
+    console.error("Error:", error);
+    showUploadNotification("Failed to remove file from server.", true);
+    throw error;
+  }
 }
 
 export function ondownloadButtonPressed(tray: Tray) {
