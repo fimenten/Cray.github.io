@@ -227,7 +227,7 @@ export class Tray {
     });
 
     const autoUploadButton = document.createElement("button");
-    autoUploadButton.textContent = `♻️: ${this.autoUpload ? "On" : "Off"}`; // recycle icon
+    autoUploadButton.textContent = "♻️"; // recycle icon only
     if (this.autoUpload) autoUploadButton.classList.add("auto-upload-on");
     autoUploadButton.addEventListener("click", () => this.toggleAutoUpload(autoUploadButton));
 
@@ -348,7 +348,7 @@ export class Tray {
       stopAutoUpload(this);
     }
     if (button) {
-      button.textContent = `♻️: ${this.autoUpload ? "On" : "Off"}`;
+      button.textContent = "♻️";
       if (this.autoUpload) {
         button.classList.add("auto-upload-on");
       } else {
