@@ -217,17 +217,17 @@ export class Tray {
     actionsContainer.classList.add("network-tray-actions");
 
     const uploadButton = document.createElement("button");
-    uploadButton.textContent = "Upload";
+    uploadButton.textContent = "\u2191"; // up arrow
     uploadButton.addEventListener("click", (e) => uploadData(this));
 
     const updateButton = document.createElement("button");
-    updateButton.textContent = "Update";
+    updateButton.textContent = "\u2193"; // down arrow
     updateButton.addEventListener("click", () => {
       updateData(this).catch((e) => alert(e.message));
     });
 
     const autoUploadButton = document.createElement("button");
-    autoUploadButton.textContent = `Auto Upload: ${this.autoUpload ? "On" : "Off"}`;
+    autoUploadButton.textContent = `♻️: ${this.autoUpload ? "On" : "Off"}`; // recycle icon
     if (this.autoUpload) autoUploadButton.classList.add("auto-upload-on");
     autoUploadButton.addEventListener("click", () => this.toggleAutoUpload(autoUploadButton));
 
@@ -348,7 +348,7 @@ export class Tray {
       stopAutoUpload(this);
     }
     if (button) {
-      button.textContent = `Auto Upload: ${this.autoUpload ? "On" : "Off"}`;
+      button.textContent = `♻️: ${this.autoUpload ? "On" : "Off"}`;
       if (this.autoUpload) {
         button.classList.add("auto-upload-on");
       } else {
