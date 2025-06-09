@@ -55,8 +55,13 @@ export function stopAutoUpload(tray: Tray) {
   }
 }
 function getPasswordForServer(serverUrl: string): string | null {
-  const serverPasswords = JSON.parse(localStorage.getItem("serverPasswords") || "{}");
-  return serverPasswords[serverUrl] || null;
+  const serverPasswords = JSON.parse(
+    localStorage.getItem("serverPasswords") || "{}",
+  );
+  const serverPassword = serverPasswords[serverUrl];
+  if (serverPassword) return serverPassword;
+  const trayPassword = localStorage.getItem("trayPassword");
+  return trayPassword || null;
 }
 
 export function fetchTrayList(tray: Tray) {
@@ -185,7 +190,10 @@ export async function uploadData(tray: Tray) {
 
   const password = getPasswordForServer(tray.host_url);
   if (!password) {
-    showUploadNotification("No password configured for this server. Please set up server passwords in the hamburger menu.", true);
+    showUploadNotification(
+      "Password is required for secure upload.",
+      true,
+    );
     return;
   }
 
