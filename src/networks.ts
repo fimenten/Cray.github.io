@@ -83,7 +83,6 @@ export function fetchTrayList(tray: Tray) {
   })
     .then((response) => {
       if (response.status === 401) {
-        localStorage.removeItem("trayPassword");
         alert("Authentication failed. Please check your password.");
         return;
       }
@@ -265,7 +264,7 @@ export async function downloadData(tray: Tray) {
     return downloadedTray;
   } catch (error) {
     console.error("Error:", error);
-    showUploadNotification("データのダウンロードに失敗しました。", true);
+    showUploadNotification("Failed to download data.", true);
     throw error;
   }
 }
