@@ -15,6 +15,25 @@ import { setLastFocused } from "./state";
 
 export let selected_trays: Tray[] = [];
 
+function normalizeUrl(url: string): string {
+  try {
+    const urlObj = new URL(url);
+    // Build the normalized URL
+    let normalized = urlObj.origin;
+    
+    // Add pathname if it's not just '/'
+    if (urlObj.pathname && urlObj.pathname !== '/') {
+      // Remove trailing slash from pathname
+      normalized += urlObj.pathname.replace(/\/$/, '');
+    }
+    
+    return normalized;
+  } catch (e) {
+    // If URL parsing fails, just trim whitespace and trailing slashes
+    return url.trim().replace(/\/$/, '');
+  }
+}
+
 export interface HamburgerMenuItem {
   action: string;
   label: string;
@@ -334,7 +353,7 @@ function set_default_server() {
   if (!url) {
     return;
   }
-  localStorage.setItem("defaultServer", url);
+  localStorage.setItem("defaultServer", normalizeUrl(url));
 }
 export function cutSelected(): void {
   if (selected_trays.length !== 0) {
@@ -449,7 +468,8 @@ function showServerPasswordManager() {
       const password = passwordInput.value;
       
       if (server && password) {
-        serverPasswords[server] = password;
+        const normalizedServer = normalizeUrl(server);
+        serverPasswords[normalizedServer] = password;
         localStorage.setItem("serverPasswords", JSON.stringify(serverPasswords));
         serverInput.value = "";
         passwordInput.value = "";

@@ -54,12 +54,44 @@ export function stopAutoUpload(tray: Tray) {
     intervalIds.delete(tray.id);
   }
 }
+function normalizeUrl(url: string): string {
+  try {
+    const urlObj = new URL(url);
+    // Build the normalized URL
+    let normalized = urlObj.origin;
+    
+    // Add pathname if it's not just '/'
+    if (urlObj.pathname && urlObj.pathname !== '/') {
+      // Remove trailing slash from pathname
+      normalized += urlObj.pathname.replace(/\/$/, '');
+    }
+    
+    return normalized;
+  } catch (e) {
+    // If URL parsing fails, just trim whitespace and trailing slashes
+    return url.trim().replace(/\/$/, '');
+  }
+}
+
 function getPasswordForServer(serverUrl: string): string | null {
+  const normalizedUrl = normalizeUrl(serverUrl);
   const serverPasswords = JSON.parse(
     localStorage.getItem("serverPasswords") || "{}",
   );
-  const serverPassword = serverPasswords[serverUrl];
-  if (serverPassword) return serverPassword;
+  
+  // Try exact match first
+  if (serverPasswords[normalizedUrl]) {
+    return serverPasswords[normalizedUrl];
+  }
+  
+  // Try to find a match with different variations
+  for (const [storedUrl, password] of Object.entries(serverPasswords)) {
+    if (normalizeUrl(storedUrl) === normalizedUrl) {
+      return password as string;
+    }
+  }
+  
+  // Fall back to legacy password
   const trayPassword = localStorage.getItem("trayPassword");
   return trayPassword || null;
 }
