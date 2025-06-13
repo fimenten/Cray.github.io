@@ -60,11 +60,11 @@ test('new session opens new window', () => {
   assert.strictEqual(window.lastOpen.target, '_blank');
 });
 
-test('temporal tray opens temp window for current session', () => {
+test('temporal tray opens global temp window', () => {
   window.location.search = '?sessionId=abc123';
   ham.openTemporalTray();
   assert.ok(window.lastOpen, 'window.open should be called');
-  assert.strictEqual(window.lastOpen.url, '/page?sessionId=temp-abc123');
+  assert.strictEqual(window.lastOpen.url, '/page?sessionId=temp-global');
   assert.strictEqual(window.lastOpen.target, '_blank');
 });
 
