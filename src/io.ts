@@ -114,7 +114,14 @@ export async function saveToIndexedDB(
       putRequest.onsuccess = () => {
         console.log(keyToUse);
         console.log("Data saved successfully");
-        
+
+        try {
+          localStorage.setItem(
+            `update_${keyToUse}`,
+            Date.now().toString(),
+          );
+        } catch {}
+
         // Uncomment if auto-sync functionality is needed
         // if (AUTO_SYNC) {
         //   uploadAllData();
