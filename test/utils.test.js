@@ -46,3 +46,8 @@ test('getUrlParameter returns empty string when missing', () => {
   window.location.search = '?foo=bar';
   assert.strictEqual(utils.getUrlParameter('baz'), '');
 });
+
+test('getUrlParameter defaults sessionId to "default"', () => {
+  window.location.search = '';
+  assert.strictEqual(utils.getUrlParameter('sessionId'), 'default');
+});
