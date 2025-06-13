@@ -26,7 +26,11 @@ export function getWhiteColor() {
 
 export function getUrlParameter(name: string) {
   const params = new URLSearchParams(window.location.search);
-  return (params.get(name) || "").trim();
+  const value = (params.get(name) || "").trim();
+  if (!value && name === "sessionId") {
+    return "default";
+  }
+  return value;
 }
 export function getRootElement() {
   const rootTrayElement = document.querySelector("body > div.tray");
