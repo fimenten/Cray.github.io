@@ -139,3 +139,20 @@ test('insertParentTray wraps tray correctly', () => {
   assert.strictEqual(newParent.children[0], child);
   assert.strictEqual(child.parentId, newParent.id);
 });
+
+test('insertChildTray nests children correctly', () => {
+  const root = new Tray('0','r4','root'); idMap.set(root.id,root);
+  const child1 = new Tray(root.id,'c4','c1'); idMap.set(child1.id,child1);
+  const child2 = new Tray(root.id,'c5','c2'); idMap.set(child2.id,child2);
+  root.addChild(child1);
+  root.addChild(child2);
+
+  root.insertChildTray();
+
+  const newChild = root.children[0];
+  assert.notStrictEqual(newChild, child1);
+  assert.ok(newChild.children.includes(child1));
+  assert.ok(newChild.children.includes(child2));
+  assert.strictEqual(child1.parentId, newChild.id);
+  assert.strictEqual(child2.parentId, newChild.id);
+});

@@ -66,6 +66,11 @@ test('menu items include insertParentTray', () => {
   assert.ok(found);
 });
 
+test('menu items include insertChildTray', () => {
+  const found = ctx.CONTEXT_MENU_ITEMS.some(i => i.act === 'insertChildTray');
+  assert.ok(found);
+});
+
 test('open and close context menu', () => {
   const menuBefore = body.children.length;
   const tray = { borderColor: '#000', changeBorderColor(){} };
