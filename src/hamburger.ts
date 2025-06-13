@@ -55,6 +55,7 @@ export const GENERAL_MENU_ITEMS: HamburgerMenuItem[] = [
   { action: "editTitle", label: "ページタイトルを編集" },
   { action: "uploadAll", label: "Upload All" },
   { action: "downloadAll", label: "Download All" },
+  { action: "editSessionId", label: "セッションIDを編集" },
   { action: "newSession", label: "New Session" },
   { action: "temporalTray", label: "Temporal Tray" },
 ];
@@ -190,6 +191,7 @@ export function createHamburgerMenu() {
     editTitle: editPageTitle,
     uploadAll: () => uploadAllData(),
     downloadAll: () => downloadAllData(),
+    editSessionId: editSessionId,
     newSession: openNewSession,
     temporalTray: openTemporalTray,
     cutSelected: cutSelected,
@@ -245,6 +247,14 @@ function editPageTitle() {
       localStorage.setItem(sessionId + "_title", newTitle.trim());
       alert("ページタイトルを更新しました。");
     }
+  }
+}
+
+export function editSessionId() {
+  const currentId = getUrlParameter("sessionId");
+  const newId = prompt("新しいセッションIDを入力してください:", currentId || "");
+  if (newId && newId.trim() !== "") {
+    window.location.href = `${window.location.pathname}?sessionId=${newId.trim()}`;
   }
 }
 

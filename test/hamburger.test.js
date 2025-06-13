@@ -67,3 +67,12 @@ test('temporal tray opens temp window for current session', () => {
   assert.strictEqual(window.lastOpen.url, '/page?sessionId=temp-abc123');
   assert.strictEqual(window.lastOpen.target, '_blank');
 });
+
+test('edit session id updates location', () => {
+  window.location.pathname = '/page';
+  window.location.search = '?sessionId=old';
+  global.prompt = () => 'new-id';
+  ham.editSessionId();
+  assert.strictEqual(window.location.href, '/page?sessionId=new-id');
+  global.prompt = undefined;
+});
