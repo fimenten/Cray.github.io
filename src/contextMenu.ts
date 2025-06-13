@@ -29,6 +29,7 @@ export const CONTEXT_MENU_ITEMS: ContextMenuItem[] = [
   { act: "removeFromServer", label: "Remove from Server" },
   { act: "openTrayInOther", label: "Open This in Other" },
   { act: "toggleFlexDirection", label: "Toggle Flex Direction" },
+  { act: "insertParentTray", label: "Insert Parent Tray" },
   { act: "meltTray", label: "Melt this Tray" },
   { act: "expandAll", label: "Expand All" },
   { act: "expandChildrenOneLevel", label: "Expand Children 1 Level" },
@@ -286,6 +287,10 @@ function executeMenuAction(tray: Tray, act: string) {
 
     case "toggleFlexDirection":
       tray.toggleFlexDirection?.();
+      break;
+
+    case "insertParentTray":
+      tray.insertParentTray?.();
       break;
 
 

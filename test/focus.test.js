@@ -126,3 +126,16 @@ test('meltTray focuses parent tray', () => {
   assert.ok(!root.children.includes(child));
   assert.ok(root.children.includes(grand));
 });
+
+test('insertParentTray wraps tray correctly', () => {
+  const root = new Tray('0','r3','root'); idMap.set(root.id,root);
+  const child = new Tray(root.id,'c3','child'); idMap.set(child.id,child);
+  root.addChild(child);
+
+  child.insertParentTray();
+
+  const newParent = root.children[0];
+  assert.notStrictEqual(newParent, child);
+  assert.strictEqual(newParent.children[0], child);
+  assert.strictEqual(child.parentId, newParent.id);
+});

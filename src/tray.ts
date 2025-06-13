@@ -862,6 +862,37 @@ export class Tray {
     saveToIndexedDB();
   }
 
+  insertParentTray() {
+    const parent = getTrayFromId(this.parentId) as Tray | undefined;
+    if (!parent) return;
+
+    const index = parent.children.indexOf(this);
+    if (index === -1) return;
+
+    const newTray = new Tray(parent.id, generateUUID(), "New Tray");
+
+    parent.children.splice(index, 1, newTray);
+
+    const content = parent.element.querySelector(
+      ".tray-content",
+    ) as HTMLElement | null;
+    if (content) {
+      content.insertBefore(newTray.element, this.element);
+    }
+
+    newTray.addChild(this);
+    parent.updateAppearance();
+    newTray.isFolded = false;
+    newTray.updateAppearance();
+
+    const titleElement = newTray.element.querySelector(
+      ".tray-title",
+    ) as HTMLDivElement;
+    newTray.startTitleEdit(titleElement);
+    newTray.element.focus();
+    saveToIndexedDB();
+  }
+
   // Default to ascending order
   sortChildren(property: string = "created_dt", descending: boolean = false) {
     this.children.sort((a, b) => {
