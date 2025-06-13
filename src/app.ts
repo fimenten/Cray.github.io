@@ -32,6 +32,13 @@ export const id2TrayData = new Map<TrayId, Tray>();
 
 const TRAY_DATA_KEY = "trayData";
 
+window.addEventListener("storage", (ev) => {
+  const sessionId = getUrlParameter("sessionId") || TRAY_DATA_KEY;
+  if (ev.key === `update_${sessionId}`) {
+    loadFromIndexedDB(sessionId);
+  }
+});
+
 // export const globalLabelManager = new LabelManager();
 
 
