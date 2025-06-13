@@ -30,7 +30,7 @@ const documentStub = {
 };
 const windowStub = {
   addEventListener(){},
-  location:{ pathname:'/page', href:'' },
+  location:{ pathname:'/page', href:'', search:'' },
   open(url, target){ this.lastOpen = { url, target }; }
 };
 
@@ -57,5 +57,13 @@ test('new session opens new window', () => {
   assert.ok(window.lastOpen, 'window.open should be called');
   const match = window.lastOpen.url.match(/\/page\?sessionId=([0-9a-f-]{36})$/);
   assert.ok(match, 'new window url should include UUID');
+  assert.strictEqual(window.lastOpen.target, '_blank');
+});
+
+test('temporal tray opens temp window for current session', () => {
+  window.location.search = '?sessionId=abc123';
+  ham.openTemporalTray();
+  assert.ok(window.lastOpen, 'window.open should be called');
+  assert.strictEqual(window.lastOpen.url, '/page?sessionId=temp-abc123');
   assert.strictEqual(window.lastOpen.target, '_blank');
 });

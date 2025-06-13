@@ -56,6 +56,7 @@ export const GENERAL_MENU_ITEMS: HamburgerMenuItem[] = [
   { action: "uploadAll", label: "Upload All" },
   { action: "downloadAll", label: "Download All" },
   { action: "newSession", label: "New Session" },
+  { action: "temporalTray", label: "Temporal Tray" },
 ];
 
 export const SELECTION_MENU_ITEMS: HamburgerMenuItem[] = [
@@ -190,6 +191,7 @@ export function createHamburgerMenu() {
     uploadAll: () => uploadAllData(),
     downloadAll: () => downloadAllData(),
     newSession: openNewSession,
+    temporalTray: openTemporalTray,
     cutSelected: cutSelected,
     copySelected: copySelected,
   };
@@ -344,6 +346,12 @@ async function showSessionList() {
 
 export function openNewSession() {
   const id = generateUUID();
+  window.open(`${window.location.pathname}?sessionId=${id}`, "_blank");
+}
+
+export function openTemporalTray() {
+  const currentId = getUrlParameter("sessionId");
+  const id = currentId ? `temp-${currentId}` : `temp-${generateUUID()}`;
   window.open(`${window.location.pathname}?sessionId=${id}`, "_blank");
 }
 
