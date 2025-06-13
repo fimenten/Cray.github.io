@@ -344,7 +344,7 @@ async function showSessionList() {
 
 export function openNewSession() {
   const id = generateUUID();
-  window.location.href = `${window.location.pathname}?sessionId=${id}`;
+  window.open(`${window.location.pathname}?sessionId=${id}`, "_blank");
 }
 
 function set_default_server() {

@@ -28,9 +28,10 @@ const documentStub = {
   querySelector(){return null;},
   addEventListener(){},
 };
-const windowStub = { 
+const windowStub = {
   addEventListener(){},
-  location:{ pathname:'/page', href:'' }
+  location:{ pathname:'/page', href:'' },
+  open(url, target){ this.lastOpen = { url, target }; }
 };
 
 global.window = windowStub;
@@ -51,8 +52,10 @@ test('createHamburgerMenu adds items', () => {
   assert.strictEqual(menu.style.display, 'none');
 });
 
-test('new session menu updates location', () => {
+test('new session opens new window', () => {
   ham.openNewSession();
-  const match = window.location.href.match(/\/page\?sessionId=([0-9a-f-]{36})$/);
-  assert.ok(match, 'location should include UUID');
+  assert.ok(window.lastOpen, 'window.open should be called');
+  const match = window.lastOpen.url.match(/\/page\?sessionId=([0-9a-f-]{36})$/);
+  assert.ok(match, 'new window url should include UUID');
+  assert.strictEqual(window.lastOpen.target, '_blank');
 });
