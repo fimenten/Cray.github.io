@@ -359,10 +359,13 @@ export function openNewSession() {
   window.open(`${window.location.pathname}?sessionId=${id}`, "_blank");
 }
 
+export const GLOBAL_TEMPORAL_TRAY_ID = "temp-global";
+
 export function openTemporalTray() {
-  const currentId = getUrlParameter("sessionId");
-  const id = currentId ? `temp-${currentId}` : `temp-${generateUUID()}`;
-  window.open(`${window.location.pathname}?sessionId=${id}`, "_blank");
+  window.open(
+    `${window.location.pathname}?sessionId=${GLOBAL_TEMPORAL_TRAY_ID}`,
+    "_blank",
+  );
 }
 
 function set_default_server() {
