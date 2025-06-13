@@ -2,7 +2,12 @@ const assert = require('assert');
 const { test } = require('node:test');
 
 const body = { appendChild(){}, children:[] };
-const documentStub = { body, createElement(){ return {}; }, querySelector(){ return null; } };
+const documentStub = {
+  body,
+  createElement(){ return {}; },
+  querySelector(){ return null; },
+  visibilityState: 'visible'
+};
 const windowStub = {
   events:{},
   addEventListener(type, fn){ this.events[type] = fn; },
@@ -68,9 +73,18 @@ test('saveToIndexedDB notifies other tabs', async () => {
   assert.strictEqual(global.localStorage.last.key, 'update_abc123');
 });
 
-test('storage event triggers reload', async () => {
+test('storage event triggers reload when hidden', async () => {
+  documentStub.visibilityState = 'hidden';
   let called = false;
   io.loadFromIndexedDB = async (key) => { called = key; };
   windowStub.events.storage({ key: 'update_abc123' });
   assert.strictEqual(called, 'abc123');
+});
+
+test('storage event ignored when visible', async () => {
+  documentStub.visibilityState = 'visible';
+  let called = false;
+  io.loadFromIndexedDB = async (key) => { called = key; };
+  windowStub.events.storage({ key: 'update_abc123' });
+  assert.strictEqual(called, false);
 });
