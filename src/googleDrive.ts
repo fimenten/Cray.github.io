@@ -38,9 +38,43 @@ export function signIn() {
   });
 }
 
+export async function ensureTrayFolderExists(): Promise<string> {
+  const cached = localStorage.getItem('gdrive_tray_folder');
+  if (cached) return cached;
+  await signIn();
+  const list = await (globalThis as any).gapi.client.request({
+    path: '/drive/v3/files',
+    method: 'GET',
+    params: {
+      q: "mimeType='application/vnd.google-apps.folder' and name='tray' and trashed=false",
+      fields: 'files(id,name)'
+    }
+  });
+  let folderId;
+  if (list.result.files && list.result.files.length) {
+    folderId = list.result.files[0].id;
+  } else {
+    const create = await (globalThis as any).gapi.client.request({
+      path: '/drive/v3/files',
+      method: 'POST',
+      body: { name: 'tray', mimeType: 'application/vnd.google-apps.folder' }
+    });
+    folderId = create.result.id;
+  }
+  localStorage.setItem('gdrive_tray_folder', folderId);
+  return folderId;
+}
+
+export async function connectGoogleDrive(clientId: string): Promise<void> {
+  await initGoogleDrive(clientId);
+  await signIn();
+  await ensureTrayFolderExists();
+}
+
 export async function uploadToDrive(data: string, fileName: string, fileId?: string): Promise<string> {
   await signIn();
   const body = new Blob([data], { type: 'application/json' });
+  const folderId = await ensureTrayFolderExists();
   if (fileId) {
     const res = await (globalThis as any).gapi.client.request({
       path: `/upload/drive/v3/files/${fileId}`,
@@ -60,7 +94,7 @@ export async function uploadToDrive(data: string, fileName: string, fileId?: str
     await (globalThis as any).gapi.client.request({
       path: `/drive/v3/files/${id}`,
       method: 'PATCH',
-      body: { name: fileName }
+      body: { name: fileName, parents: [folderId] }
     });
     return id;
   }
