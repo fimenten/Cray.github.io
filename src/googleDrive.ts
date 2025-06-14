@@ -109,3 +109,12 @@ export async function downloadFromDrive(fileId: string): Promise<string> {
   });
   return res.body as string;
 }
+
+export async function autoConnectDrive(): Promise<void> {
+  const clientId = localStorage.getItem('gdrive_client_id');
+  if (!clientId) return;
+  if (typeof (globalThis as any).confirm === 'function' && !(globalThis as any).confirm('Connect to Google Drive?')) {
+    return;
+  }
+  await connectGoogleDrive(clientId);
+}
