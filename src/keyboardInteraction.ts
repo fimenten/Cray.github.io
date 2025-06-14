@@ -7,6 +7,8 @@ import { selected_trays, cutSelected, copySelected, deleteSelected } from "./ham
 import { openContextMenuKeyboard } from "./contextMenu";
 import { undo } from "./history";
 
+let lastEnter = { trayId: "", time: 0 };
+
 
 export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
   if (store.getState().app.menuOpening) {
@@ -75,7 +77,13 @@ export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
       } else if (event.shiftKey) {
         toggleEditMode(tray);
       } else {
-        tray.toggleFold();
+        const now = Date.now();
+        if (lastEnter.trayId === tray.id && now - lastEnter.time < 300) {
+          tray.unfoldChildren();
+        } else {
+          tray.toggleFold();
+        }
+        lastEnter = { trayId: tray.id, time: now };
       }
       break;
     case "Delete":

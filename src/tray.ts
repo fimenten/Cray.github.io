@@ -151,7 +151,13 @@ export class Tray {
     const foldButton = document.createElement("button");
     foldButton.classList.add("tray-fold-button");
     foldButton.textContent = "▼";
-    foldButton.addEventListener("click", this.toggleFold.bind(this));
+    foldButton.addEventListener("click", (e) => {
+      if (e.detail === 1) {
+        this.toggleFold();
+      } else if (e.detail === 2) {
+        this.unfoldChildren();
+      }
+    });
     // foldButton.style.display = "none";
     const rightFoldBotton = document.createElement("button");
     rightFoldBotton.classList.add("tray-fold-button-right");
@@ -509,6 +515,15 @@ export class Tray {
         child.foldChildren();
       });
     }
+  }
+
+  unfoldChildren() {
+    this.isFolded = false;
+    this.children.forEach((child) => {
+      child.unfoldChildren();
+    });
+    this.updateAppearance();
+    saveToIndexedDB();
   }
   updateAppearance(): void {
     const content = this.element.querySelector(
