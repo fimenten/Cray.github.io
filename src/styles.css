@@ -546,12 +546,6 @@ body > .tray > .tray-content {
   text-align: center;
 }
 
-.gdrive-button {
-  padding: 10px;
-  font-size: 20px;
-  cursor: pointer;
-  text-align: center;
-}
 
 .session-selection-dialog {
   position: fixed;
