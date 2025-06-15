@@ -248,6 +248,10 @@ export function serialize(tray: Tray) {
   return JSON.stringify(tray);
 }
 
+export async function serializeAsync(tray: Tray): Promise<string> {
+  return Promise.resolve().then(() => JSON.stringify(tray));
+}
+
 function ddo(the_data: any) {
   // console.log("help");
   let url;

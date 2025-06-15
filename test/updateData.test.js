@@ -40,7 +40,7 @@ test('updateData adopts newer remote when no local change', async () => {
     if(opts.method==='POST'){ posted=true; return {ok:true,text:async()=>''}; }
   };
   const parent = {child:null,addChild(t){this.child=t;},updateAppearance(){}};
-  const nets = load({io:{serialize:JSON.stringify,deserialize:JSON.parse},utils:{getTrayFromId:()=>parent},functions:{deleteTray:t=>{}}});
+  const nets = load({io:{serialize:JSON.stringify,serializeAsync:async t=>JSON.stringify(t),deserialize:JSON.parse},utils:{getTrayFromId:()=>parent},functions:{deleteTray:t=>{}}});
   const t = tray('2020-01-01');
   await nets.updateData(t);
   assert.ok(parent.child); // replaced with remote
@@ -56,7 +56,7 @@ test('updateData uploads when only local changed', async () => {
     if(opts.method==='POST'){ posted=true; return {ok:true,text:async()=>''}; }
   };
   const parent = {child:null,addChild(t){this.child=t;},updateAppearance(){}};
-  const nets = load({io:{serialize:JSON.stringify,deserialize:JSON.parse},utils:{getTrayFromId:()=>parent},functions:{deleteTray:t=>{}}});
+  const nets = load({io:{serialize:JSON.stringify,serializeAsync:async t=>JSON.stringify(t),deserialize:JSON.parse},utils:{getTrayFromId:()=>parent},functions:{deleteTray:t=>{}}});
   const t = tray('2020-01-01');
   await nets.updateData(t); // sets baseline
 
@@ -79,7 +79,7 @@ test('updateData throws conflict when both changed', async () => {
     if(opts.method==='POST') return { ok:true, text:async()=>'' };
   };
   const parent = {child:null,addChild(t){this.child=t;},updateAppearance(){}};
-  const nets = load({io:{serialize:JSON.stringify,deserialize:JSON.parse},utils:{getTrayFromId:()=>parent},functions:{deleteTray:t=>{}}});
+  const nets = load({io:{serialize:JSON.stringify,serializeAsync:async t=>JSON.stringify(t),deserialize:JSON.parse},utils:{getTrayFromId:()=>parent},functions:{deleteTray:t=>{}}});
   const t = tray('2020-01-01');
   await nets.updateData(t); // baseline
 
