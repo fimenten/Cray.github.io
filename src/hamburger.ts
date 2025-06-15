@@ -10,7 +10,6 @@ import { getUrlParameter } from "./utils";
 import { element2TrayMap } from "./app";
 import { Tray } from "./tray";
 import { downloadData, uploadData } from "./networks";
-import { connectGoogleDrive } from "./googleDrive";
 import { copyTray, deleteTray } from "./functions";
 import { setLastFocused } from "./state";
 
@@ -114,24 +113,6 @@ export function createHamburgerMenu() {
   selectionButton.innerHTML = "✔";
   leftBar.appendChild(selectionButton);
 
-  const driveButton = document.createElement("div");
-  driveButton.classList.add("gdrive-button");
-  driveButton.innerHTML = "G";
-  leftBar.appendChild(driveButton);
-
-  driveButton.addEventListener("click", async () => {
-    const stored = localStorage.getItem("gdrive_client_id") || "";
-    const clientId = prompt("Google Client ID", stored);
-    if (!clientId) return;
-    localStorage.setItem("gdrive_client_id", clientId);
-    try {
-      await connectGoogleDrive(clientId);
-      alert("Connected to Google Drive");
-    } catch (e) {
-      console.error(e);
-      alert("Failed to connect Google Drive");
-    }
-  });
 
   const selectionMenu = document.createElement("div");
   selectionMenu.classList.add("selection-menu-items");

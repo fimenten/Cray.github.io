@@ -2,7 +2,6 @@ import { Tray } from "./tray";
 import { deserialize, serialize } from "./io";
 import { getTrayFromId } from "./utils";
 import { deleteTray } from "./functions";
-import { uploadToDrive, downloadFromDrive } from "./googleDrive";
 
 import type { TrayId } from "./tray";
 
@@ -216,18 +215,7 @@ export async function uploadData(tray: Tray) {
     return;
   }
 
-  if (tray.host_url === "gdrive") {
-    try {
-      const id = await uploadToDrive(JSON.stringify(data), `${tray.name}.json`, tray.filename || undefined);
-      if (!tray.filename) tray.filename = id;
-      showUploadNotification("Data uploaded successfully.");
-    } catch (error) {
-      console.error("Error:", error);
-      showUploadNotification("Failed to upload data.", true);
-      throw error;
-    }
-    return;
-  }
+
 
   if (!tray.filename) {
     return;
@@ -280,17 +268,7 @@ export async function downloadData(tray: Tray) {
     return;
   }
 
-  if (tray.host_url === "gdrive") {
-    try {
-      const text = await downloadFromDrive(tray.filename);
-      const downloadedTray = deserialize(text);
-      return downloadedTray;
-    } catch (error) {
-      console.error("Error:", error);
-      showUploadNotification("Failed to download data.", true);
-      throw error;
-    }
-  }
+
 
   const password = getPasswordForServer(tray.host_url);
   if (!password) {

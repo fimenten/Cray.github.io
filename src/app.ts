@@ -19,7 +19,6 @@ import {
   startAutoUpload,
   syncTray,
 } from "./networks";
-import { autoConnectDrive } from "./googleDrive";
 import { meltTray } from "./functions";
 import { Tray, TrayId } from "./tray";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
@@ -78,7 +77,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  await autoConnectDrive();
 
   // const { leftBar } = createHamburgerMenu();
   // console.log("leftBar:", leftBar); // Debug log
