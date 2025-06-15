@@ -1,5 +1,5 @@
 import { Tray } from "./tray";
-import { deserialize, serialize } from "./io";
+import { deserialize, serializeAsync } from "./io";
 import { getTrayFromId } from "./utils";
 import { deleteTray } from "./functions";
 
@@ -18,7 +18,7 @@ export function newestTimestamp(tray: Tray): number {
 }
 
 export async function syncTray(tray: Tray) {
-  const current = serialize(tray);
+  const current = await serializeAsync(tray);
   const last = lastSerializedMap.get(tray.id) || "";
   if (current === last) return;
   let remote: Tray | undefined;
@@ -32,7 +32,7 @@ export async function syncTray(tray: Tray) {
     deleteTray(tray);
     parent.addChild(remote);
     parent.updateAppearance();
-    lastSerializedMap.set(tray.id, serialize(remote));
+    lastSerializedMap.set(tray.id, await serializeAsync(remote));
     return;
   }
   await uploadData(tray);
@@ -210,7 +210,7 @@ export async function addTrayFromServer(
   }
 }
 export async function uploadData(tray: Tray) {
-  const data = JSON.parse(serialize(tray));
+  const data = JSON.parse(await serializeAsync(tray));
   if (!tray.host_url) {
     return;
   }
@@ -310,7 +310,7 @@ export async function updateData(tray: Tray) {
     return;
   }
 
-  const current = serialize(tray);
+  const current = await serializeAsync(tray);
   const last = lastSerializedMap.get(tray.id);
 
   let remote: Tray | undefined;
@@ -326,7 +326,7 @@ export async function updateData(tray: Tray) {
       deleteTray(tray);
       parent.addChild(remote);
       parent.updateAppearance();
-      lastSerializedMap.set(tray.id, serialize(remote));
+      lastSerializedMap.set(tray.id, await serializeAsync(remote));
     } else {
       await uploadData(tray);
       lastSerializedMap.set(tray.id, current);
@@ -334,7 +334,7 @@ export async function updateData(tray: Tray) {
     return;
   }
 
-  const remoteSerialized = remote ? serialize(remote) : "";
+  const remoteSerialized = remote ? await serializeAsync(remote) : "";
   const localChanged = current !== last;
   const remoteChanged = remote ? remoteSerialized !== last : false;
 
