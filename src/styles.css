@@ -75,6 +75,12 @@
   box-shadow: 0 0 2px 2px rgba(0, 123, 255, 0.25); /* Custom focus indicator */
 }
 
+/* Tray focus outline */
+.tray:focus {
+  outline: 2px solid #3b99fc;
+  outline-offset: -2px; /* keep outline inside the element */
+}
+
 /* Created Time */
 .tray-created-time {
   font-size: 0.6em;
@@ -86,6 +92,7 @@
   flex: 1;
   min-width: 50%;
   width: 100px;
+  box-sizing: border-box;
   word-wrap: break-word;
   white-space: normal;
   font-weight: bold;
@@ -128,6 +135,7 @@
   /* padding-top: 10px; */
   padding-right: 0px;
   padding-bottom: 10px;
+  box-sizing: border-box;
   background-color: var(--tray-content-bg-color);
   display: flex;
   overflow-y: scroll;

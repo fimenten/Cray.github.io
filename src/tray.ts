@@ -418,7 +418,8 @@ export class Tray {
   updateChildrenAppearance() {
     this.children.forEach((child) => {
       if (this.flexDirection === "row") {
-        child.element.style.width = "50%"; // Or any appropriate width
+        child.element.style.boxSizing = "border-box";
+        child.element.style.width = "calc(50% - 3px)"; // account for borders
       } else {
         child.element.style.width = "100%";
       }
