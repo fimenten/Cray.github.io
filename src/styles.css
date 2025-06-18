@@ -79,6 +79,7 @@
 .tray:focus {
   outline: 2px solid #000;
   outline-offset: -2px; /* keep outline inside the element */
+  z-index: 11001; /* ensure outline appears above other elements */
 }
 
 /* Created Time */
