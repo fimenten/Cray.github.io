@@ -77,7 +77,7 @@
 
 /* Tray focus outline */
 .tray:focus {
-  outline: 2px solid #3b99fc;
+  outline: 2px solid #000;
   outline-offset: -2px; /* keep outline inside the element */
 }
 
@@ -133,7 +133,7 @@
 .tray-content {
   padding-left: 1px;
   /* padding-top: 10px; */
-  padding-right: 0px;
+  padding-right: 1px;
   padding-bottom: 10px;
   box-sizing: border-box;
   background-color: var(--tray-content-bg-color);
