@@ -77,10 +77,20 @@
 
 /* Tray focus outline */
 .tray:focus {
-  outline: none; /* avoid outline being hidden by child trays */
-  box-shadow: 0 0 0 4px #000; /* draw a visible focus ring above children */
+  outline: none; /* hide default outline */
   position: relative;
-  z-index: 11001; /* ensure outline appears above other elements */
+  z-index: 11001; /* place tray above other elements */
+}
+
+.tray:focus::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 4px solid #000; /* custom focus ring */
+  box-sizing: border-box;
+  z-index: 1; /* appear above tray children */
+
 }
 
 /* Created Time */
