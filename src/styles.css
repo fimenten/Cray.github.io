@@ -77,8 +77,9 @@
 
 /* Tray focus outline */
 .tray:focus {
-  outline: 4px solid #000;
-  outline-offset: -2px; /* keep outline inside the element */
+  outline: none; /* avoid outline being hidden by child trays */
+  box-shadow: 0 0 0 4px #000; /* draw a visible focus ring above children */
+  position: relative;
   z-index: 11001; /* ensure outline appears above other elements */
 }
 
