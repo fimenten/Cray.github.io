@@ -90,6 +90,7 @@
   border: 4px solid #000; /* custom focus ring */
   box-sizing: border-box;
   z-index: 1; /* appear above tray children */
+
 }
 
 /* Created Time */
