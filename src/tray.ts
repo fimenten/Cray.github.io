@@ -41,6 +41,7 @@ export class Tray {
   isFolded: boolean;
   properties: Record<string, any>;
   hooks: string[];
+  isDone: boolean;
 
   autoUpload: boolean;
 
@@ -59,7 +60,8 @@ export class Tray {
     filename: string | null = null,
     isFold: boolean = true,
     properties: Record<string, any> = {},
-    hooks: string[] = []
+    hooks: string[] = [],
+    isDone: boolean = false
   ) {
     this.id = id;
     this.name = name;
@@ -74,6 +76,7 @@ export class Tray {
     this.flexDirection = flexDirection;
     this.properties = properties;
     this.hooks = hooks.length > 0 ? hooks : this.parseHooksFromName(name);
+    this.isDone = isDone || this.checkDoneStateFromName(name);
     this.autoUpload = false;
     // this.element = this.createElement();
     // this.element = null
@@ -478,6 +481,13 @@ export class Tray {
   }
 
   private updateTitleContent(titleElement: HTMLDivElement) {
+    // Apply done styling
+    if (this.isDone) {
+      titleElement.classList.add("task-done");
+    } else {
+      titleElement.classList.remove("task-done");
+    }
+
     if (this.isImageUrl(this.name)) {
       const img = document.createElement("img");
       img.src = this.name;
@@ -622,11 +632,16 @@ export class Tray {
     return hookMatches ? hookMatches.map(hook => hook.substring(1)) : [];
   }
 
+  checkDoneStateFromName(name: string): boolean {
+    return name.includes('@@');
+  }
+
   finishTitleEdit(titleElement: HTMLDivElement) {
     titleElement.setAttribute("contenteditable", "false");
     this.name = (titleElement.textContent || "").trim();
     const oldHooks = this.hooks || [];
     this.hooks = this.parseHooksFromName(this.name);
+    this.isDone = this.checkDoneStateFromName(this.name);
     
     // Show notification for newly added hooks
     const newHooks = this.hooks.filter(hook => !oldHooks.includes(hook));

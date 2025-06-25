@@ -850,30 +850,33 @@ function showHookViewDialog(): void {
       const taskList = hookMap.get(hook)!;
       taskList.forEach(tray => {
         const taskItem = document.createElement("div");
+        const isDone = tray.isDone;
+        
         taskItem.style.cssText = `
           padding: 8px 12px;
           margin-bottom: 6px;
-          background: #f8f9fa;
+          background: ${isDone ? '#f0f0f0' : '#f8f9fa'};
           border-radius: 4px;
           cursor: pointer;
           transition: background-color 0.2s;
           border-left: 3px solid ${tray.borderColor};
+          ${isDone ? 'opacity: 0.7;' : ''}
         `;
         
         const displayName = tray.name || 'Untitled';
         const displayDate = tray.created_dt ? tray.created_dt.toLocaleDateString() : 'unknown date';
         
         taskItem.innerHTML = `
-          <div style="font-weight: 500; margin-bottom: 2px;">${displayName}</div>
-          <div style="font-size: 0.8em; color: #666;">Created: ${displayDate}</div>
+          <div style="font-weight: 500; margin-bottom: 2px; ${isDone ? 'text-decoration: line-through; color: #999;' : ''}">${displayName}</div>
+          <div style="font-size: 0.8em; color: #666;">Created: ${displayDate}${isDone ? ' • ✓ Done' : ''}</div>
         `;
         
         taskItem.addEventListener("mouseenter", () => {
-          taskItem.style.backgroundColor = "#e9ecef";
+          taskItem.style.backgroundColor = isDone ? "#e0e0e0" : "#e9ecef";
         });
         
         taskItem.addEventListener("mouseleave", () => {
-          taskItem.style.backgroundColor = "#f8f9fa";
+          taskItem.style.backgroundColor = isDone ? "#f0f0f0" : "#f8f9fa";
         });
         
         taskItem.addEventListener("click", (e) => {

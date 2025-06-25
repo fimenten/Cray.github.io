@@ -131,6 +131,12 @@
   text-decoration: underline;
 }
 
+.tray-title.task-done {
+  text-decoration: line-through;
+  opacity: 0.6;
+  color: #999;
+}
+
 /* Context Menu Button */
 .tray-context-menu-button {
   flex: 0 0 auto;
