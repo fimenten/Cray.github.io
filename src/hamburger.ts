@@ -13,6 +13,49 @@ import { downloadData, uploadData } from "./networks";
 import { copyTray, deleteTray } from "./functions";
 import { setLastFocused } from "./state";
 
+// Notification system for hook tasks
+export function showHookNotification(hookNames: string[]): void {
+  if (hookNames.length === 0) return;
+  
+  const notification = document.createElement("div");
+  notification.classList.add("hook-notification");
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    padding: 12px 16px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 10001;
+    font-size: 14px;
+    max-width: 300px;
+    animation: slideInRight 0.3s ease-out;
+  `;
+  
+  const hookText = hookNames.map(hook => `@${hook}`).join(', ');
+  notification.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <span>🏷️</span>
+      <span>Task added with hooks: ${hookText}</span>
+    </div>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  // Auto-remove after 3 seconds
+  setTimeout(() => {
+    notification.style.animation = 'slideOutRight 0.3s ease-in';
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.parentNode.removeChild(notification);
+      }
+    }, 300);
+  }, 3000);
+}
+
+
 export let selected_trays: Tray[] = [];
 
 function normalizeUrl(url: string): string {
@@ -41,7 +84,6 @@ export interface HamburgerMenuItem {
 
 export const GENERAL_MENU_ITEMS: HamburgerMenuItem[] = [
   { action: "search", label: "🔍 Search Trays" },
-  { action: "viewByHooks", label: "🏷️ View Tasks by Hook" },
   { action: "reset", label: "トレイをリセット" },
   { action: "save", label: "現在の状態を保存" },
   { action: "load", label: "保存した状態を読み込む" },
@@ -114,6 +156,12 @@ export function createHamburgerMenu() {
   selectionButton.innerHTML = "✔";
   leftBar.appendChild(selectionButton);
 
+  const hookButton = document.createElement("div");
+  hookButton.classList.add("hook-view-button");
+  hookButton.innerHTML = "🏷️";
+  leftBar.appendChild(hookButton);
+  hookButton.addEventListener("click", showHookViewDialog);
+
 
   const selectionMenu = document.createElement("div");
   selectionMenu.classList.add("selection-menu-items");
@@ -179,7 +227,6 @@ export function createHamburgerMenu() {
 
   const menuActions: Record<string, () => void> = {
     search: showSearchDialog,
-    viewByHooks: showHookViewDialog,
     reset: () => {
       if (
         confirm("すべてのトレイをリセットしますか？この操作は元に戻せません。")

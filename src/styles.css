@@ -566,6 +566,13 @@ body > .tray > .tray-content {
   text-align: center;
 }
 
+.hook-view-button {
+  padding: 10px;
+  font-size: 20px;
+  cursor: pointer;
+  text-align: center;
+}
+
 
 .session-selection-dialog {
   position: fixed;
@@ -682,4 +689,27 @@ body > .tray {
 
 .action-button:active {
   transform: scale(0.95);
+}
+
+/* Hook notification animations */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
 }

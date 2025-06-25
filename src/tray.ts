@@ -7,7 +7,7 @@ import {
   loadFromIndexedDB,
   saveToIndexedDB,
 } from "./io";
-import { createHamburgerMenu, selected_trays } from "./hamburger";
+import { createHamburgerMenu, selected_trays, showHookNotification } from "./hamburger";
 import {
   downloadData,
   showUploadNotification,
@@ -625,7 +625,15 @@ export class Tray {
   finishTitleEdit(titleElement: HTMLDivElement) {
     titleElement.setAttribute("contenteditable", "false");
     this.name = (titleElement.textContent || "").trim();
+    const oldHooks = this.hooks || [];
     this.hooks = this.parseHooksFromName(this.name);
+    
+    // Show notification for newly added hooks
+    const newHooks = this.hooks.filter(hook => !oldHooks.includes(hook));
+    if (newHooks.length > 0) {
+      showHookNotification(newHooks);
+    }
+    
     this.updateTitleContent(titleElement);
     // titleElement.removeEventListener("keydown", this.keyDownHandler);
     // titleElement.removeEventListener("blur", this.blurHandler);
