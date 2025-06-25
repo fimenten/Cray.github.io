@@ -12,6 +12,7 @@ function createElement(tag='div'){
     classList: {
       _cls: new Set(),
       add(c){ this._cls.add(c); },
+      remove(c){ this._cls.delete(c); },
       contains(c){ return this._cls.has(c); }
     },
     appendChild(child){ child.parent=this; this.children.push(child); },

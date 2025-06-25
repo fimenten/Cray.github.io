@@ -9,7 +9,7 @@ function createElement(tag='div'){
     children: [],
     style:{},
     dataset:{},
-    classList:{ add(){}, contains(){ return false; } },
+    classList:{ add(){}, remove(){}, contains(){ return false; } },
     appendChild(child){ child.parent=this; this.children.push(child); },
     append(child){ this.appendChild(child); },
     querySelector(){ return null; },
