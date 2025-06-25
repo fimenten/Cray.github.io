@@ -3,7 +3,7 @@ import { copyTray, cutTray, deleteTray, pasteFromClipboardInto, copyMarkdownToCl
 import store from "./store";
 import { Tray } from "./tray";
 import { getTrayFromId, toggleEditMode } from "./utils";
-import { selected_trays, cutSelected, copySelected, deleteSelected } from "./hamburger";
+import { selected_trays, cutSelected, copySelected, deleteSelected, showHookViewDialog } from "./hamburger";
 import { openContextMenuKeyboard } from "./contextMenu";
 import { undo } from "./history";
 
@@ -154,6 +154,12 @@ export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
       if (event.shiftKey) {
         event.preventDefault();
         openContextMenuKeyboard(tray);
+      }
+      break;
+    case "t":
+      if (event.ctrlKey) {
+        event.preventDefault();
+        showHookViewDialog();
       }
       break;
     // case " ":

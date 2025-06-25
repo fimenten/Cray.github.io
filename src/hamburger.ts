@@ -778,7 +778,7 @@ function showSearchDialog(): void {
   });
 }
 
-function showHookViewDialog(): void {
+export function showHookViewDialog(): void {
   const rootTray = element2TrayMap.get(getRootElement() as HTMLDivElement);
   if (!rootTray) return;
 
