@@ -270,7 +270,8 @@ function ddo(the_data: any) {
     url,
     the_data.filename,
     typeof the_data.isFolded === "boolean" ? the_data.isFolded : true,
-    the_data.properties ?? {}
+    the_data.properties ?? {},
+    the_data.hooks ?? []
   );
   const children = the_data.children as [];
   if (children.length > 0) {
@@ -301,7 +302,7 @@ export interface Traydata{
     filename: string | null;
     isFolded: boolean;
     properties: Record<string, any>;
-
+    hooks: string[];
 }
 
 export function deserializeJSONL(data:string){
@@ -309,7 +310,7 @@ export function deserializeJSONL(data:string){
   
   const id2Tray:Map<string,Tray> = new Map()
   lines.forEach(td=>{
-    const t = new Tray(td.parentId,td.id,td.name,td.borderColor,td.created_dt,td.flexDirection,td.host_url,td.filename,td.isFolded,td.properties ?? {})
+    const t = new Tray(td.parentId,td.id,td.name,td.borderColor,td.created_dt,td.flexDirection,td.host_url,td.filename,td.isFolded,td.properties ?? {},td.hooks ?? [])
     id2Tray.set(td.id,t)
     const p = id2Tray.get(td.parentId)
     if (p){

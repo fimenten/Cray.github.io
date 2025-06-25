@@ -41,6 +41,7 @@ export interface HamburgerMenuItem {
 
 export const GENERAL_MENU_ITEMS: HamburgerMenuItem[] = [
   { action: "search", label: "🔍 Search Trays" },
+  { action: "viewByHooks", label: "🏷️ View Tasks by Hook" },
   { action: "reset", label: "トレイをリセット" },
   { action: "save", label: "現在の状態を保存" },
   { action: "load", label: "保存した状態を読み込む" },
@@ -178,6 +179,7 @@ export function createHamburgerMenu() {
 
   const menuActions: Record<string, () => void> = {
     search: showSearchDialog,
+    viewByHooks: showHookViewDialog,
     reset: () => {
       if (
         confirm("すべてのトレイをリセットしますか？この操作は元に戻せません。")
@@ -725,6 +727,135 @@ function showSearchDialog(): void {
   
   // Prevent search results container from closing dialog
   searchResults.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+}
+
+function showHookViewDialog(): void {
+  const rootTray = element2TrayMap.get(getRootElement() as HTMLDivElement);
+  if (!rootTray) return;
+
+  const dialog = document.createElement("div");
+  dialog.classList.add("hook-view-dialog");
+  dialog.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 20px;
+    z-index: 10000;
+    min-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  `;
+
+  dialog.innerHTML = `
+    <h3>Tasks Organized by Hooks</h3>
+    <div id="hook-content" style="max-height: 60vh; overflow-y: auto;">
+      <div style="text-align: center; color: #999; padding: 20px;">Loading hooks...</div>
+    </div>
+    <div style="margin-top: 15px; text-align: right;">
+      <button id="close-hook-view" style="padding: 8px 16px; background: #f0f0f0; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">Close</button>
+    </div>
+  `;
+
+  document.body.appendChild(dialog);
+
+  const hookContent = dialog.querySelector("#hook-content") as HTMLDivElement;
+  const closeButton = dialog.querySelector("#close-hook-view") as HTMLButtonElement;
+
+  // Collect all trays with hooks
+  const allTrays = getAllTrays(rootTray);
+  const hookMap = new Map<string, Tray[]>();
+
+  allTrays.forEach(tray => {
+    if (tray.hooks && tray.hooks.length > 0) {
+      tray.hooks.forEach(hook => {
+        if (!hookMap.has(hook)) {
+          hookMap.set(hook, []);
+        }
+        hookMap.get(hook)!.push(tray);
+      });
+    }
+  });
+
+  if (hookMap.size === 0) {
+    hookContent.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">No tasks with hooks found. Use @hookname in tray names to organize by hooks.</div>';
+  } else {
+    hookContent.innerHTML = '';
+    
+    // Sort hooks alphabetically
+    const sortedHooks = Array.from(hookMap.keys()).sort();
+    
+    sortedHooks.forEach(hook => {
+      const hookSection = document.createElement("div");
+      hookSection.style.cssText = "margin-bottom: 20px; border: 1px solid #ddd; border-radius: 6px; padding: 15px;";
+      
+      const hookTitle = document.createElement("h4");
+      hookTitle.textContent = `@${hook}`;
+      hookTitle.style.cssText = "margin: 0 0 10px 0; color: #333; font-size: 1.1em; font-weight: bold;";
+      hookSection.appendChild(hookTitle);
+      
+      const taskList = hookMap.get(hook)!;
+      taskList.forEach(tray => {
+        const taskItem = document.createElement("div");
+        taskItem.style.cssText = `
+          padding: 8px 12px;
+          margin-bottom: 6px;
+          background: #f8f9fa;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: background-color 0.2s;
+          border-left: 3px solid ${tray.borderColor};
+        `;
+        
+        const displayName = tray.name || 'Untitled';
+        const displayDate = tray.created_dt ? tray.created_dt.toLocaleDateString() : 'unknown date';
+        
+        taskItem.innerHTML = `
+          <div style="font-weight: 500; margin-bottom: 2px;">${displayName}</div>
+          <div style="font-size: 0.8em; color: #666;">Created: ${displayDate}</div>
+        `;
+        
+        taskItem.addEventListener("mouseenter", () => {
+          taskItem.style.backgroundColor = "#e9ecef";
+        });
+        
+        taskItem.addEventListener("mouseleave", () => {
+          taskItem.style.backgroundColor = "#f8f9fa";
+        });
+        
+        taskItem.addEventListener("click", (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          expandAllParentsAndFocus(tray);
+          dialog.remove();
+        });
+        
+        hookSection.appendChild(taskItem);
+      });
+      
+      hookContent.appendChild(hookSection);
+    });
+  }
+
+  closeButton.addEventListener("click", () => {
+    dialog.remove();
+  });
+
+  // Close dialog when clicking outside
+  dialog.addEventListener("click", (e) => {
+    if (e.target === dialog) {
+      dialog.remove();
+    }
+  });
+
+  // Prevent hook content from closing dialog
+  hookContent.addEventListener("click", (e) => {
     e.stopPropagation();
   });
 }

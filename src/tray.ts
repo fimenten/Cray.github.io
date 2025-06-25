@@ -40,6 +40,7 @@ export class Tray {
   filename: string | null;
   isFolded: boolean;
   properties: Record<string, any>;
+  hooks: string[];
 
   autoUpload: boolean;
 
@@ -57,7 +58,8 @@ export class Tray {
     host_url: string | null = null,
     filename: string | null = null,
     isFold: boolean = true,
-    properties: Record<string, any> = {}
+    properties: Record<string, any> = {},
+    hooks: string[] = []
   ) {
     this.id = id;
     this.name = name;
@@ -71,6 +73,7 @@ export class Tray {
     this.filename = filename;
     this.flexDirection = flexDirection;
     this.properties = properties;
+    this.hooks = hooks.length > 0 ? hooks : this.parseHooksFromName(name);
     this.autoUpload = false;
     // this.element = this.createElement();
     // this.element = null
@@ -614,9 +617,15 @@ export class Tray {
     openContextMenu(this, event);
   }
 
+  parseHooksFromName(name: string): string[] {
+    const hookMatches = name.match(/@(\w+)/g);
+    return hookMatches ? hookMatches.map(hook => hook.substring(1)) : [];
+  }
+
   finishTitleEdit(titleElement: HTMLDivElement) {
     titleElement.setAttribute("contenteditable", "false");
     this.name = (titleElement.textContent || "").trim();
+    this.hooks = this.parseHooksFromName(this.name);
     this.updateTitleContent(titleElement);
     // titleElement.removeEventListener("keydown", this.keyDownHandler);
     // titleElement.removeEventListener("blur", this.blurHandler);
