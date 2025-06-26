@@ -894,15 +894,29 @@ export function showHookViewDialog(): void {
   }
 
   closeButton.addEventListener("click", () => {
-    dialog.remove();
+    cleanup();
   });
 
-  // Close dialog when clicking outside
-  dialog.addEventListener("click", (e) => {
-    if (e.target === dialog) {
-      dialog.remove();
+  function onKeyDown(e: KeyboardEvent) {
+    if (e.key === "Escape") {
+      cleanup();
     }
-  });
+  }
+
+  function onOutsideClick(e: MouseEvent) {
+    if (!dialog.contains(e.target as Node)) {
+      cleanup();
+    }
+  }
+
+  function cleanup() {
+    dialog.remove();
+    document.removeEventListener("keydown", onKeyDown);
+    document.removeEventListener("click", onOutsideClick);
+  }
+
+  document.addEventListener("keydown", onKeyDown);
+  document.addEventListener("click", onOutsideClick);
 
   // Prevent hook content from closing dialog
   hookContent.addEventListener("click", (e) => {
