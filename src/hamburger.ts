@@ -837,20 +837,30 @@ export function showHookViewDialog(): void {
     hookContent.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">No tasks with hooks found. Use @hookname in tray names to organize by hooks.</div>';
   } else {
     hookContent.innerHTML = '';
-    
-    // Sort hooks alphabetically
-    const sortedHooks = Array.from(hookMap.keys()).sort();
-    
-    sortedHooks.forEach(hook => {
+
+    // Sort hooks by number of tasks and move hooks with only done tasks to the bottom
+    const hookEntries = Array.from(hookMap.entries());
+    hookEntries.sort((a, b) => {
+      const aDoneOnly = a[1].every(t => t.isDone);
+      const bDoneOnly = b[1].every(t => t.isDone);
+      if (aDoneOnly !== bDoneOnly) {
+        return aDoneOnly ? 1 : -1; // done-only hooks last
+      }
+      if (b[1].length !== a[1].length) {
+        return b[1].length - a[1].length; // sort by count desc
+      }
+      return a[0].localeCompare(b[0]);
+    });
+
+    hookEntries.forEach(([hook, taskList]) => {
       const hookSection = document.createElement("div");
       hookSection.style.cssText = "margin-bottom: 20px; border: 1px solid #ddd; border-radius: 6px; padding: 15px;";
-      
+
       const hookTitle = document.createElement("h4");
       hookTitle.textContent = `@${hook}`;
       hookTitle.style.cssText = "margin: 0 0 10px 0; color: #333; font-size: 1.1em; font-weight: bold;";
       hookSection.appendChild(hookTitle);
       
-      const taskList = hookMap.get(hook)!;
       taskList.forEach(tray => {
         const taskItem = document.createElement("div");
         const isDone = tray.isDone;
