@@ -177,12 +177,13 @@ export async function loadFromIndexedDB(
 
 function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open("TrayDatabase", 1);
+    const request = indexedDB.open("TrayDatabase", 4);
     request.onupgradeneeded = (event) => {
       const db = request.result;
       if (!db.objectStoreNames.contains("trays")) {
         db.createObjectStore("trays", { keyPath: "id" });
       }
+      // Plugin store will be handled by pluginStorage
     };
 
     request.onsuccess = () => {

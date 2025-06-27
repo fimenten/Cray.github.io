@@ -12,6 +12,7 @@ import { Tray } from "./tray";
 import { downloadData, uploadData } from "./networks";
 import { copyTray, deleteTray } from "./functions";
 import { setLastFocused } from "./state";
+import { showPluginManagerDialog } from "./pluginUI";
 
 // Notification system for hook tasks
 export function showHookNotification(hookNames: string[]): void {
@@ -101,6 +102,7 @@ export const GENERAL_MENU_ITEMS: HamburgerMenuItem[] = [
   { action: "editSessionId", label: "セッションIDを編集" },
   { action: "newSession", label: "New Session" },
   { action: "temporalTray", label: "Temporal Tray" },
+  { action: "pluginManager", label: "🔌 Plugin Manager" },
 ];
 
 export const SELECTION_MENU_ITEMS: HamburgerMenuItem[] = [
@@ -246,6 +248,7 @@ export function createHamburgerMenu() {
     temporalTray: openTemporalTray,
     cutSelected: cutSelected,
     copySelected: copySelected,
+    pluginManager: showPluginManagerDialog,
   };
 
   menu.addEventListener("click", (event: MouseEvent) => {

@@ -25,6 +25,8 @@ import { handleKeyDown } from "./keyboardInteraction";
 import { setLastFocused } from "./state";
 import store from "./store";
 import { openContextMenu } from "./contextMenu";
+import { pluginManager } from "./pluginManager";
+import { HookedTask, PluginContext } from "./pluginTypes";
 
 export type TrayId = string;
 
@@ -636,7 +638,7 @@ export class Tray {
     return name.includes('@@');
   }
 
-  finishTitleEdit(titleElement: HTMLDivElement) {
+  async finishTitleEdit(titleElement: HTMLDivElement) {
     titleElement.setAttribute("contenteditable", "false");
     this.name = (titleElement.textContent || "").trim();
     const oldHooks = this.hooks || [];
@@ -647,6 +649,45 @@ export class Tray {
     const newHooks = this.hooks.filter(hook => !oldHooks.includes(hook));
     if (newHooks.length > 0) {
       showHookNotification(newHooks);
+      
+      // Execute plugin hooks for newly hooked task
+      const hookedTask: HookedTask = {
+        id: this.id,
+        text: this.name,
+        completed: this.isDone,
+        createdAt: this.created_dt.getTime(),
+        completedAt: this.isDone ? Date.now() : undefined
+      };
+      
+      const context: PluginContext = {
+        trayId: this.id,
+        trayName: this.name,
+        sessionId: getUrlParameter("sessionId") || "default",
+        parentTrayId: this.parentId
+      };
+      
+      await pluginManager.executeHook("onTaskHooked", hookedTask, context);
+    }
+    
+    // Handle task completion
+    const wasCompleted = oldHooks.includes("@@") || this.name.includes("@@");
+    if (this.isDone && !wasCompleted) {
+      const completedTask: HookedTask = {
+        id: this.id,
+        text: this.name,
+        completed: true,
+        createdAt: this.created_dt.getTime(),
+        completedAt: Date.now()
+      };
+      
+      const context: PluginContext = {
+        trayId: this.id,
+        trayName: this.name,
+        sessionId: getUrlParameter("sessionId") || "default",
+        parentTrayId: this.parentId
+      };
+      
+      await pluginManager.executeHook("onTaskCompleted", completedTask, context);
     }
     
     this.updateTitleContent(titleElement);
