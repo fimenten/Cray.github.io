@@ -79,3 +79,23 @@ test('dialog closes on outside click', () => {
   documentStub.onclick({ target: {} });
   assert.ok(!body.children.includes(dialog), 'dialog removed on outside click');
 });
+
+test('hooks sorted by frequency and done hooks last', () => {
+  rootTray.children = [
+    { id: '1', name: 't1', hooks: ['b'], isDone: false, borderColor: '#000', created_dt: new Date(), children: [] },
+    { id: '2', name: 't2', hooks: ['b'], isDone: false, borderColor: '#000', created_dt: new Date(), children: [] },
+    { id: '3', name: 't3', hooks: ['b'], isDone: true,  borderColor: '#000', created_dt: new Date(), children: [] },
+    { id: '4', name: 't4', hooks: ['a'], isDone: false, borderColor: '#000', created_dt: new Date(), children: [] },
+    { id: '5', name: 't5', hooks: ['c'], isDone: true,  borderColor: '#000', created_dt: new Date(), children: [] },
+    { id: '6', name: 't6', hooks: ['c'], isDone: true,  borderColor: '#000', created_dt: new Date(), children: [] }
+  ];
+
+  ham.showHookViewDialog();
+  const dialog = lastDialog();
+  const hookContent = dialog.querySelector('#hook-content');
+  const hookSections = hookContent.children.slice(2);
+  const order = hookSections.map(sec => sec.children[0].textContent);
+  assert.deepStrictEqual(order, ['@b', '@a', '@c']);
+  dialog.remove();
+  rootTray.children = [];
+});
