@@ -19,9 +19,20 @@ module.exports = {
     path: path.resolve(__dirname, "dist"), // 出力ディレクトリ
   },
   devServer: {
-    static:{
-    directory: path.join(__dirname, "dist"),
-    },compress: true,
-    port: 9000,}
+    static: [
+      {
+        directory: path.join(__dirname, "dist"),
+      },
+      {
+        directory: __dirname,
+        serveIndex: false,
+      }
+    ],
+    compress: true,
+    port: 9000,
+    historyApiFallback: {
+      index: '/index.html'
+    }
+  }
   
 };

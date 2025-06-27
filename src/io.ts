@@ -62,7 +62,7 @@ export async function saveToIndexedDB(
   content: string | null = null,
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open("TrayDatabase", 1);
+    const request = indexedDB.open("TrayDatabase", 4);
     let db: IDBDatabase;
 
     request.onupgradeneeded = (event) => {

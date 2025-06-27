@@ -21,9 +21,12 @@
   "scripts": {
     "build": "tsc -p tsconfig.cjs.json",
     "bundle": "webpack --mode production",
-    "start": "webpack serve --mode development"
+    "start": "webpack serve --mode development",
+    "test": "playwright test --headed",
+    "test:headless": "playwright test"
   },
   "dependencies": {
+    "@playwright/test": "^1.53.1",
     "@reduxjs/toolkit": "^2.2.7",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

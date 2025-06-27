@@ -928,8 +928,11 @@ export function showHookViewDialog(): void {
     document.removeEventListener("click", onOutsideClick);
   }
 
-  document.addEventListener("keydown", onKeyDown);
-  document.addEventListener("click", onOutsideClick);
+  // Add event listeners after a small delay to avoid immediate cleanup from the button click
+  setTimeout(() => {
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("click", onOutsideClick);
+  }, 100);
 
   // Prevent hook content from closing dialog
   hookContent.addEventListener("click", (e) => {
