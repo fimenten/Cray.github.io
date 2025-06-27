@@ -1,0 +1,9 @@
+<svg width="120" height="100" viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+  <title>Logo: Nested, indented trays</title>
+  <style>
+    .tray { fill: #4A90E2; rx: 3; ry: 3; } /* Rounded corners */
+  </style>
+  <rect class="tray" x="10" y="15" width="100" height="20" />
+  <rect class="tray" x="25" y="40" width="85" height="20" />
+  <rect class="tray" x="40" y="65" width="70" height="20" />
+</svg>
