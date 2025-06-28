@@ -26,18 +26,22 @@ test.describe('Tray Basic Operations', () => {
   });
 
   test('Edit tray content', async ({ page }) => {
-    // Focus root tray and create a new tray
+    // Focus root tray
     const rootTray = page.locator('.tray').first();
     await rootTray.focus();
-    await page.keyboard.press('Control+Enter');
-    await page.waitForTimeout(1000);
     
-    // Enter edit mode with Shift+Enter, then type content
-    await page.keyboard.press('Shift+Enter');
+    // Count initial trays to find the new one later
+    const initialTrayCount = await page.locator('.tray').count();
+    
+    // Create a new tray with Ctrl+Enter - it will automatically be in edit mode
+    await page.keyboard.press('Control+Enter');
     await page.waitForTimeout(500);
     
-    // Clear existing content and type new content
-    await page.keyboard.press('Control+a');
+    // Wait for the new tray to be in edit mode
+    await page.waitForSelector('.tray-title[contenteditable="true"]');
+    
+    // The new tray is already in edit mode with "New Tray" text selected
+    // Simply type the new content (it will replace the selected text)
     const testText = 'Test tray content';
     await page.keyboard.type(testText);
     
@@ -45,9 +49,10 @@ test.describe('Tray Basic Operations', () => {
     await page.keyboard.press('Enter');
     await page.waitForTimeout(500);
     
-    // Verify content was saved in the last tray
-    const lastTray = page.locator('.tray').last();
-    const trayTitle = lastTray.locator('.tray-title');
+    // Verify content was saved in the newly created tray
+    // The new tray should be the first child of the root tray (added via unshift)
+    const newTray = rootTray.locator('.tray-content > .tray').first();
+    const trayTitle = newTray.locator('.tray-title');
     await expect(trayTitle).toContainText(testText);
   });
 

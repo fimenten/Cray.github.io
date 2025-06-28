@@ -55,7 +55,15 @@ test('Hook view opens without errors', async ({ page }) => {
   const hookContent = page.locator('#hook-content');
   await expect(hookContent).toContainText('No tasks with hooks found');
   
-  // Close dialog
-  await page.keyboard.press('Escape');
+  // Close dialog by clicking outside or using close button
+  // First try to find close button
+  const closeButton = hookDialog.locator('button:has-text("Close"), button:has-text("×")');
+  if (await closeButton.count() > 0) {
+    await closeButton.click();
+  } else {
+    // Click outside the dialog to close it
+    await page.mouse.click(10, 10);
+  }
+  await page.waitForTimeout(500);
   await expect(hookDialog).not.toBeVisible();
 });
