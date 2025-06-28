@@ -128,6 +128,17 @@ export class Tray {
     title.setAttribute("contenteditable", "false");
     this.updateTitleContent(title);
 
+    // Toggle display of @@ marker on click
+    title.addEventListener("click", () => {
+      if (title.dataset.showAtAt === "true") {
+        this.updateTitleContent(title);
+        title.dataset.showAtAt = "false";
+      } else {
+        title.textContent = this.name;
+        title.dataset.showAtAt = "true";
+      }
+    });
+
     const contextMenuButton = document.createElement("button");
     contextMenuButton.classList.add("tray-context-menu-button");
     contextMenuButton.textContent = "⋮";
@@ -490,21 +501,23 @@ export class Tray {
       titleElement.classList.remove("task-done");
     }
 
-    if (this.isImageUrl(this.name)) {
+    const displayName = this.name.replace(/@@/g, "").trim();
+
+    if (this.isImageUrl(displayName)) {
       const img = document.createElement("img");
-      img.src = this.name;
-      img.alt = this.name;
+      img.src = displayName;
+      img.alt = displayName;
       titleElement.innerHTML = "";
       titleElement.appendChild(img);
-    } else if (this.isValidUrl(this.name)) {
+    } else if (this.isValidUrl(displayName)) {
       const a = document.createElement("a");
-      a.href = this.name;
-      a.textContent = this.name;
+      a.href = displayName;
+      a.textContent = displayName;
       a.target = "_blank";
       titleElement.innerHTML = "";
       titleElement.appendChild(a);
     } else {
-      titleElement.textContent = this.name;
+      titleElement.textContent = displayName;
     }
   }
 
