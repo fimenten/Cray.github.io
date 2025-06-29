@@ -45,9 +45,9 @@ const hamburger = require('../cjs/hamburger.js');
 const selected_trays = hamburger.selected_trays;
 
 delete require.cache[require.resolve('../cjs/tray.js')];
-const utils = require('../cjs/utils.js');
+const trayOperations = require('../cjs/trayOperations.js');
 const idMap = new Map();
-utils.getTrayFromId = (id) => idMap.get(id);
+trayOperations.getTrayFromId = (id) => idMap.get(id);
 const { Tray } = require('../cjs/tray.js');
 
 test('dragging one of multiple selected trays moves them all', () => {

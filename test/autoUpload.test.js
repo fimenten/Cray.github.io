@@ -40,7 +40,7 @@ test('syncTray adopts newer remote data', async () => {
   };
   const parent = {child:null,removed:null,addChild(t){this.child=t;},updateAppearance(){}};
   const tray = {id:'1',parentId:'p',host_url:'u',filename:'f',created_dt:new Date('2020-01-01'),children:[],element:{remove(){}}};
-  const nets = load({io:{serialize:JSON.stringify,serializeAsync:async t=>JSON.stringify(t),deserialize:JSON.parse},utils:{getTrayFromId:()=>parent},functions:{deleteTray:t=>{parent.removed=t;}}});
+  const nets = load({io:{serialize:JSON.stringify,serializeAsync:async t=>JSON.stringify(t),deserialize:JSON.parse},trayOperations:{getTrayFromId:()=>parent},functions:{deleteTray:t=>{parent.removed=t;}}});
   await nets.syncTray(tray);
   assert.ok(parent.child); // replaced
   assert.strictEqual(posted,false);
@@ -55,7 +55,7 @@ test('syncTray uploads when local newer', async () => {
   };
   const parent = {child:null,removed:null,addChild(t){this.child=t;},updateAppearance(){}};
   const tray = {id:'1',parentId:'p',host_url:'u',filename:'f',created_dt:new Date('2020-02-01'),children:[],element:{remove(){}}};
-  const nets = load({io:{serialize:JSON.stringify,serializeAsync:async t=>JSON.stringify(t),deserialize:JSON.parse},utils:{getTrayFromId:()=>parent},functions:{deleteTray:t=>{parent.removed=t;}}});
+  const nets = load({io:{serialize:JSON.stringify,serializeAsync:async t=>JSON.stringify(t),deserialize:JSON.parse},trayOperations:{getTrayFromId:()=>parent},functions:{deleteTray:t=>{parent.removed=t;}}});
   await nets.syncTray(tray);
   assert.strictEqual(parent.child,null);
   assert.strictEqual(posted,true);
@@ -68,7 +68,7 @@ test('startAutoUpload schedules sync and stopAutoUpload clears it', () => {
   global.clearInterval = id => { cleared = id; };
   win.setInterval = global.setInterval;
   win.clearInterval = global.clearInterval;
-  const nets = load({io:{serialize:JSON.stringify,serializeAsync:async t=>JSON.stringify(t),deserialize:JSON.parse},utils:{getTrayFromId:()=>({})},functions:{deleteTray(){}}});
+  const nets = load({io:{serialize:JSON.stringify,serializeAsync:async t=>JSON.stringify(t),deserialize:JSON.parse},trayOperations:{getTrayFromId:()=>({})},functions:{deleteTray(){}}});
   const tray = {id:'1',parentId:'p',host_url:'u',filename:'f',created_dt:new Date(),children:[],element:{remove(){}}};
   nets.startAutoUpload(tray);
   assert.ok(callback);

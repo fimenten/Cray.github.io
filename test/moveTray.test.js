@@ -57,9 +57,9 @@ io.saveToIndexedDB = () => Promise.resolve('');
 
 delete require.cache[require.resolve('../cjs/tray.js')];
 delete require.cache[require.resolve('../cjs/keyboardInteraction.js')];
-const utils = require('../cjs/utils.js');
+const trayOperations = require('../cjs/trayOperations.js');
 const idMap = new Map();
-utils.getTrayFromId = (id) => idMap.get(id);
+trayOperations.getTrayFromId = (id) => idMap.get(id);
 const { Tray } = require('../cjs/tray.js');
 const ki = require('../cjs/keyboardInteraction.js');
 

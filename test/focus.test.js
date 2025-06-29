@@ -56,9 +56,9 @@ const io = require('../cjs/io.js');
 io.saveToIndexedDB = () => Promise.resolve('');
 
 delete require.cache[require.resolve('../cjs/tray.js')];
-const utils = require('../cjs/utils.js');
+const trayOperations = require('../cjs/trayOperations.js');
 const idMap = new Map();
-utils.getTrayFromId = (id) => idMap.get(id);
+trayOperations.getTrayFromId = (id) => idMap.get(id);
 const { Tray } = require('../cjs/tray.js');
 
 delete require.cache[require.resolve('../cjs/functions.js')];
