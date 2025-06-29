@@ -1,6 +1,6 @@
-import { getTrayFromId, getRandomColor, getWhiteColor } from "./utils";
-import { generateUUID, getRootElement, cloneTray } from "./utils";
-import { getUrlParameter } from "./utils";
+import { getRandomColor, getWhiteColor, generateUUID, getRootElement, getUrlParameter } from "./utils";
+import { getTrayFromId } from "./trayOperations";
+import { cloneTray } from "./trayFactory";
 import {
   serialize,
   deserialize,
@@ -27,8 +27,7 @@ import store from "./store";
 import { openContextMenu } from "./contextMenu";
 import { pluginManager } from "./pluginManager";
 import { HookedTask, PluginContext } from "./pluginTypes";
-
-export type TrayId = string;
+import { TrayId, ITrayData, ITrayUIState } from "./types";
 
 export class Tray {
   id: TrayId;
@@ -877,7 +876,7 @@ export class Tray {
     }
   }
 
-  addProperty(key: string = "priority", value: any) {
+  addProperty(key: string = "priority", value: unknown) {
     this.properties[key] = value;
     saveToIndexedDB();
   }
@@ -1036,8 +1035,8 @@ export class Tray {
   // Default to ascending order
   sortChildren(property: string = "created_dt", descending: boolean = false) {
     this.children.sort((a, b) => {
-      let valA: any;
-      let valB: any;
+      let valA: unknown;
+      let valB: unknown;
       if (property === "created_dt") {
         valA = new Date(a.created_dt).getTime();
         valB = new Date(b.created_dt).getTime();
@@ -1046,8 +1045,8 @@ export class Tray {
         valB = b.properties[property];
       }
       if (valA === undefined && valB === undefined) return 0;
-      if (valA === undefined) return 1;
-      if (valB === undefined) return -1;
+      if (valA === undefined || valA === null) return 1;
+      if (valB === undefined || valB === null) return -1;
       if (valA > valB) return descending ? -1 : 1;
       if (valA < valB) return descending ? 1 : -1;
       return 0;

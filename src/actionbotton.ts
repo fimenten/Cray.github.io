@@ -1,5 +1,5 @@
 // import {exportData,importData} from "./io"
-import { getTrayFromId} from "./utils";
+import { getTrayFromId} from "./trayOperations";
 
 import { Tray } from "./tray";
 import store from "./store";

@@ -1,4 +1,4 @@
-export interface PluginManifest {
+export interface PluginManifest extends Record<string, unknown> {
   id: string;
   name: string;
   version: string;

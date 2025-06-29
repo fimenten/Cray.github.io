@@ -1,6 +1,8 @@
 // import {exportData,importData} from "./io"
-import { getTrayFromId, getRandomColor, getWhiteColor } from "./utils";
-import { generateUUID, getRootElement, cloneTray } from "./utils";
+import { getRandomColor, getWhiteColor } from "./utils";
+import { getTrayFromId } from "./trayOperations";
+import { generateUUID, getRootElement } from "./utils";
+import { cloneTray } from "./trayFactory";
 import { getUrlParameter } from "./utils";
 import {
   serialize,
@@ -20,7 +22,8 @@ import {
   syncTray,
 } from "./networks";
 import { meltTray } from "./functions";
-import { Tray, TrayId } from "./tray";
+import { Tray } from "./tray";
+import { TrayId } from "./types";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import store from "./store";
 import { setLastFocused } from "./state";

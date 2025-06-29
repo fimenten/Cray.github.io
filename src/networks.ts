@@ -1,9 +1,9 @@
 import { Tray } from "./tray";
 import { deserialize, serializeAsync } from "./io";
-import { getTrayFromId } from "./utils";
+import { getTrayFromId } from "./trayOperations";
 import { deleteTray } from "./functions";
 
-import type { TrayId } from "./tray";
+import type { TrayId } from "./types";
 
 const lastSerializedMap = new Map<TrayId, string>();
 const intervalIds = new Map<TrayId, number>();

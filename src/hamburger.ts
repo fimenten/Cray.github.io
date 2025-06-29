@@ -1,10 +1,9 @@
 import {
-  cloneTray,
-  createDefaultRootTray,
   generateUUID,
   getRootElement,
-  getTrayFromId,
 } from "./utils";
+import { createDefaultRootTray, cloneTray } from "./trayFactory";
+import { getTrayFromId } from "./trayOperations";
 import { exportData, importData, getAllSessionIds, saveToIndexedDB } from "./io";
 import { getUrlParameter } from "./utils";
 import { element2TrayMap } from "./app";

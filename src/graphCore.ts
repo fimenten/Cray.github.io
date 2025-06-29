@@ -85,7 +85,7 @@ export const removeEdge = <T extends Vertex>(
 
 export const updateNodeInfo = <T extends Vertex>(
   state: DiGraph<T>,
-  action: PayloadAction<{ id: string; key: string; info: any }>,
+  action: PayloadAction<{ id: string; key: string; info: unknown }>,
 ) => {
   const { id, key, info } = action.payload;
   if (!state.nodeInfo.information[id]) {

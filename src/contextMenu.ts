@@ -16,7 +16,8 @@ import {
   downloadMarkdown,
 } from "./functions";
 import { serialize, saveToIndexedDB } from "./io";
-import { cloneTray, expandChildrenOneLevel } from "./utils";
+import { cloneTray } from "./trayFactory";
+import { expandChildrenOneLevel } from "./trayOperations";
 
 export interface ContextMenuItem {
   act: string;

@@ -2,7 +2,7 @@
 import { copyTray, cutTray, deleteTray, pasteFromClipboardInto, copyMarkdownToClipboard } from "./functions";
 import store from "./store";
 import { Tray } from "./tray";
-import { getTrayFromId, toggleEditMode } from "./utils";
+import { getTrayFromId, toggleEditMode } from "./trayOperations";
 import { selected_trays, cutSelected, copySelected, deleteSelected, showHookViewDialog } from "./hamburger";
 import { openContextMenuKeyboard } from "./contextMenu";
 import { undo } from "./history";

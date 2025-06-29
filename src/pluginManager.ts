@@ -82,9 +82,9 @@ export class PluginManager {
     return results;
   }
 
-  private async loadPluginFromCode(code: string, manifest: any): Promise<Plugin> {
+  private async loadPluginFromCode(code: string, manifest: Record<string, unknown>): Promise<Plugin> {
     // Use the sandbox to execute plugin code securely
-    return pluginSandbox.executePluginCode(code, manifest, manifest.permissions || []);
+    return pluginSandbox.executePluginCode(code, manifest, (manifest.permissions as PluginPermission[]) || []);
   }
 
   private validatePermissions(permissions: PluginPermission[]): void {

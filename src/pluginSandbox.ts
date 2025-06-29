@@ -2,13 +2,13 @@ import { Plugin, PluginPermission, HookedTask, PluginContext } from './pluginTyp
 
 interface SandboxAPI {
   console: {
-    log: (...args: any[]) => void;
-    error: (...args: any[]) => void;
-    warn: (...args: any[]) => void;
+    log: (...args: unknown[]) => void;
+    error: (...args: unknown[]) => void;
+    warn: (...args: unknown[]) => void;
   };
   storage?: {
-    get: (key: string) => Promise<any>;
-    set: (key: string, value: any) => Promise<void>;
+    get: (key: string) => Promise<unknown>;
+    set: (key: string, value: unknown) => Promise<void>;
     remove: (key: string) => Promise<void>;
   };
   network?: {
@@ -30,7 +30,7 @@ export class PluginSandbox {
 
   async executePluginCode(
     code: string,
-    manifest: any,
+    manifest: Record<string, unknown>,
     permissions: PluginPermission[] = []
   ): Promise<Plugin> {
     // For now, use a simpler sandbox approach with restricted scope
@@ -105,7 +105,7 @@ export class PluginSandbox {
           const storage = localStorage.getItem(`plugin_storage_${key}`);
           return storage ? JSON.parse(storage) : null;
         },
-        set: async (key: string, value: any) => {
+        set: async (key: string, value: unknown) => {
           localStorage.setItem(`plugin_storage_${key}`, JSON.stringify(value));
         },
         remove: async (key: string) => {

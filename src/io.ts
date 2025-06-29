@@ -3,12 +3,14 @@ import { element2TrayMap } from "./app";
 import {
   getRootElement,
   getUrlParameter,
-  createDefaultRootTray,
 } from "./utils";
+import { createDefaultRootTray } from "./trayFactory";
 import { createHamburgerMenu } from "./hamburger";
-import { Tray, TrayId } from "./tray";
+import { Tray } from "./tray";
 import { createActionButtons } from "./actionbotton";
 import { graph } from "./render";
+import { TrayId, ISerializedTrayData, IJSONLTrayData, IIOError } from "./types";
+import { IOError } from "./errors";
 export function exportData(): void {
   const data = serialize(element2TrayMap.get(getRootElement() as HTMLDivElement) as Tray);
 
@@ -73,7 +75,7 @@ export async function saveToIndexedDB(
     };
 
     request.onerror = (event) => {
-      reject(`Error opening database: ${request.error}`);
+      reject(IOError.saveFailure("indexeddb", `Error opening database: ${request.error}`));
     };
 
     request.onsuccess = () => {
@@ -82,7 +84,7 @@ export async function saveToIndexedDB(
       const rootElement = getRootElement();
 
       if (!rootElement) {
-        reject("Root element not found");
+        reject(IOError.saveFailure("indexeddb", "Root element not found"));
         return;
       }
 
@@ -95,7 +97,7 @@ export async function saveToIndexedDB(
       } catch {}
 
       if (!data) {
-        reject("Serialize failed");
+        reject(IOError.saveFailure("indexeddb", "Serialize failed"));
         return;
       }
 
@@ -131,7 +133,7 @@ export async function saveToIndexedDB(
       };
 
       putRequest.onerror = (event) => {
-        reject(`Error saving to IndexedDB: ${putRequest.error}`);
+        reject(IOError.saveFailure("indexeddb", `Error saving to IndexedDB: ${putRequest.error}`));
       };
     };
   });
@@ -253,20 +255,20 @@ export async function serializeAsync(tray: Tray): Promise<string> {
   return Promise.resolve().then(() => JSON.stringify(tray));
 }
 
-function ddo(the_data: any) {
+function ddo(the_data: ISerializedTrayData | (ISerializedTrayData & { url?: string })) {
   // console.log("help");
   let url;
   if (the_data.host_url) {
     url = the_data.host_url;
   } else {
-    url = the_data.url;
+    url = (the_data as any).url || null; // Legacy support
   }
   let tray = new Tray(
-    the_data.parentId,
+    the_data.parentId || "",
     the_data.id,
     the_data.name,
     the_data.borderColor,
-    the_data.created_dt,
+    new Date(the_data.created_dt),
     the_data.flexDirection,
     url,
     the_data.filename,
@@ -291,6 +293,7 @@ export function deserialize(data: string) {
   let the_data = JSON.parse(data);
   return ddo(the_data);
 }
+// Legacy interface - use IJSONLTrayData from types.ts instead
 export interface Traydata{
     id: TrayId;
     name: string;

@@ -1,6 +1,8 @@
 import { deserialize, saveToIndexedDB, serialize } from "./io";
 import { Tray } from "./tray";
-import { cloneTray, generateUUID, getTrayFromId } from "./utils";
+import { generateUUID } from "./utils";
+import { getTrayFromId } from "./trayOperations";
+import { cloneTray } from "./trayFactory";
 import { addMarkdownToTray } from "./markdown";
 
 export function meltTray(tray: Tray) {
