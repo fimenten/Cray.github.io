@@ -44,6 +44,7 @@ export class Tray {
   properties: Record<string, any>;
   hooks: string[];
   isDone: boolean;
+  showDoneMarker: boolean;
 
   autoUpload: boolean;
 
@@ -80,6 +81,7 @@ export class Tray {
     this.hooks = hooks.length > 0 ? hooks : this.parseHooksFromName(name);
     this.isDone = isDone || this.checkDoneStateFromName(name);
     this.autoUpload = false;
+    this.showDoneMarker = false;
     // this.element = this.createElement();
     // this.element = null
     this.isEditing = false;
@@ -147,6 +149,11 @@ export class Tray {
       event.stopPropagation();
       const target = event.target as HTMLElement;
       target.focus();
+    });
+
+    title.addEventListener("click", (event: MouseEvent) => {
+      event.stopPropagation();
+      this.toggleDoneMarker(title);
     });
 
     this.setupTitleEditing(title);
@@ -490,21 +497,23 @@ export class Tray {
       titleElement.classList.remove("task-done");
     }
 
-    if (this.isImageUrl(this.name)) {
+    const displayName = this.showDoneMarker ? this.name : this.name.replace(/@@/g, "");
+
+    if (this.isImageUrl(displayName)) {
       const img = document.createElement("img");
-      img.src = this.name;
-      img.alt = this.name;
+      img.src = displayName;
+      img.alt = displayName;
       titleElement.innerHTML = "";
       titleElement.appendChild(img);
-    } else if (this.isValidUrl(this.name)) {
+    } else if (this.isValidUrl(displayName)) {
       const a = document.createElement("a");
-      a.href = this.name;
-      a.textContent = this.name;
+      a.href = displayName;
+      a.textContent = displayName;
       a.target = "_blank";
       titleElement.innerHTML = "";
       titleElement.appendChild(a);
     } else {
-      titleElement.textContent = this.name;
+      titleElement.textContent = displayName;
     }
   }
 
@@ -589,6 +598,7 @@ export class Tray {
  
   startTitleEdit(titleElement: HTMLDivElement) {
     this.isEditing = true;
+    this.showDoneMarker = true;
     titleElement.setAttribute("contenteditable", "true");
     titleElement.textContent = this.name;
 
@@ -616,6 +626,7 @@ export class Tray {
 
   cancelTitleEdit(titleElement: HTMLDivElement) {
     this.isEditing = false;
+    this.showDoneMarker = false;
     titleElement.setAttribute("contenteditable", "false");
     this.updateTitleContent(titleElement);
   }
@@ -636,6 +647,11 @@ export class Tray {
 
   checkDoneStateFromName(name: string): boolean {
     return name.includes('@@');
+  }
+
+  toggleDoneMarker(titleElement: HTMLDivElement) {
+    this.showDoneMarker = !this.showDoneMarker;
+    this.updateTitleContent(titleElement);
   }
 
   async finishTitleEdit(titleElement: HTMLDivElement) {
@@ -687,9 +703,10 @@ export class Tray {
         parentTrayId: this.parentId
       };
       
-      await pluginManager.executeHook("onTaskCompleted", completedTask, context);
+    await pluginManager.executeHook("onTaskCompleted", completedTask, context);
     }
-    
+
+    this.showDoneMarker = false;
     this.updateTitleContent(titleElement);
     // titleElement.removeEventListener("keydown", this.keyDownHandler);
     // titleElement.removeEventListener("blur", this.blurHandler);

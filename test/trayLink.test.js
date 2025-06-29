@@ -105,3 +105,16 @@ test('finishTitleEdit converts to image', () => {
   assert.ok(img);
   assert.strictEqual(img.src, 'https://foo.com/bar.jpg');
 });
+
+test('@@ marker hidden by default', () => {
+  const t = new Tray('0','6','Task @@done');
+  const title = t.element.querySelector('.tray-title');
+  assert.strictEqual(title.textContent, 'Task done');
+});
+
+test('toggleDoneMarker reveals @@', () => {
+  const t = new Tray('0','7','Task @@done');
+  const title = t.element.querySelector('.tray-title');
+  t.toggleDoneMarker(title);
+  assert.strictEqual(title.textContent, 'Task @@done');
+});
