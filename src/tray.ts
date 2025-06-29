@@ -641,7 +641,7 @@ export class Tray {
   }
 
   parseHooksFromName(name: string): string[] {
-    const hookMatches = name.match(/@(\w+)/g);
+    const hookMatches = name.match(/@(\S+)/g);
     return hookMatches ? hookMatches.map(hook => hook.substring(1)) : [];
   }
 
