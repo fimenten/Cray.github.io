@@ -9,6 +9,7 @@ global.document = doc;
 global.window = win;
 
 const utils = require('../cjs/utils.js');
+const trayOperations = require('../cjs/trayOperations.js');
 
 test('generateUUID returns unique values', () => {
   const a = utils.generateUUID();
@@ -30,7 +31,7 @@ test('expandChildrenOneLevel expands direct children', () => {
   const child1 = { isFolded: true, updateAppearance(){ this.updated = true; } };
   const child2 = { isFolded: true, updateAppearance(){ this.updated = true; } };
   const tray = { children: [child1, child2] };
-  utils.expandChildrenOneLevel(tray);
+  trayOperations.expandChildrenOneLevel(tray);
   assert.strictEqual(child1.isFolded, false);
   assert.strictEqual(child2.isFolded, false);
   assert.ok(child1.updated);
