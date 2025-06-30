@@ -43,7 +43,7 @@ export interface IJSONLTrayData {
   childrenIds: TrayId[];
   parentId: TrayId | null;
   borderColor: string;
-  created_dt: string;
+  created_dt: Date;
   flexDirection: "column" | "row";
   host_url: string | null;
   filename: string | null;
@@ -55,10 +55,14 @@ export interface IJSONLTrayData {
 
 // UI State interfaces
 export interface ITrayUIState {
+  id: TrayId;
   isEditing: boolean;
   isSelected: boolean;
+  isFocused: boolean;
+  isExpanded: boolean;
   showDoneMarker: boolean;
-  element: HTMLDivElement | null;
+  autoUpload: boolean;
+  lastInteractionTime: Date;
 }
 
 // Plugin system interfaces
