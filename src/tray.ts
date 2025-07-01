@@ -496,7 +496,7 @@ export class Tray {
       titleElement.classList.remove("task-done");
     }
 
-    const displayName = this.showDoneMarker ? this.name : this.name.replace(/@@/g, "");
+    const displayName = this.name;
 
     if (this.isImageUrl(displayName)) {
       const img = document.createElement("img");
