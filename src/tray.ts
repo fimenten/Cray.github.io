@@ -711,6 +711,12 @@ export class Tray {
     // titleElement.removeEventListener("blur", this.blurHandler);
     this.isEditing = false;
     saveToIndexedDB();
+    
+    // Restore focus to the tray element after editing
+    const trayElement = titleElement.closest('.tray') as HTMLElement;
+    if (trayElement) {
+      trayElement.focus();
+    }
   }
 
   onDragStart(event: DragEvent): void {

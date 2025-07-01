@@ -163,6 +163,12 @@ export class TrayEventHandler {
           this.callbacks.onTitleEdit?.(trayId, newValue);
           target.contentEditable = "false";
           this.uiStateManager.setEditing(trayId, false);
+          
+          // Restore focus to the tray element after editing
+          const trayElement = target.closest('.tray') as HTMLElement;
+          if (trayElement) {
+            trayElement.focus();
+          }
         }
       },
       keydown: (e: Event) => {
