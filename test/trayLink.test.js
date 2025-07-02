@@ -27,6 +27,18 @@ function createElement(tag='div'){
       }
       return null;
     },
+    closest(sel){
+      if(sel.startsWith('.')){
+        const cls = sel.slice(1);
+        let current = this;
+        while(current){
+          if(current.classList && current.classList.contains(cls)) return current;
+          current = current.parent;
+        }
+      }
+      return null;
+    },
+    focus(){},
     textContent: ''
   };
   if(tag === 'a') el.href = '';
