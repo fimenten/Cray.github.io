@@ -472,7 +472,9 @@ function showServerPasswordManager() {
     border-radius: 8px;
     padding: 20px;
     z-index: 10000;
-    min-width: 400px;
+    width: 90vw;
+    max-width: 600px;
+    min-width: 320px;
     max-height: 70vh;
     overflow-y: auto;
   `;
@@ -655,7 +657,9 @@ function showSearchDialog(): void {
     border-radius: 8px;
     padding: 20px;
     z-index: 10000;
-    min-width: 400px;
+    width: 90vw;
+    max-width: 600px;
+    min-width: 320px;
     max-height: 70vh;
     overflow-y: auto;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
@@ -786,6 +790,11 @@ export function showHookViewDialog(): void {
 
   const dialog = document.createElement("div");
   dialog.classList.add("hook-view-dialog");
+  
+  // Check if mobile device
+  const isMobile = window.innerWidth <= 768;
+  const padding = isMobile ? "15px" : "20px";
+  
   dialog.style.cssText = `
     position: fixed;
     top: 50%;
@@ -794,16 +803,18 @@ export function showHookViewDialog(): void {
     background: white;
     border: 1px solid #ccc;
     border-radius: 8px;
-    padding: 20px;
+    padding: ${padding};
     z-index: 10000;
-    min-width: 600px;
+    width: 90vw;
+    max-width: 800px;
+    min-width: 320px;
     max-height: 80vh;
     overflow-y: auto;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   `;
 
   dialog.innerHTML = `
-    <h3>Tasks Organized by Hooks</h3>
+    <h3 style="margin-bottom: 15px;">Tasks Organized by Hooks</h3>
     <div id="hook-content" style="max-height: 60vh; overflow-y: auto;">
       <div style="text-align: center; color: #999; padding: 20px;">Loading hooks...</div>
     </div>
@@ -816,6 +827,9 @@ export function showHookViewDialog(): void {
 
   const hookContent = dialog.querySelector("#hook-content") as HTMLDivElement;
   const closeButton = dialog.querySelector("#close-hook-view") as HTMLButtonElement;
+
+  // State management for each hook's visibility
+  const hookVisibilityState = new Map<string, boolean>();
 
   // Collect all trays with hooks
   const allTrays = getAllTrays(rootTray);
@@ -853,53 +867,100 @@ export function showHookViewDialog(): void {
 
     hookEntries.forEach(([hook, taskList]) => {
       const hookSection = document.createElement("div");
-      hookSection.style.cssText = "margin-bottom: 20px; border: 1px solid #ddd; border-radius: 6px; padding: 15px;";
+      const sectionPadding = isMobile ? "10px" : "15px";
+      hookSection.style.cssText = `margin-bottom: 20px; border: 1px solid #ddd; border-radius: 6px; padding: ${sectionPadding};`;
 
       const hookTitle = document.createElement("h4");
       hookTitle.textContent = `@${hook}`;
-      hookTitle.style.cssText = "margin: 0 0 10px 0; color: #333; font-size: 1.1em; font-weight: bold;";
-      hookSection.appendChild(hookTitle);
+      const titleFontSize = isMobile ? "1em" : "1.1em";
+      hookTitle.style.cssText = `margin: 0 0 10px 0; color: #333; font-size: ${titleFontSize}; font-weight: bold; cursor: pointer; transition: color 0.2s; user-select: none;`;
       
-      taskList.forEach(tray => {
-        const taskItem = document.createElement("div");
-        const isDone = tray.isDone;
+      // Initialize visibility state (default: hide done tasks)
+      const hasDoneTasks = taskList.some(t => t.isDone);
+      hookVisibilityState.set(hook, false);
+      
+      // Create tasks container
+      const tasksContainer = document.createElement("div");
+      tasksContainer.id = `tasks-${hook}`;
+      
+      function renderTasks() {
+        const showDone = hookVisibilityState.get(hook) || false;
+        tasksContainer.innerHTML = '';
         
-        taskItem.style.cssText = `
-          padding: 8px 12px;
-          margin-bottom: 6px;
-          background: ${isDone ? '#f0f0f0' : '#f8f9fa'};
-          border-radius: 4px;
-          cursor: pointer;
-          transition: background-color 0.2s;
-          border-left: 3px solid ${tray.borderColor};
-          ${isDone ? 'opacity: 0.7;' : ''}
-        `;
-        
-        const displayName = tray.name || 'Untitled';
-        const displayDate = tray.created_dt ? tray.created_dt.toLocaleDateString() : 'unknown date';
-        
-        taskItem.innerHTML = `
-          <div style="font-weight: 500; margin-bottom: 2px; ${isDone ? 'text-decoration: line-through; color: #999;' : ''}">${displayName}</div>
-          <div style="font-size: 0.8em; color: #666;">Created: ${displayDate}${isDone ? ' • ✓ Done' : ''}</div>
-        `;
-        
-        taskItem.addEventListener("mouseenter", () => {
-          taskItem.style.backgroundColor = isDone ? "#e0e0e0" : "#e9ecef";
+        taskList.forEach(tray => {
+          const isDone = tray.isDone;
+          
+          // Skip done tasks if not showing them
+          if (isDone && !showDone) return;
+          
+          const taskItem = document.createElement("div");
+          
+          taskItem.style.cssText = `
+            padding: 8px 12px;
+            margin-bottom: 6px;
+            background: ${isDone ? '#f0f0f0' : '#f8f9fa'};
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            border-left: 3px solid ${tray.borderColor};
+            ${isDone ? 'opacity: 0.7;' : ''}
+          `;
+          
+          const displayName = tray.name || 'Untitled';
+          const displayDate = tray.created_dt ? tray.created_dt.toLocaleDateString() : 'unknown date';
+          
+          taskItem.innerHTML = `
+            <div style="font-weight: 500; margin-bottom: 2px; ${isDone ? 'text-decoration: line-through; color: #999;' : ''}">${displayName}</div>
+            <div style="font-size: 0.8em; color: #666;">Created: ${displayDate}${isDone ? ' • ✓ Done' : ''}</div>
+          `;
+          
+          taskItem.addEventListener("mouseenter", () => {
+            taskItem.style.backgroundColor = isDone ? "#e0e0e0" : "#e9ecef";
+          });
+          
+          taskItem.addEventListener("mouseleave", () => {
+            taskItem.style.backgroundColor = isDone ? "#f0f0f0" : "#f8f9fa";
+          });
+          
+          taskItem.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            expandAllParentsAndFocus(tray);
+            dialog.remove();
+          });
+          
+          tasksContainer.appendChild(taskItem);
         });
         
-        taskItem.addEventListener("mouseleave", () => {
-          taskItem.style.backgroundColor = isDone ? "#f0f0f0" : "#f8f9fa";
-        });
-        
-        taskItem.addEventListener("click", (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          expandAllParentsAndFocus(tray);
-          dialog.remove();
-        });
-        
-        hookSection.appendChild(taskItem);
+        // Update hook title to show status
+        const doneCount = taskList.filter(t => t.isDone).length;
+        const totalCount = taskList.length;
+        const statusIcon = showDone ? '👁️' : '👁️‍🗨️';
+        hookTitle.textContent = `@${hook} (${totalCount - doneCount}/${totalCount}) ${hasDoneTasks ? statusIcon : ''}`;
+      }
+      
+      // Add click handler to toggle visibility
+      hookTitle.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const currentState = hookVisibilityState.get(hook) || false;
+        hookVisibilityState.set(hook, !currentState);
+        renderTasks();
       });
+      
+      hookTitle.addEventListener("mouseenter", () => {
+        hookTitle.style.color = "#0066cc";
+      });
+      
+      hookTitle.addEventListener("mouseleave", () => {
+        hookTitle.style.color = "#333";
+      });
+      
+      hookSection.appendChild(hookTitle);
+      hookSection.appendChild(tasksContainer);
+      
+      // Initial render
+      renderTasks();
       
       hookContent.appendChild(hookSection);
     });

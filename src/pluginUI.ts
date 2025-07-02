@@ -16,7 +16,9 @@ export function showPluginManagerDialog(): void {
     border-radius: 8px;
     padding: 20px;
     z-index: 10000;
-    min-width: 700px;
+    width: 90vw;
+    max-width: 900px;
+    min-width: 320px;
     max-height: 80vh;
     overflow-y: auto;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
@@ -211,7 +213,9 @@ export function showPluginEditor(plugin: StoredPlugin | null): void {
     border-radius: 8px;
     padding: 20px;
     z-index: 10001;
-    width: 800px;
+    width: 90vw;
+    max-width: 900px;
+    min-width: 320px;
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
