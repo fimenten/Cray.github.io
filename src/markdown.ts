@@ -37,12 +37,26 @@ export function exportMarkdown(root: Tray) {
 export function addMarkdownToTray(markdown: string, parent: Tray) {
   const lines = markdown.split(/\r?\n/).filter((l) => l.trim() !== "");
   const lastAt: Tray[] = [];
+  let lastHeadingIndent = -1;
   for (const line of lines) {
-    const indentMatch = line.match(/^(\s*)/);
-    const indent = indentMatch ? Math.floor(indentMatch[1].length / 2) : 0;
-    const trimmed = line.trim().replace(/^[-*]\s*/, "");
+    const trimmedLine = line.trim();
+    if (!trimmedLine) continue;
+    const headingMatch = trimmedLine.match(/^(#+)\s*(.*)$/);
+    let indent: number;
+    let text: string;
+    if (headingMatch) {
+      indent = headingMatch[1].length - 1;
+      text = headingMatch[2];
+      lastHeadingIndent = indent;
+    } else {
+      const indentMatch = line.match(/^(\s*)/);
+      const bulletIndent = indentMatch ? Math.floor(indentMatch[1].length / 2) : 0;
+      text = trimmedLine.replace(/^[-*]\s*/, "");
+      indent = (lastHeadingIndent >= 0 ? lastHeadingIndent + 1 : 0) + bulletIndent;
+      if (lastHeadingIndent < 0) indent = bulletIndent;
+    }
     const p = indent === 0 ? parent : lastAt[indent - 1] || parent;
-    const child = new Tray(p.id, generateUUID(), trimmed);
+    const child = new Tray(p.id, generateUUID(), text);
     p.addChild(child);
     lastAt[indent] = child;
     lastAt.length = indent + 1;
