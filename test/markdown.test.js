@@ -104,3 +104,37 @@ test('pasteFromClipboardInto handles markdown indentation', async () => {
   assert.strictEqual(child.name, 'child');
   assert.strictEqual(child.children[0].name, 'grand');
 });
+
+delete require.cache[require.resolve('../cjs/markdown.js')];
+const md = require('../cjs/markdown.js');
+
+test('addMarkdownToTray handles heading hierarchy', () => {
+  const root = new Tray('0','r','root');
+  md.addMarkdownToTray('# parent\n## child\n### grand', root);
+  assert.strictEqual(root.children.length, 1);
+  const parent = root.children[0];
+  assert.strictEqual(parent.name, 'parent');
+  const child = parent.children[0];
+  assert.strictEqual(child.name, 'child');
+  assert.strictEqual(child.children[0].name, 'grand');
+});
+
+test('addMarkdownToTray handles heading with bullet list', () => {
+  const root = new Tray('0','r','root');
+  md.addMarkdownToTray('## parent\n- a\n  - b\n- c', root);
+  const parent = root.children[0];
+  assert.strictEqual(parent.name, 'parent');
+  assert.strictEqual(parent.children.length, 2);
+  assert.strictEqual(parent.children[0].name, 'c');
+  assert.strictEqual(parent.children[1].name, 'a');
+  assert.strictEqual(parent.children[1].children[0].name, 'b');
+});
+
+test('addMarkdownToTray ignores blank lines', () => {
+  const root = new Tray('0','r','root');
+  md.addMarkdownToTray('- a\n\n  - b\n\n- c', root);
+  assert.strictEqual(root.children.length, 2);
+  assert.strictEqual(root.children[0].name, 'c');
+  assert.strictEqual(root.children[1].name, 'a');
+  assert.strictEqual(root.children[1].children[0].name, 'b');
+});
