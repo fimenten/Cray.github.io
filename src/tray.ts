@@ -524,7 +524,13 @@ export class Tray {
     });
   }
 
-  toggleFold() {
+  async toggleFold() {
+    // Load lazy children if needed before unfolding
+    if (!this.isFolded && this.properties._lazyChildren && !this.properties._childrenLoaded) {
+      const { LazyTrayLoader } = await import("./lazyLoader");
+      await LazyTrayLoader.loadChildrenIfNeeded(this);
+    }
+    
     this.isFolded = !this.isFolded;
     this.foldChildren();
     this.updateAppearance();

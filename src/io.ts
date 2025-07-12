@@ -11,6 +11,7 @@ import { createActionButtons } from "./actionbotton";
 import { graph } from "./render";
 import { TrayId, ISerializedTrayData, IJSONLTrayData, IIOError } from "./types";
 import { IOError } from "./errors";
+import { LazyTrayLoader } from "./lazyLoader";
 export function exportData(): void {
   const data = serialize(element2TrayMap.get(getRootElement() as HTMLDivElement) as Tray);
 
@@ -149,13 +150,25 @@ export async function loadFromIndexedDB(
     let rootTray: Tray;
     if (savedData) {
       try {
-        rootTray = deserialize(savedData.value as string) as Tray;
-        // const data = savedData.value as string
-        // Object.assign(graph, JSON.parse(data));
+        const dataString = savedData.value as string;
+        
+        // Show loading indicator for large files
+        if (dataString.length > 100000) {  // 100KB threshold
+          showLoadingIndicator();
+        }
+        
+        // Use lazy loader for better performance
+        rootTray = await LazyTrayLoader.deserializeLazy(dataString, {
+          onProgress: (loaded, total) => {
+            updateLoadingProgress(loaded, total);
+          }
+        });
 
       } catch (error) {
         console.error("Error deserializing data:", error);
         rootTray = createDefaultRootTray();
+      } finally {
+        hideLoadingIndicator();
       }
     } else {
       rootTray = createDefaultRootTray();
@@ -227,23 +240,107 @@ export async function getAllSessionIds(): Promise<string[]> {
   });
 }
 
+let loadingIndicator: HTMLElement | null = null;
+
+function showLoadingIndicator(): void {
+  loadingIndicator = document.createElement("div");
+  loadingIndicator.className = "loading-indicator";
+  loadingIndicator.innerHTML = `
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Loading data...</div>
+      <div class="loading-progress">
+        <div class="loading-progress-bar" style="width: 0%"></div>
+      </div>
+    </div>
+  `;
+  
+  // Add styles
+  const style = document.createElement("style");
+  style.textContent = `
+    .loading-indicator {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .loading-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .loading-progress {
+      width: 200px;
+      height: 4px;
+      background: #f0f0f0;
+      border-radius: 2px;
+      margin-top: 1rem;
+      overflow: hidden;
+    }
+    .loading-progress-bar {
+      height: 100%;
+      background: #3498db;
+      transition: width 0.3s ease;
+    }
+  `;
+  document.head.appendChild(style);
+  document.body.appendChild(loadingIndicator);
+}
+
+function updateLoadingProgress(loaded: number, total: number): void {
+  if (!loadingIndicator) return;
+  
+  const progressBar = loadingIndicator.querySelector(".loading-progress-bar") as HTMLElement;
+  const progressText = loadingIndicator.querySelector(".loading-text") as HTMLElement;
+  
+  if (progressBar && total > 0) {
+    const percentage = Math.round((loaded / total) * 100);
+    progressBar.style.width = `${percentage}%`;
+    progressText.textContent = `Loading data... ${percentage}%`;
+  }
+}
+
+function hideLoadingIndicator(): void {
+  if (loadingIndicator) {
+    loadingIndicator.remove();
+    loadingIndicator = null;
+  }
+}
+
 export function renderRootTray(rootTray: Tray) {
-  // rootTray.isFolded = false;
-
-  // Minimize DOM manipulation
-  // const trayContainer = document.createElement("div");
-  // trayContainer.appendChild(rootTray.element);
-
-  // Update only when necessary
-  document.body.innerHTML = "";
-  document.body.appendChild(rootTray.element);
-
-  createHamburgerMenu();
-  const actio = createActionButtons()
-  // document.body.appendChild(hamb);
-  document.body.appendChild(actio);
-
-
+  // Use requestAnimationFrame for smoother rendering
+  requestAnimationFrame(() => {
+    // Clear body more efficiently
+    while (document.body.firstChild) {
+      document.body.removeChild(document.body.firstChild);
+    }
+    
+    document.body.appendChild(rootTray.element);
+    
+    createHamburgerMenu();
+    const actio = createActionButtons();
+    document.body.appendChild(actio);
+  });
 }
 
 export function serialize(tray: Tray) {
