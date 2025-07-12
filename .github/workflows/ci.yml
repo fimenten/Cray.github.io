@@ -24,4 +24,4 @@ jobs:
       - name: Build CommonJS
         run: npm run build
       - name: Run tests
-        run: node --test 'test/*.test.js'
+        run: node --test test/*.test.js
