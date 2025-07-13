@@ -1,0 +1,182 @@
+{
+  "id": "root-current",
+  "name": "Current Version Root Tray",
+  "parentId": "",
+  "children": [
+    {
+      "id": "modern-task",
+      "name": "Modern Task with Full Features @urgent @dev @testing",
+      "parentId": "root-current",
+      "children": [
+        {
+          "id": "nested-task-1",
+          "name": "Nested Task with Complex Properties",
+          "parentId": "modern-task",
+          "children": [],
+          "borderColor": "#e74c3c",
+          "created_dt": "2025-03-01T10:30:00.000Z",
+          "flexDirection": "row",
+          "host_url": "https://api.modern-app.com/tasks/nested",
+          "filename": "nested-task-data.json",
+          "isFolded": false,
+          "properties": {
+            "priority": "critical",
+            "assignee": "developer@example.com",
+            "estimated_hours": 8,
+            "actual_hours": 6.5,
+            "complexity": "high",
+            "dependencies": ["task-123", "task-456"],
+            "metadata": {
+              "created_by": "automation",
+              "last_modified": "2025-03-01T14:45:00.000Z",
+              "version": 3
+            }
+          },
+          "hooks": ["urgent", "dev", "automated"],
+          "isDone": false
+        }
+      ],
+      "borderColor": "#9b59b6",
+      "created_dt": "2025-03-01T09:00:00.000Z",
+      "flexDirection": "column",
+      "host_url": "https://api.modern-app.com/tasks",
+      "filename": "modern-task.json",
+      "isFolded": false,
+      "properties": {
+        "sprint": "2025-Q1-Sprint-3",
+        "epic": "user-experience-improvements",
+        "story_points": 13,
+        "labels": ["frontend", "critical", "user-facing"],
+        "automation": {
+          "auto_upload": true,
+          "sync_interval": 60000,
+          "conflict_resolution": "last_write_wins"
+        }
+      },
+      "hooks": ["urgent", "dev", "testing"],
+      "isDone": false
+    },
+    {
+      "id": "plugin-task",
+      "name": "Task with Plugin Integration @plugin @hook-test",
+      "parentId": "root-current",
+      "children": [],
+      "borderColor": "#f39c12",
+      "created_dt": "2025-03-01T11:00:00.000Z",
+      "flexDirection": "column",
+      "host_url": "https://plugin-api.example.com",
+      "filename": "plugin-data.json",
+      "isFolded": false,
+      "properties": {
+        "plugin_config": {
+          "enabled_plugins": ["time-tracker", "github-integration", "slack-notifier"],
+          "plugin_data": {
+            "time_tracker": {
+              "start_time": "2025-03-01T11:00:00.000Z",
+              "total_time": 0
+            },
+            "github_integration": {
+              "repo": "user/tray-app",
+              "branch": "feature/plugin-system",
+              "pr_number": 42
+            }
+          }
+        },
+        "custom_fields": {
+          "client": "Important Client",
+          "billable": true,
+          "rate": 150
+        }
+      },
+      "hooks": ["plugin", "hook-test", "time-tracker"],
+      "isDone": false
+    },
+    {
+      "id": "performance-test-section",
+      "name": "Performance Test Section",
+      "parentId": "root-current",
+      "children": [],
+      "borderColor": "#3498db",
+      "created_dt": "2025-03-01T12:00:00.000Z",
+      "flexDirection": "column",
+      "host_url": null,
+      "filename": null,
+      "isFolded": false,
+      "properties": {
+        "test_type": "performance",
+        "large_data": {
+          "array_data": Array.from({length: 1000}, (_, i) => ({
+            id: `item-${i}`,
+            value: `Test value ${i}`,
+            timestamp: new Date(2025, 2, 1, 12, 0, i).toISOString()
+          })),
+          "complex_object": {
+            "nested_level_1": {
+              "nested_level_2": {
+                "nested_level_3": {
+                  "deep_data": "This is deeply nested data for testing serialization performance"
+                }
+              }
+            }
+          }
+        }
+      },
+      "hooks": ["performance", "test"],
+      "isDone": false
+    },
+    {
+      "id": "completed-modern-task",
+      "name": "Completed Modern Task with Analytics @@",
+      "parentId": "root-current",
+      "children": [],
+      "borderColor": "#2ecc71",
+      "created_dt": "2025-02-15T09:00:00.000Z",
+      "flexDirection": "column",
+      "host_url": null,
+      "filename": null,
+      "isFolded": false,
+      "properties": {
+        "completion_analytics": {
+          "started_at": "2025-02-15T09:00:00.000Z",
+          "completed_at": "2025-02-28T17:30:00.000Z",
+          "time_to_complete": 1166400000,
+          "efficiency_score": 0.85,
+          "blockers_encountered": 2,
+          "dependencies_resolved": 5
+        },
+        "retrospective": {
+          "what_went_well": ["Clear requirements", "Good team collaboration"],
+          "what_to_improve": ["Earlier testing", "Better time estimation"],
+          "action_items": ["Setup automated testing", "Improve estimation process"]
+        }
+      },
+      "hooks": ["analytics", "retrospective"],
+      "isDone": true
+    }
+  ],
+  "borderColor": "#ffffff",
+  "created_dt": "2025-03-01T00:00:00.000Z",
+  "flexDirection": "column",
+  "host_url": null,
+  "filename": null,
+  "isFolded": false,
+  "properties": {
+    "schema_version": 3,
+    "app_version": "3.0.0",
+    "created_by": "tray-app-v3",
+    "features": [
+      "plugin_system",
+      "advanced_analytics",
+      "performance_optimizations",
+      "migration_testing"
+    ],
+    "settings": {
+      "auto_save": true,
+      "auto_upload": false,
+      "theme": "default",
+      "performance_mode": "balanced"
+    }
+  },
+  "hooks": ["root"],
+  "isDone": false
+}

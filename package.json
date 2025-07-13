@@ -7,12 +7,12 @@
   "author": "",
   "license": "CC-BY-NC-4.0",
   "devDependencies": {
-    "@playwright/test": "^1.53.1",
+    "@playwright/test": "^1.54.1",
     "@types/react": "^18.3.8",
     "@types/react-dom": "^18.3.0",
     "@types/react-redux": "^7.1.33",
     "@types/redux-persist": "^4.3.1",
-    "playwright": "^1.53.1",
+    "playwright": "^1.54.1",
     "ts-loader": "^9.5.1",
     "typescript": "^5.6.2",
     "webpack": "^5.94.0",
@@ -23,8 +23,15 @@
     "build": "tsc -p tsconfig.cjs.json",
     "bundle": "webpack --mode production",
     "start": "webpack serve --mode development",
-    "test": "playwright test --headed",
-    "test:headless": "playwright test"
+    "test": "npm run test:unit && npm run test:migration && npm run test:e2e:ci",
+    "test:unit": "node --test test/*.test.js",
+    "test:migration": "node --test test/migration.test.js test/indexeddb-migration.test.js test/version-compatibility.test.js",
+    "test:e2e": "playwright test --headed",
+    "test:e2e:headless": "playwright test",
+    "test:e2e:ci": "playwright test --project=chromium",
+    "test:e2e:debug": "playwright test --debug",
+    "test:all": "npm run test:unit && npm run test:migration && npm run test:e2e:ci",
+    "test:ci": "./tests/ci-e2e.sh"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.7",

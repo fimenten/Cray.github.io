@@ -1,0 +1,62 @@
+{
+  "id": "root-v1",
+  "name": "Root Tray v1.0",
+  "parentId": "",
+  "children": [
+    {
+      "id": "task-1",
+      "name": "Simple Task",
+      "parentId": "root-v1",
+      "children": [],
+      "borderColor": "#ffffff",
+      "created_dt": "2025-01-01T00:00:00.000Z",
+      "flexDirection": "column",
+      "host_url": null,
+      "filename": null,
+      "isFolded": false
+    },
+    {
+      "id": "project-1",
+      "name": "Project with Tasks @important",
+      "parentId": "root-v1",
+      "children": [
+        {
+          "id": "subtask-1",
+          "name": "Subtask 1",
+          "parentId": "project-1",
+          "children": [],
+          "borderColor": "#ff0000",
+          "created_dt": "2025-01-02T10:30:00.000Z",
+          "flexDirection": "column",
+          "host_url": null,
+          "filename": null,
+          "isFolded": false
+        },
+        {
+          "id": "subtask-2",
+          "name": "Completed Subtask @@",
+          "parentId": "project-1",
+          "children": [],
+          "borderColor": "#00ff00",
+          "created_dt": "2025-01-02T11:00:00.000Z",
+          "flexDirection": "column",
+          "host_url": null,
+          "filename": null,
+          "isFolded": false
+        }
+      ],
+      "borderColor": "#0000ff",
+      "created_dt": "2025-01-02T09:00:00.000Z",
+      "flexDirection": "column",
+      "host_url": null,
+      "filename": null,
+      "isFolded": false
+    }
+  ],
+  "borderColor": "#ffffff",
+  "created_dt": "2025-01-01T00:00:00.000Z",
+  "flexDirection": "column",
+  "host_url": null,
+  "filename": null,
+  "isFolded": false
+}

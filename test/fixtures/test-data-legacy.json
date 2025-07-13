@@ -1,0 +1,46 @@
+{
+  "id": "root-legacy",
+  "name": "Legacy Root Tray",
+  "parentId": "",
+  "children": [
+    {
+      "id": "old-task",
+      "name": "Old Task Format",
+      "parentId": "root-legacy",
+      "children": [],
+      "borderColor": "#ffffff",
+      "created_dt": "2024-12-01T00:00:00.000Z",
+      "flexDirection": "column",
+      "url": "https://legacy-url.com",
+      "filename": null,
+      "isFolded": false
+    },
+    {
+      "id": "minimal-task",
+      "name": "Minimal Task",
+      "parentId": "root-legacy",
+      "children": [],
+      "created_dt": "2024-12-01T12:00:00.000Z",
+      "flexDirection": "column",
+      "isFolded": false
+    },
+    {
+      "id": "malformed-date-task",
+      "name": "Task with Bad Date",
+      "parentId": "root-legacy",
+      "children": [],
+      "borderColor": null,
+      "created_dt": "invalid-date-string",
+      "flexDirection": "column",
+      "host_url": null,
+      "filename": null,
+      "isFolded": false
+    }
+  ],
+  "borderColor": "#ffffff",
+  "created_dt": "2024-12-01T00:00:00.000Z",
+  "flexDirection": "column",
+  "host_url": null,
+  "filename": null,
+  "isFolded": false
+}

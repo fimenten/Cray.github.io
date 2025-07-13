@@ -1,0 +1,115 @@
+{
+  "id": "root-v2",
+  "name": "Root Tray v2.0",
+  "parentId": "",
+  "children": [
+    {
+      "id": "enhanced-task",
+      "name": "Enhanced Task with Properties @priority @work",
+      "parentId": "root-v2",
+      "children": [],
+      "borderColor": "#ff6b6b",
+      "created_dt": "2025-02-01T08:00:00.000Z",
+      "flexDirection": "column",
+      "host_url": "https://example.com/task",
+      "filename": "task-data.json",
+      "isFolded": false,
+      "properties": {
+        "priority": "high",
+        "estimated_hours": 4,
+        "category": "development",
+        "tags": ["urgent", "frontend"]
+      },
+      "hooks": ["priority", "work"],
+      "isDone": false
+    },
+    {
+      "id": "network-tray",
+      "name": "Network Synchronized Tray",
+      "parentId": "root-v2",
+      "children": [
+        {
+          "id": "remote-task-1",
+          "name": "Task from Remote Source",
+          "parentId": "network-tray",
+          "children": [],
+          "borderColor": "#4ecdc4",
+          "created_dt": "2025-02-01T09:15:00.000Z",
+          "flexDirection": "row",
+          "host_url": "https://api.example.com/tasks",
+          "filename": "remote-tasks.json",
+          "isFolded": false,
+          "properties": {
+            "source": "remote",
+            "sync_enabled": true,
+            "last_sync": "2025-02-01T10:00:00.000Z"
+          },
+          "hooks": ["sync"],
+          "isDone": false
+        }
+      ],
+      "borderColor": "#45b7d1",
+      "created_dt": "2025-02-01T09:00:00.000Z",
+      "flexDirection": "column",
+      "host_url": "https://api.example.com",
+      "filename": "network-data.json",
+      "isFolded": false,
+      "properties": {
+        "auto_upload": true,
+        "upload_interval": 300000
+      },
+      "hooks": ["network"],
+      "isDone": false
+    },
+    {
+      "id": "completed-project",
+      "name": "Completed Project @@",
+      "parentId": "root-v2",
+      "children": [
+        {
+          "id": "done-task-1",
+          "name": "Finished Task 1 @@",
+          "parentId": "completed-project",
+          "children": [],
+          "borderColor": "#2ecc71",
+          "created_dt": "2025-01-15T14:00:00.000Z",
+          "flexDirection": "column",
+          "host_url": null,
+          "filename": null,
+          "isFolded": false,
+          "properties": {
+            "completion_date": "2025-01-30T16:00:00.000Z",
+            "time_spent": 180
+          },
+          "hooks": [],
+          "isDone": true
+        }
+      ],
+      "borderColor": "#27ae60",
+      "created_dt": "2025-01-15T10:00:00.000Z",
+      "flexDirection": "column",
+      "host_url": null,
+      "filename": null,
+      "isFolded": false,
+      "properties": {
+        "project_status": "completed",
+        "completion_date": "2025-01-30T18:00:00.000Z"
+      },
+      "hooks": [],
+      "isDone": true
+    }
+  ],
+  "borderColor": "#ffffff",
+  "created_dt": "2025-02-01T00:00:00.000Z",
+  "flexDirection": "column",
+  "host_url": null,
+  "filename": null,
+  "isFolded": false,
+  "properties": {
+    "version": "2.0",
+    "schema_version": 2,
+    "created_by": "tray-app-v2"
+  },
+  "hooks": [],
+  "isDone": false
+}
