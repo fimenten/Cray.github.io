@@ -82,14 +82,25 @@ global.indexedDB = {
   open: (name, version) => {
     const request = new MockIDBRequest();
     setTimeout(() => {
-      if (!global.indexedDB.databases.has(name)) {
-        global.indexedDB.databases.set(name, new MockIDBDatabase());
-        if (request.onupgradeneeded) {
-          request.result = global.indexedDB.databases.get(name);
-          request.onupgradeneeded();
-        }
+      let db = global.indexedDB.databases.get(name);
+      let needsUpgrade = false;
+      
+      if (!db) {
+        db = new MockIDBDatabase();
+        db.version = version || 1;
+        global.indexedDB.databases.set(name, db);
+        needsUpgrade = true;
+      } else if (version && version > (db.version || 1)) {
+        db.version = version;
+        needsUpgrade = true;
       }
-      request.result = global.indexedDB.databases.get(name);
+      
+      if (needsUpgrade && request.onupgradeneeded) {
+        request.result = db;
+        request.onupgradeneeded();
+      }
+      
+      request.result = db;
       if (request.onsuccess) request.onsuccess();
     }, 0);
     return request;
@@ -150,12 +161,16 @@ describe('IndexedDB Migration Tests', () => {
     test('should handle version upgrade from v3 to v4', async () => {
       const dbName = 'TestTrayDatabaseV3';
       let currentVersion = 3;
+      let upgradeNeeded = false;
       
-      // Simulate v3 database
-      global.indexedDB.databases.set(dbName, new MockIDBDatabase());
+      // Simulate v3 database by setting initial version
+      const mockDb = new MockIDBDatabase();
+      mockDb.version = 3;
+      global.indexedDB.databases.set(dbName, mockDb);
       
       const request = indexedDB.open(dbName, 4);
       request.onupgradeneeded = () => {
+        upgradeNeeded = true;
         const db = request.result;
         if (!db.objectStoreNames.has('trays')) {
           db.createObjectStore('trays', { keyPath: 'id' });
@@ -167,6 +182,7 @@ describe('IndexedDB Migration Tests', () => {
         request.onsuccess = () => resolve();
       });
       
+      assert.strictEqual(upgradeNeeded, true);
       assert.strictEqual(currentVersion, 4);
     });
     
