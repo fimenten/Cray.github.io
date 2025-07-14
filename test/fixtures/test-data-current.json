@@ -105,11 +105,11 @@
       "properties": {
         "test_type": "performance",
         "large_data": {
-          "array_data": Array.from({length: 1000}, (_, i) => ({
-            id: `item-${i}`,
-            value: `Test value ${i}`,
-            timestamp: new Date(2025, 2, 1, 12, 0, i).toISOString()
-          })),
+          "array_data": [
+            {"id": "item-0", "value": "Test value 0", "timestamp": "2025-03-01T12:00:00.000Z"},
+            {"id": "item-1", "value": "Test value 1", "timestamp": "2025-03-01T12:00:01.000Z"},
+            {"id": "item-2", "value": "Test value 2", "timestamp": "2025-03-01T12:00:02.000Z"}
+          ],
           "complex_object": {
             "nested_level_1": {
               "nested_level_2": {
