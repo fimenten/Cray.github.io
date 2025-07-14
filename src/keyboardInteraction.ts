@@ -11,7 +11,7 @@ let lastEnter = { trayId: "", time: 0 };
 
 
 export function handleKeyDown(tray: Tray, event: KeyboardEvent): void {
-  if (store.getState().app.menuOpening) {
+  if (store.getState().app.app.hamburgerMenuOpen) {
     return;
   }
   event.stopPropagation();
@@ -177,7 +177,7 @@ export function moveFocus(
   if (tray.isEditing) {
     return;
   }
-  if (store.getState().app.menuOpening) {
+  if (store.getState().app.app.hamburgerMenuOpen) {
     return;
   }
 

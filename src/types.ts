@@ -2,7 +2,34 @@
 
 export type TrayId = string;
 
-// Main Tray data interface
+// Modern Tray data interface (pure data, no UI concerns)
+export interface TrayData {
+  id: TrayId;
+  name: string;
+  parentId: TrayId | null;
+  borderColor: string;
+  created_dt: Date;
+  flexDirection: "column" | "row";
+  host_url: string | null;
+  filename: string | null;
+  isFolded: boolean;
+  properties: TrayProperties;
+  hooks: string[];
+  isDone: boolean;
+  showDoneMarker: boolean;
+  version: number; // For migration tracking
+}
+
+// Type-safe properties schema
+export interface TrayProperties {
+  priority?: number;
+  tags?: string[];
+  dueDate?: Date;
+  color?: string;
+  metadata?: Record<string, unknown>;
+}
+
+// Legacy interface for backward compatibility
 export interface ITrayData {
   id: TrayId;
   name: string;
@@ -53,7 +80,19 @@ export interface IJSONLTrayData {
   isDone: boolean;
 }
 
-// UI State interfaces
+// UI State interfaces (separated from data)
+export interface TrayUIState {
+  id: TrayId;
+  isEditing: boolean;
+  isSelected: boolean;
+  isFocused: boolean;
+  isExpanded: boolean;
+  autoUpload: boolean;
+  lastInteractionTime: Date;
+  element?: HTMLDivElement | null; // Optional DOM reference
+}
+
+// Legacy UI state for compatibility
 export interface ITrayUIState {
   id: TrayId;
   isEditing: boolean;
@@ -82,7 +121,43 @@ export interface IPluginContext {
   deleteTray(id: TrayId): boolean;
 }
 
-// State management interfaces
+// Enhanced state management interfaces
+export interface AppState {
+  // Data layer
+  trays: Record<TrayId, TrayData>;
+  hierarchy: {
+    rootId: TrayId | null;
+    parentToChildren: Record<TrayId, TrayId[]>;
+    childToParent: Record<TrayId, TrayId>;
+  };
+  
+  // UI state layer
+  ui: {
+    focused: TrayId | null;
+    selected: Set<TrayId>;
+    editing: TrayId | null;
+    collapsed: Set<TrayId>;
+    visible: Set<TrayId>; // For virtualization
+  };
+  
+  // App state
+  app: {
+    hamburgerMenuOpen: boolean;
+    contextMenuOpen: boolean;
+    hookDialogOpen: boolean;
+    autoUploadEnabled: boolean;
+    lastSyncTime: Date | null;
+  };
+  
+  // Network state
+  network: {
+    autoUpload: Record<TrayId, boolean>;
+    syncStatus: Record<TrayId, 'syncing' | 'synced' | 'error'>;
+    lastError: string | null;
+  };
+}
+
+// Legacy state interface for compatibility
 export interface IAppState {
   lastFocused: TrayId | null;
   hamburgerMenuOpen: boolean;
@@ -229,6 +304,42 @@ export type LegacyTrayData = {
   [key: string]: unknown;
 };
 
+// Migration types
+export interface MigrationContext {
+  fromVersion: number;
+  toVersion: number;
+  data: unknown;
+  warnings: string[];
+}
+
+export interface LegacyTrayFormat {
+  id: string;
+  name: string;
+  children?: LegacyTrayFormat[];
+  parentId?: string;
+  borderColor?: string;
+  created_dt?: string | Date;
+  flexDirection?: "column" | "row";
+  host_url?: string | null;
+  filename?: string | null;
+  isFolded?: boolean;
+  properties?: Record<string, unknown>;
+  hooks?: string[];
+  isDone?: boolean;
+  // Legacy fields that may exist
+  autoUpload?: boolean;
+  isEditing?: boolean;
+  isSelected?: boolean;
+  showDoneMarker?: boolean;
+}
+
+// Version tracking
+export const DATA_VERSION = {
+  LEGACY: 0,
+  V1_SEPARATED: 1,
+  CURRENT: 1,
+} as const;
+
 // Constants
 export const TRAY_EVENTS = {
   CREATE: 'tray-create',
@@ -240,6 +351,7 @@ export const TRAY_EVENTS = {
   EDIT_END: 'tray-edit-end',
   FOLD: 'tray-fold',
   UNFOLD: 'tray-unfold',
+  MIGRATE: 'tray-migrate',
 } as const;
 
 export const ERROR_CODES = {
@@ -251,6 +363,8 @@ export const ERROR_CODES = {
   NETWORK_ERROR: 'NETWORK_ERROR',
   VALIDATION_ERROR: 'VALIDATION_ERROR',
   PLUGIN_ERROR: 'PLUGIN_ERROR',
+  MIGRATION_ERROR: 'MIGRATION_ERROR',
+  VERSION_MISMATCH: 'VERSION_MISMATCH',
 } as const;
 
 export type TrayEventType = typeof TRAY_EVENTS[keyof typeof TRAY_EVENTS];

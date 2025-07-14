@@ -27,7 +27,7 @@ export function createActionButtons() {
   }
   
   function addNewTrayToParent() {
-    const lastFocusedId = store.getState().app.lastFocused;
+    const lastFocusedId = store.getState().app.ui.focused;
     if (!lastFocusedId) {
       return;
     }
@@ -51,7 +51,7 @@ export function createActionButtons() {
   }
   
   function addNewTrayToFocused() {
-    const lastFocusedId = store.getState().app.lastFocused;
+    const lastFocusedId = store.getState().app.ui.focused;
     if (!lastFocusedId) {
       return;
     }
