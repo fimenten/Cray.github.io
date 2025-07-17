@@ -156,7 +156,6 @@
 //     Task: {
 //       name: "tasker",
 //       children: ["PLANNING", "PLANNED", "PROGRESS", "DONE"],
-//       labels: [],
 //     },
 //     "Project Structure": {
 //       name: "Project Structure",

@@ -1,0 +1,70 @@
+# Page snapshot
+
+```yaml
+- main:
+  - heading "Index of dist/" [level=1]:
+    - text: Index of
+    - link "dist/":
+      - /url: /
+  - list:
+    - listitem:
+      - link "actionbotton.js":
+        - /url: /actionbotton.js
+    - listitem:
+      - link "app.js":
+        - /url: /app.js
+    - listitem:
+      - link "bundle.js":
+        - /url: /bundle.js
+    - listitem:
+      - link "const.js":
+        - /url: /const.js
+    - listitem:
+      - link "contextMenu.js":
+        - /url: /contextMenu.js
+    - listitem:
+      - link "data/":
+        - /url: /data/
+    - listitem:
+      - link "functions.js":
+        - /url: /functions.js
+    - listitem:
+      - link "graphCore.js":
+        - /url: /graphCore.js
+    - listitem:
+      - link "humberger.js":
+        - /url: /humberger.js
+    - listitem:
+      - link "io.js":
+        - /url: /io.js
+    - listitem:
+      - link "keyboardInteraction.js":
+        - /url: /keyboardInteraction.js
+    - listitem:
+      - link "manipulate.js":
+        - /url: /manipulate.js
+    - listitem:
+      - link "networks.js":
+        - /url: /networks.js
+    - listitem:
+      - link "saneJson.js":
+        - /url: /saneJson.js
+    - listitem:
+      - link "state.js":
+        - /url: /state.js
+    - listitem:
+      - link "store.js":
+        - /url: /store.js
+    - listitem:
+      - link "template.js":
+        - /url: /template.js
+    - listitem:
+      - link "tray.js":
+        - /url: /tray.js
+    - listitem:
+      - link "types.js":
+        - /url: /types.js
+    - listitem:
+      - link "utils.js":
+        - /url: /utils.js
+```

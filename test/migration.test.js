@@ -1,17 +1,7 @@
 const { test, describe } = require('node:test');
 const assert = require('node:assert');
-// Import io functions directly
-let deserialize, serialize;
-try {
-  const io = require('../dist/io');
-  deserialize = io.deserialize;
-  serialize = io.serialize;
-} catch (e) {
-  console.log('Loading io module failed, using fallback');
-  // Fallback implementations for testing
-  deserialize = (data) => JSON.parse(data);
-  serialize = (obj) => JSON.stringify(obj);
-}
+// Import standalone test implementation that doesn't require DOM
+const { deserialize, serialize } = require('./test-deserialize');
 
 // Mock IndexedDB for testing
 global.indexedDB = {

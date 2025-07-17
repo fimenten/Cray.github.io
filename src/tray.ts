@@ -86,7 +86,6 @@ export class Tray {
     this.isEditing = false;
     this.isSelected = false;
     this._element = null
-    // this.updateLabels();
     this.updateAppearance();
     this.updateBorderColor(this.borderColor);
     // this.setupFocusTracking(this);

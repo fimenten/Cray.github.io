@@ -263,12 +263,25 @@ function ddo(the_data: ISerializedTrayData | (ISerializedTrayData & { url?: stri
   } else {
     url = (the_data as any).url || null; // Legacy support
   }
+  
+  // Handle malformed date strings
+  let created_date: Date;
+  try {
+    created_date = new Date(the_data.created_dt);
+    // Check if date is invalid
+    if (isNaN(created_date.getTime())) {
+      created_date = new Date(); // Default to current date for invalid dates
+    }
+  } catch {
+    created_date = new Date(); // Default to current date for any parsing errors
+  }
+  
   let tray = new Tray(
     the_data.parentId || "",
     the_data.id,
     the_data.name,
     the_data.borderColor,
-    new Date(the_data.created_dt),
+    created_date,
     the_data.flexDirection,
     url,
     the_data.filename,

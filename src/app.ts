@@ -11,7 +11,6 @@ import {
   saveToIndexedDB,
 } from "./io";
 import { createHamburgerMenu, selected_trays } from "./hamburger";
-// import { LabelManager } from "./label";
 import {
   downloadData,
   showUploadNotification,
@@ -46,7 +45,6 @@ window.addEventListener("storage", (ev) => {
   }
 });
 
-// export const globalLabelManager = new LabelManager();
 
 
 window.addEventListener("DOMContentLoaded", async () => {
@@ -113,30 +111,3 @@ window.addEventListener("DOMContentLoaded", async () => {
 });
 
 
-// function labelFilteringWithDestruction(labelName:string, tray:Tray) {
-//     console.log(tray.labels);
-//     console.log(tray.labels.includes(labelName));
-
-//     if (tray.labels.includes(labelName)) {
-//       return tray;
-//     } else {
-//       let children_pre = tray.children;
-//       let children_after = [];
-//       children_after = children_pre
-//         .map((t) => this.labelFilteringWithDestruction(labelName, t))
-//         .filter((t) => t != null);
-
-//       console.log(children_after.length);
-//       if (children_after.length != 0) {
-//         tray.children = [];
-//         children_pre.map((t) => {
-//           t.element.remove();
-//         });
-//         console.log(tray.children.length);
-//         children_after.map((t) => tray.addChild(t));
-//         tray.updateAppearance();
-//         return tray;
-//       }
-//     }
-//     return null;
-//   }
