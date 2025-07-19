@@ -3,3 +3,6 @@ trays
 past.txt
 tray_data.json
 cjs
+
+# Keep built bundle in repository for zero-cost deployment
+!dist/bundle.js

@@ -46,9 +46,9 @@ fi
 
 # Run migration tests
 echo -e "\n🔄 Running Data Migration Tests..."
-run_test "Basic Migration Tests" "node test/migration.test.js"
+run_test "Data Structure Refactoring Tests" "node test/data-structure-refactoring.test.js"
 run_test "IndexedDB Migration Tests" "node test/indexeddb-migration.test.js" 
-run_test "Version Compatibility Tests" "node test/version-compatibility.test.js"
+run_test "Migration Compatibility Tests" "node test/migration-compatibility.test.js"
 
 # Test with specific fixture files
 echo -e "\n📁 Testing with fixture files..."
@@ -181,7 +181,7 @@ if git rev-parse --git-dir > /dev/null 2>&1; then
     echo -e "${GREEN}✅ Git repository detected${NC}"
     
     # Check if there are any uncommitted changes to migration tests
-    if git diff --exit-code test/migration.test.js test/indexeddb-migration.test.js test/version-compatibility.test.js > /dev/null 2>&1; then
+    if git diff --exit-code test/data-structure-refactoring.test.js test/indexeddb-migration.test.js test/migration-compatibility.test.js > /dev/null 2>&1; then
         echo -e "${GREEN}✅ Migration test files are committed${NC}"
     else
         echo -e "${YELLOW}⚠️  Migration test files have uncommitted changes${NC}"
