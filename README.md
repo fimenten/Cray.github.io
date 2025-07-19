@@ -2,6 +2,8 @@
 
 A browser-based hierarchical note-taking and outliner application that uses a unique "tray" metaphor for organizing content in nested, draggable containers.
 
+**Zero-cost CI/CD**: Testing runs locally via pre-push hooks, deployment via GitHub Actions.
+
 🌐 **Live Demo**: https://fimenten.github.io/Cray.github.io/
 
 ## Features
