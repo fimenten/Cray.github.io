@@ -106,7 +106,7 @@ test.describe('Basic User Journey', () => {
     await expect(titleElement).toHaveAttribute('contenteditable', 'false');
     
     // Verify the update
-    await expect(page.locator('.tray').filter({ hasText: 'Updated ToDo' })).toBeVisible();
+    await expect(page.locator('.tray-title').filter({ hasText: 'Updated ToDo' })).toBeVisible();
   });
 
   test('should delete a tray', async ({ page }) => {
@@ -137,7 +137,7 @@ test.describe('Basic User Journey', () => {
     await page.keyboard.press('Enter'); // Finish editing
     
     // Verify nested structure - child should be visible
-    await expect(page.locator('.tray').filter({ hasText: 'Child Tray' })).toBeVisible();
+    await expect(page.locator('.tray-title').filter({ hasText: 'Child Tray' })).toBeVisible();
   });
 
   test('should toggle tray collapse/expand', async ({ page }) => {
@@ -152,7 +152,7 @@ test.describe('Basic User Journey', () => {
     await page.keyboard.press('Enter');
     
     // Verify child is visible
-    await expect(parentTray.locator('.tray').filter({ hasText: 'Test Child' })).toBeVisible();
+    await expect(page.locator('.tray-title').filter({ hasText: 'Test Child' })).toBeVisible();
     
     // Focus parent again
     await parentTray.click();
@@ -174,6 +174,6 @@ test.describe('Basic User Journey', () => {
     await page.keyboard.press('Enter');
     
     // Verify child is visible again
-    await expect(parentTray.locator('.tray').filter({ hasText: 'Test Child' })).toBeVisible();
+    await expect(page.locator('.tray-title').filter({ hasText: 'Test Child' })).toBeVisible();
   });
 });

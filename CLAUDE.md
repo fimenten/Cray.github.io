@@ -63,9 +63,15 @@ node test/utils.test.js
 for f in test/*.test.js; do node "$f"; done
 ```
 
+## Playwright Testing
+
+- Run Playwright tests in headless mode without showing test report
+  - Use command: `npx playwright test --headless --reporter=list`
+
 ## Build Process
 
 1. TypeScript source in `src/` compiles to CommonJS via `tsc`
 2. Webpack bundles the application with entry point `src/app.ts`
 3. Output bundle is `dist/bundle.js`
 4. HTML entry point is `index.html` in root
+```

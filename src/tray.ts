@@ -189,6 +189,9 @@ export class Tray {
 
     tray.addEventListener("dragstart", this.onDragStart.bind(this));
     tray.addEventListener("dragover", this.onDragOver.bind(this));
+    tray.addEventListener("dragenter", this.onDragEnter.bind(this));
+    tray.addEventListener("dragleave", this.onDragLeave.bind(this));
+    tray.addEventListener("dragend", this.onDragEnd.bind(this));
     tray.addEventListener("drop", this.onDrop.bind(this));
     content.addEventListener("dblclick", this.onDoubleClick.bind(this));
     element2TrayMap.set(tray, this);
@@ -444,7 +447,16 @@ export class Tray {
   //   }
 
   removeChild(childId: TrayId) {
+    const childTray = this.children.find((tray) => tray.id === childId);
+    
+    // Remove from children array
     this.children = this.children.filter((tray) => tray.id !== childId);
+    
+    // Remove DOM element from the parent's content
+    if (childTray && childTray.element && childTray.element.parentNode) {
+      childTray.element.parentNode.removeChild(childTray.element);
+    }
+    
     this.updateAppearance();
   }
 
@@ -647,6 +659,18 @@ export class Tray {
     return name.includes('@@');
   }
 
+  isDescendantOf(ancestorId: string): boolean {
+    let currentParentId: string | null = this.parentId;
+    while (currentParentId) {
+      if (currentParentId === ancestorId) {
+        return true;
+      }
+      const parentTray = getTrayFromId(currentParentId);
+      currentParentId = parentTray?.parentId || null;
+    }
+    return false;
+  }
+
   toggleDoneMarker(titleElement: HTMLDivElement) {
     this.showDoneMarker = !this.showDoneMarker;
     this.updateTitleContent(titleElement);
@@ -773,6 +797,16 @@ export class Tray {
       .map((id) => getTrayFromId(id))
       .filter((t): t is Tray => !!t);
 
+    // Check for circular references - prevent dropping a parent into its own descendant
+    const wouldCreateCircularReference = traysToMove.some((movingTray) => {
+      return this.isDescendantOf(movingTray.id);
+    });
+
+    if (wouldCreateCircularReference) {
+      console.warn("Cannot move tray: would create circular reference");
+      return;
+    }
+
     const content = this.element.querySelector(
       ".tray-content"
     ) as HTMLElement | null;
@@ -797,6 +831,22 @@ export class Tray {
     this.updateAppearance();
 
     saveToIndexedDB();
+  }
+
+  onDragEnter(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.element.classList.add("drag-over");
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    // Only remove drag-over if we're actually leaving this element
+    const relatedTarget = event.relatedTarget as HTMLElement;
+    if (!this.element.contains(relatedTarget)) {
+      this.element.classList.remove("drag-over");
+    }
   }
 
   onDragEnd(event: DragEvent): void {

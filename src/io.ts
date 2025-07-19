@@ -43,10 +43,43 @@ export function importData(): void {
       try {
         const content = readerEvent.target?.result as string;
         JSON.parse(content); // Validate JSON
+        
+        // Save the imported data
         saveToIndexedDB("imported", content);
         saveToIndexedDB(TRAY_DATA_KEY, content);
-        // initializeTray(deserialize(content))
-        // location.reload();
+        
+        // Replace current tray structure with imported data
+        const importedTray = deserialize(content);
+        const rootElement = getRootElement() as HTMLDivElement;
+        const currentRootTray = element2TrayMap.get(rootElement);
+        
+        if (currentRootTray && importedTray) {
+          // Ensure imported tray is unfolded to show children
+          importedTray.isFolded = false;
+          
+          // Recursively unfold important trays to make them visible
+          const unfoldTray = (tray: Tray) => {
+            tray.isFolded = false;
+            tray.updateAppearance();
+            tray.children.forEach(child => unfoldTray(child));
+          };
+          unfoldTray(importedTray);
+          
+          // Clear existing content
+          const existingContent = rootElement.querySelector('.tray-content');
+          if (existingContent) {
+            existingContent.innerHTML = '';
+          }
+          
+          // Replace the root tray content with imported tray
+          element2TrayMap.delete(rootElement);
+          rootElement.innerHTML = '';
+          rootElement.appendChild(importedTray.element);
+          element2TrayMap.set(rootElement, importedTray);
+          
+          console.log('Data imported successfully');
+        }
+        
         return;
       } catch (error) {
         console.error("Invalid JSON file:", error);

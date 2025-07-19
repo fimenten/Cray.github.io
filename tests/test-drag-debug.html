@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Drag Debug Test</title>
+    <style>
+        .tray {
+            width: 200px;
+            height: 50px;
+            border: 2px solid #333;
+            margin: 10px;
+            padding: 10px;
+            background: #f0f0f0;
+            cursor: move;
+        }
+        .drag-over {
+            background: #e6f3ff;
+            border: 2px dashed #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="tray" draggable="true" id="tray1">Tray 1</div>
+    <div class="tray" draggable="true" id="tray2">Tray 2</div>
+    <div id="log"></div>
+
+    <script>
+        const log = document.getElementById('log');
+        function addLog(message) {
+            log.innerHTML += message + '<br>';
+        }
+
+        document.querySelectorAll('.tray').forEach(tray => {
+            tray.addEventListener('dragstart', (e) => {
+                addLog(`Dragstart: ${e.target.id}`);
+                e.dataTransfer.setData('text/plain', e.target.id);
+            });
+            
+            tray.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                addLog(`Dragover: ${e.target.id}`);
+            });
+            
+            tray.addEventListener('dragenter', (e) => {
+                e.preventDefault();
+                e.target.classList.add('drag-over');
+                addLog(`Dragenter: ${e.target.id}`);
+            });
+            
+            tray.addEventListener('dragleave', (e) => {
+                e.target.classList.remove('drag-over');
+                addLog(`Dragleave: ${e.target.id}`);
+            });
+            
+            tray.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.target.classList.remove('drag-over');
+                const draggedId = e.dataTransfer.getData('text/plain');
+                addLog(`Drop: ${draggedId} onto ${e.target.id}`);
+            });
+        });
+    </script>
+</body>
+</html>

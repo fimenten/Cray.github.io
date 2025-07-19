@@ -202,6 +202,45 @@
   bottom: 0;
 }
 
+/* Drag and Drop Feedback */
+.tray.drag-over {
+  background-color: #e6f3ff;
+  border: 2px dashed #007bff;
+  opacity: 0.8;
+}
+
+.tray.drop-target {
+  background-color: #f0f8ff;
+  border: 2px solid #007bff;
+}
+
+.tray.drop-before::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: #007bff;
+  z-index: 1000;
+}
+
+.tray.drop-after::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background-color: #007bff;
+  z-index: 1000;
+}
+
+.tray.drop-inside {
+  background-color: rgba(0, 123, 255, 0.1);
+  border: 2px dashed #007bff;
+}
+
 /* Fold Button */
 .tray-fold-button {
   background: none;

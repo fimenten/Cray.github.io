@@ -10,7 +10,7 @@ export default defineConfig({
     ['github'],
     ['json', { outputFile: 'test-results/results.json' }],
     ['html', { open: 'never', outputFolder: 'playwright-report' }]
-  ] : 'html',
+  ] : [['html', { open: 'never' }]],
   use: {
     baseURL: 'http://localhost:9000',
     trace: 'on-first-retry',
@@ -36,7 +36,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'npm run bundle && npx serve dist -l 9000',
+    command: 'npm run bundle && npx serve . -l 9000',
     url: 'http://localhost:9000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,
