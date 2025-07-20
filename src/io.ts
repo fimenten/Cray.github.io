@@ -9,8 +9,9 @@ import { createHamburgerMenu } from "./hamburger";
 import { Tray } from "./tray";
 import { createActionButtons } from "./actionbotton";
 import { graph } from "./render";
-import { TrayId, ISerializedTrayData, IJSONLTrayData, IIOError } from "./types";
+import { TrayId, ISerializedTrayData, IJSONLTrayData, IIOError, TrayData, DATA_VERSION } from "./types";
 import { IOError } from "./errors";
+import { migrationService } from "./migration";
 export function exportData(): void {
   const data = serialize(element2TrayMap.get(getRootElement() as HTMLDivElement) as Tray);
 
@@ -39,17 +40,81 @@ export function importData(): void {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (readerEvent: ProgressEvent<FileReader>) => {
+    reader.onload = async (readerEvent: ProgressEvent<FileReader>) => {
       try {
         const content = readerEvent.target?.result as string;
-        JSON.parse(content); // Validate JSON
+        let parsedData;
         
-        // Save the imported data
-        saveToIndexedDB("imported", content);
-        saveToIndexedDB(TRAY_DATA_KEY, content);
+        try {
+          parsedData = JSON.parse(content); // Validate JSON
+        } catch (parseError) {
+          console.error("Invalid JSON file:", parseError);
+          alert("無効なJSONファイルです。");
+          return;
+        }
+
+        // Check if migration is needed for imported data
+        const dataVersion = migrationService.detectVersion(parsedData);
+        const currentVersion = DATA_VERSION.CURRENT;
+        let finalContent = content;
+        
+        if (dataVersion < currentVersion) {
+          console.log(`Migrating imported data from version ${dataVersion} to ${currentVersion}`);
+          
+          try {
+            let migratedTray: Tray;
+            
+            if (parsedData.children && Array.isArray(parsedData.children)) {
+              // Use hierarchical migration for tree structure
+              const migrationResult = await migrationService.migrateHierarchical(parsedData);
+              console.log(`Import migration completed with ${migrationResult.warnings?.length || 0} warnings`);
+              
+              if (migrationResult.warnings && migrationResult.warnings.length > 0) {
+                console.warn("Import migration warnings:", migrationResult.warnings);
+              }
+              
+              // Convert back to legacy format for deserialize
+              const legacyFormat = migrationService.convertToLegacyFormat(migrationResult.root);
+              if (migrationResult.allTrays) {
+                const addChildrenToLegacy = (legacyTray: any, trayId: string) => {
+                  const childTrays = Object.values(migrationResult.allTrays)
+                    .filter((tray: TrayData) => tray.parentId === trayId)
+                    .map((childTray: TrayData) => {
+                      const childLegacy = migrationService.convertToLegacyFormat(childTray);
+                      addChildrenToLegacy(childLegacy, childTray.id);
+                      return childLegacy;
+                    });
+                  legacyTray.children = childTrays;
+                };
+                addChildrenToLegacy(legacyFormat, migrationResult.root.id);
+              }
+              migratedTray = deserialize(JSON.stringify(legacyFormat)) as Tray;
+            } else {
+              // Use single tray migration
+              const migrationResult = await migrationService.migrate(parsedData);
+              console.log(`Import migration completed with ${migrationResult.warnings?.length || 0} warnings`);
+              
+              if (migrationResult.warnings && migrationResult.warnings.length > 0) {
+                console.warn("Import migration warnings:", migrationResult.warnings);
+              }
+              
+              const legacyFormat = migrationService.convertToLegacyFormat(migrationResult.data as TrayData);
+              migratedTray = deserialize(JSON.stringify(legacyFormat)) as Tray;
+            }
+            
+            finalContent = serialize(migratedTray);
+          } catch (migrationError) {
+            console.error("Import migration failed, using original data:", migrationError);
+            finalContent = content;
+          }
+        }
+        
+        // Save the imported data (migrated if needed)
+        await saveToIndexedDB("imported", finalContent);
+        await saveToIndexedDB(TRAY_DATA_KEY, finalContent);
         
         // Replace current tray structure with imported data
-        const importedTray = deserialize(content);
+        const importedTray = deserialize(finalContent);
         const rootElement = getRootElement() as HTMLDivElement;
         const currentRootTray = element2TrayMap.get(rootElement);
         
@@ -82,8 +147,8 @@ export function importData(): void {
         
         return;
       } catch (error) {
-        console.error("Invalid JSON file:", error);
-        alert("無効なJSONファイルです。");
+        console.error("Import error:", error);
+        alert("データのインポート中にエラーが発生しました。");
         return;
       }
     };
@@ -182,12 +247,93 @@ export async function loadFromIndexedDB(
     let rootTray: Tray;
     if (savedData) {
       try {
-        rootTray = deserialize(savedData.value as string) as Tray;
-        // const data = savedData.value as string
-        // Object.assign(graph, JSON.parse(data));
+        const rawData = savedData.value as string;
+        console.log("Loading data from IndexedDB, checking for migration...");
+        
+        // Parse the raw data to check its format
+        let parsedData;
+        try {
+          parsedData = JSON.parse(rawData);
+        } catch (parseError) {
+          console.error("Invalid JSON data in IndexedDB:", parseError);
+          rootTray = createDefaultRootTray();
+          renderRootTray(rootTray);
+          return;
+        }
 
+        // Detect if migration is needed
+        const dataVersion = migrationService.detectVersion(parsedData);
+        const currentVersion = DATA_VERSION.CURRENT;
+        
+        if (dataVersion < currentVersion) {
+          console.log(`Migrating data from version ${dataVersion} to ${currentVersion}`);
+          
+          try {
+            // Check if data has hierarchical structure (children arrays)
+            if (parsedData.children && Array.isArray(parsedData.children)) {
+              // Use hierarchical migration for tree structure
+              const migrationResult = await migrationService.migrateHierarchical(parsedData);
+              console.log(`Migration completed with ${migrationResult.warnings?.length || 0} warnings`);
+              
+              if (migrationResult.warnings && migrationResult.warnings.length > 0) {
+                console.warn("Migration warnings:", migrationResult.warnings);
+              }
+              
+              // Convert the migrated root TrayData back to legacy format for deserialize
+              const legacyFormat = migrationService.convertToLegacyFormat(migrationResult.root);
+              
+              // Add children back to the legacy format for deserialization
+              if (migrationResult.allTrays) {
+                const addChildrenToLegacy = (legacyTray: any, trayId: string) => {
+                  const childTrays = Object.values(migrationResult.allTrays)
+                    .filter((tray: TrayData) => tray.parentId === trayId)
+                    .map((childTray: TrayData) => {
+                      const childLegacy = migrationService.convertToLegacyFormat(childTray);
+                      addChildrenToLegacy(childLegacy, childTray.id);
+                      return childLegacy;
+                    });
+                  legacyTray.children = childTrays;
+                };
+                addChildrenToLegacy(legacyFormat, migrationResult.root.id);
+              }
+              
+              rootTray = deserialize(JSON.stringify(legacyFormat)) as Tray;
+              
+              // Save the migrated data back to IndexedDB
+              const migratedDataString = serialize(rootTray);
+              await saveToIndexedDB(key, migratedDataString);
+              console.log("Migrated data saved back to IndexedDB");
+              
+            } else {
+              // Use single tray migration
+              const migrationResult = await migrationService.migrate(parsedData);
+              console.log(`Migration completed with ${migrationResult.warnings?.length || 0} warnings`);
+              
+              if (migrationResult.warnings && migrationResult.warnings.length > 0) {
+                console.warn("Migration warnings:", migrationResult.warnings);
+              }
+              
+              // Convert migrated data back to legacy format for deserialize
+              const legacyFormat = migrationService.convertToLegacyFormat(migrationResult.data as TrayData);
+              rootTray = deserialize(JSON.stringify(legacyFormat)) as Tray;
+              
+              // Save the migrated data back to IndexedDB
+              const migratedDataString = serialize(rootTray);
+              await saveToIndexedDB(key, migratedDataString);
+              console.log("Migrated data saved back to IndexedDB");
+            }
+          } catch (migrationError) {
+            console.error("Migration failed, falling back to direct deserialization:", migrationError);
+            rootTray = deserialize(rawData) as Tray;
+          }
+        } else {
+          // Data is current version, deserialize normally
+          console.log("Data is current version, no migration needed");
+          rootTray = deserialize(rawData) as Tray;
+        }
+        
       } catch (error) {
-        console.error("Error deserializing data:", error);
+        console.error("Error processing data:", error);
         rootTray = createDefaultRootTray();
       }
     } else {
@@ -386,33 +532,93 @@ function crawl(id2Tray:Map<string,Tray> ){
 }
 
 
-export function loadFromLocalStorage(key: string = TRAY_DATA_KEY): void {
+export async function loadFromLocalStorage(key: string = TRAY_DATA_KEY): Promise<void> {
   let rootTray: Tray;
   try {
     const savedDataString = localStorage.getItem(key);
-    let savedData;
-    if (savedDataString) {
-      savedData = JSON.parse(savedDataString);
-    } else {
-      savedData = createDefaultRootTray;
-    }
-
-    console.log(savedData);
-    if (savedData) {
-      rootTray = deserialize(JSON.stringify(savedData)) as Tray; // Ensure the deserialized data is of type Tray
-    } else {
+    if (!savedDataString) {
       rootTray = createDefaultRootTray();
+    } else {
+      let savedData;
+      try {
+        savedData = JSON.parse(savedDataString);
+      } catch (parseError) {
+        console.error("Invalid JSON in localStorage:", parseError);
+        rootTray = createDefaultRootTray();
+        renderRootTray(rootTray);
+        return;
+      }
+
+      console.log("Loading from localStorage, checking for migration...");
+      
+      // Check if migration is needed
+      const dataVersion = migrationService.detectVersion(savedData);
+      const currentVersion = DATA_VERSION.CURRENT;
+      
+      if (dataVersion < currentVersion) {
+        console.log(`Migrating localStorage data from version ${dataVersion} to ${currentVersion}`);
+        
+        try {
+          if (savedData.children && Array.isArray(savedData.children)) {
+            // Use hierarchical migration for tree structure
+            const migrationResult = await migrationService.migrateHierarchical(savedData);
+            console.log(`localStorage migration completed with ${migrationResult.warnings?.length || 0} warnings`);
+            
+            if (migrationResult.warnings && migrationResult.warnings.length > 0) {
+              console.warn("localStorage migration warnings:", migrationResult.warnings);
+            }
+            
+            // Convert back to legacy format for deserialize
+            const legacyFormat = migrationService.convertToLegacyFormat(migrationResult.root);
+            if (migrationResult.allTrays) {
+              const addChildrenToLegacy = (legacyTray: any, trayId: string) => {
+                const childTrays = Object.values(migrationResult.allTrays)
+                  .filter((tray: TrayData) => tray.parentId === trayId)
+                  .map((childTray: TrayData) => {
+                    const childLegacy = migrationService.convertToLegacyFormat(childTray);
+                    addChildrenToLegacy(childLegacy, childTray.id);
+                    return childLegacy;
+                  });
+                legacyTray.children = childTrays;
+              };
+              addChildrenToLegacy(legacyFormat, migrationResult.root.id);
+            }
+            rootTray = deserialize(JSON.stringify(legacyFormat)) as Tray;
+          } else {
+            // Use single tray migration
+            const migrationResult = await migrationService.migrate(savedData);
+            console.log(`localStorage migration completed with ${migrationResult.warnings?.length || 0} warnings`);
+            
+            if (migrationResult.warnings && migrationResult.warnings.length > 0) {
+              console.warn("localStorage migration warnings:", migrationResult.warnings);
+            }
+            
+            const legacyFormat = migrationService.convertToLegacyFormat(migrationResult.data as TrayData);
+            rootTray = deserialize(JSON.stringify(legacyFormat)) as Tray;
+          }
+          
+          // Save migrated data back to localStorage
+          const migratedDataString = serialize(rootTray);
+          localStorage.setItem(key, migratedDataString);
+          console.log("Migrated data saved back to localStorage");
+        } catch (migrationError) {
+          console.error("localStorage migration failed, using original data:", migrationError);
+          rootTray = deserialize(savedDataString) as Tray;
+        }
+      } else {
+        console.log("localStorage data is current version, no migration needed");
+        rootTray = deserialize(savedDataString) as Tray;
+      }
     }
 
     rootTray.isFolded = false;
-
     rootTray.updateAppearance();
     rootTray.updateChildrenAppearance();
   } catch (error) {
     console.error("Error loading from localStorage:", error);
-
     rootTray = createDefaultRootTray();
   }
+  
   document.body.innerHTML = "";
   document.body.appendChild(rootTray.element);
   createHamburgerMenu();

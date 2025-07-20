@@ -54,7 +54,7 @@ export class DataMigration {
   /**
    * Detect data version from structure
    */
-  private detectVersion(data: unknown): number {
+  detectVersion(data: unknown): number {
     if (typeof data === 'string') {
       try {
         data = JSON.parse(data);
@@ -224,7 +224,7 @@ export class DataMigration {
   async migrateHierarchical(
     legacyRoot: LegacyTrayFormat, 
     context?: MigrationContext
-  ): Promise<{ root: TrayData; allTrays: Record<TrayId, TrayData> }> {
+  ): Promise<{ root: TrayData; allTrays: Record<TrayId, TrayData>; warnings: string[] }> {
     if (!context) {
       context = {
         fromVersion: DATA_VERSION.LEGACY,
@@ -261,7 +261,7 @@ export class DataMigration {
     };
 
     const root = await processNode(legacyRoot);
-    return { root, allTrays };
+    return { root, allTrays, warnings: context.warnings };
   }
 
   /**
@@ -441,6 +441,6 @@ export function convertDataToLegacy(data: TrayData): LegacyTrayFormat {
 
 export async function migrateHierarchicalData(
   legacyRoot: LegacyTrayFormat
-): Promise<{ root: TrayData; allTrays: Record<TrayId, TrayData> }> {
+): Promise<{ root: TrayData; allTrays: Record<TrayId, TrayData>; warnings: string[] }> {
   return migrationService.migrateHierarchical(legacyRoot);
 }

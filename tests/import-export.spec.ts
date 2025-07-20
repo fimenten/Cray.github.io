@@ -6,6 +6,11 @@ test.describe('Import/Export', () => {
   // Use a base downloads path that will be extended per test
   const baseDownloadsPath = path.join(__dirname, 'downloads');
   
+  test.beforeAll(async () => {
+    // Ensure base downloads directory exists
+    await fs.mkdir(baseDownloadsPath, { recursive: true });
+  });
+  
   test.afterAll(async () => {
     // Clean up all downloads after tests complete
     try {
