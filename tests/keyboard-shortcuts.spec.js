@@ -216,6 +216,39 @@ test.describe('Keyboard Shortcuts', () => {
     await expect(trayTitle).toContainText('Test content edited');
   });
 
+  test('Focused tray auto scrolls into view', async ({ page }) => {
+    const rootTray = page.locator('.tray').first();
+    await rootTray.focus();
+
+    for (let i = 0; i < 15; i++) {
+      await page.keyboard.press('Control+Enter');
+      await page.keyboard.type(`Item ${i}`);
+      await page.keyboard.press('Enter');
+    }
+    await page.waitForTimeout(1000);
+
+    await page.evaluate(() => {
+      const root = document.querySelector('body > div.tray');
+      if (root) (root as HTMLElement).scrollTop = 0;
+    });
+
+    const firstChild = page.locator('.tray').nth(1);
+    await firstChild.focus();
+
+    const total = await page.locator('.tray').count();
+    for (let i = 1; i < total - 1; i++) {
+      await page.keyboard.press('ArrowDown');
+    }
+    await page.waitForTimeout(1000);
+
+    const lastTray = page.locator('.tray').nth(total - 1);
+    const isVisible = await lastTray.evaluate((el) => {
+      const rect = el.getBoundingClientRect();
+      return rect.top >= 0 && rect.bottom <= window.innerHeight;
+    });
+    expect(isVisible).toBe(true);
+  });
+
   /*test('Escape to exit edit mode', async ({ page }) => {
     // Focus root tray
     const rootTray = page.locator('.tray').first();
