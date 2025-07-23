@@ -32,7 +32,13 @@
     "test:e2e:headless": "playwright test",
     "test:e2e:ci": "playwright test --project=chromium",
     "test:e2e:debug": "playwright test --debug",
-    "test:all": "npm run test:unit && npm run test:migration && npm run test:e2e:ci"
+    "test:e2e:mobile": "playwright test --project=mobile-chrome --project=mobile-safari --project=tablet",
+    "test:e2e:mobile:chrome": "playwright test --project=mobile-chrome",
+    "test:e2e:mobile:safari": "playwright test --project=mobile-safari",
+    "test:e2e:tablet": "playwright test --project=tablet",
+    "test:mobile": "npm run test:e2e:mobile",
+    "test:all": "npm run test:unit && npm run test:migration && npm run test:e2e:ci",
+    "test:all:mobile": "npm run test:unit && npm run test:migration && npm run test:e2e:ci && npm run test:e2e:mobile"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^2.2.7",
