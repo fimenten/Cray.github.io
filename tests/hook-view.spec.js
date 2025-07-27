@@ -21,8 +21,7 @@ test.describe('Hook View Dialog', () => {
     }
   });
 
-  // TODO: Fix IndexedDB test timing and content editing
-  /*test('should fix IndexedDB version conflict', async ({ page }) => {
+  test('should fix IndexedDB version conflict', async ({ page }) => {
     // Clear IndexedDB before test to start fresh
     await page.evaluate(() => {
       return new Promise((resolve) => {
@@ -35,7 +34,7 @@ test.describe('Hook View Dialog', () => {
     // Reload page to trigger fresh database creation
     await page.reload();
     await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(3000); // Increased wait time for database initialization
 
     // Check for IndexedDB errors in console
     const consoleErrors = [];
@@ -45,71 +44,80 @@ test.describe('Hook View Dialog', () => {
       }
     });
 
+    // Wait for the application to be fully initialized
+    await page.waitForSelector('.tray', { timeout: 10000 });
+    
     // Focus root tray and create a new tray with hooks
     const rootTray = page.locator('.tray').first();
     await rootTray.focus();
     
     await page.keyboard.press('Control+Enter');
+    await page.waitForTimeout(500); // Wait for input field to appear
     await page.keyboard.type('Test task @urgent @work');
     await page.keyboard.press('Enter');
 
-    // Wait a moment for any async operations
-    await page.waitForTimeout(1000);
+    // Wait for data to be persisted to IndexedDB
+    await page.waitForTimeout(2000);
 
     // Check that no IndexedDB errors occurred
     expect(consoleErrors).toHaveLength(0);
 
-    // Try to open hook view dialog
+    // Wait for hook view button to be available
     const hookButton = page.locator('.hook-view-button');
-    await expect(hookButton).toBeVisible();
+    await expect(hookButton).toBeVisible({ timeout: 5000 });
     await hookButton.click();
 
     // Check if dialog opens successfully
     const hookDialog = page.locator('.hook-view-dialog');
-    await expect(hookDialog).toBeVisible();
+    await expect(hookDialog).toBeVisible({ timeout: 5000 });
 
     // Verify hooks are displayed
     const hookContent = page.locator('#hook-content');
-    await expect(hookContent).toContainText('@urgent');
-    await expect(hookContent).toContainText('@work');
-  });*/
+    await expect(hookContent).toContainText('@urgent', { timeout: 5000 });
+    await expect(hookContent).toContainText('@work', { timeout: 5000 });
+  });
 
-  /*test('should open hook view dialog via keyboard shortcut', async ({ page }) => {
+  test('should open hook view dialog via keyboard shortcut', async ({ page }) => {
     // Clear any existing errors
     await page.evaluate(() => console.clear());
+
+    // Wait for application to be fully loaded
+    await page.waitForSelector('.tray', { timeout: 10000 });
 
     // Focus root tray and create a tray with hooks
     const rootTray = page.locator('.tray').first();
     await rootTray.focus();
     
     await page.keyboard.press('Control+Enter');
+    await page.waitForTimeout(500); // Wait for input field
     await page.keyboard.type('Another task @personal @important');
     await page.keyboard.press('Enter');
 
-    // Wait for the tray to be created and focused
-    await page.waitForTimeout(1000);
+    // Wait for the tray to be created and data to be persisted
+    await page.waitForTimeout(2000);
 
     // Focus any tray to ensure keyboard shortcut works
     await rootTray.focus();
+    await page.waitForTimeout(500);
     
     // Use keyboard shortcut Ctrl+T to open hook view
     await page.keyboard.press('Control+t');
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1000); // Increased wait time
 
     // Check if dialog opens
     const hookDialog = page.locator('.hook-view-dialog');
-    await expect(hookDialog).toBeVisible();
+    await expect(hookDialog).toBeVisible({ timeout: 5000 });
 
     // Verify content
-    await expect(hookDialog).toContainText('Tasks Organized by Hooks');
-    await expect(hookDialog).toContainText('@personal');
-    await expect(hookDialog).toContainText('@important');
+    await expect(hookDialog).toContainText('Tasks Organized by Hooks', { timeout: 5000 });
+    await expect(hookDialog).toContainText('@personal', { timeout: 5000 });
+    await expect(hookDialog).toContainText('@important', { timeout: 5000 });
 
     // Close dialog by clicking outside
     await page.mouse.click(10, 10);
-    await page.waitForTimeout(500);
-    await expect(hookDialog).not.toBeVisible();
-  });*/
+    await page.waitForTimeout(1000);
+    await expect(hookDialog).not.toBeVisible({ timeout: 5000 });
+  });
 
   test('should show "no hooks found" message when no hooks exist', async ({ page }) => {
     // Click hook view button without creating any hooks

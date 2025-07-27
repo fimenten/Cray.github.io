@@ -308,62 +308,99 @@ describe('Migration Compatibility Tests', () => {
 
   describe('Real Test Data Migration', () => {
     test('Migrate test-data-legacy.json', async () => {
+      const legacyPath = path.join(testDataDir, 'test-data-legacy.json');
+      
+      // Ensure test data exists
+      let legacyContent;
       try {
-        const legacyPath = path.join(testDataDir, 'test-data-legacy.json');
-        const legacyContent = await fs.readFile(legacyPath, 'utf8');
-        const legacyData = JSON.parse(legacyContent);
-
-        const migrationResult = await migrationService.migrateHierarchical(legacyData);
-        const { root, allTrays } = migrationResult;
-
-        assert.ok(root);
-        assert.ok(Object.keys(allTrays).length > 0);
-        
-        // Verify all trays have modern format
-        for (const [id, trayData] of Object.entries(allTrays)) {
-          assert.strictEqual(trayData.version, 1);
-          assert.ok(trayData.created_dt instanceof Date);
-          assert.strictEqual(typeof trayData.properties, 'object');
-        }
-
-        console.log(`Successfully migrated ${Object.keys(allTrays).length} trays from legacy format`);
-        
+        legacyContent = await fs.readFile(legacyPath, 'utf8');
       } catch (error) {
         if (error.code === 'ENOENT') {
-          console.log('Legacy test data file not found, skipping test');
+          // Create default test data if file doesn't exist
+          await createSampleLegacyData(testDataDir);
+          legacyContent = await fs.readFile(legacyPath, 'utf8');
         } else {
           throw error;
         }
       }
+      
+      const legacyData = JSON.parse(legacyContent);
+
+      const migrationResult = await migrationService.migrateHierarchical(legacyData);
+      const { root, allTrays } = migrationResult;
+
+      assert.ok(root);
+      assert.ok(Object.keys(allTrays).length > 0);
+      
+      // Verify all trays have modern format
+      for (const [id, trayData] of Object.entries(allTrays)) {
+        assert.strictEqual(trayData.version, 1);
+        assert.ok(trayData.created_dt instanceof Date);
+        assert.strictEqual(typeof trayData.properties, 'object');
+      }
+
+      console.log(`Successfully migrated ${Object.keys(allTrays).length} trays from legacy format`);
     });
 
     test('Migrate test-data-current.json', async () => {
+      const currentPath = path.join(testDataDir, 'test-data-current.json');
+      
+      // Ensure test data exists
+      let currentContent;
       try {
-        const currentPath = path.join(testDataDir, 'test-data-current.json');
-        const currentContent = await fs.readFile(currentPath, 'utf8');
-        const currentData = JSON.parse(currentContent);
-
-        // Current data might already be in modern format or legacy format
-        const version = migrationService.detectVersion(currentData);
-        
-        if (version === 0) {
-          // Legacy format
-          const migrationResult = await migrationService.migrateHierarchical(currentData);
-          const { root, allTrays } = migrationResult;
-          
-          assert.ok(root);
-          assert.ok(Object.keys(allTrays).length > 0);
-          console.log(`Migrated current test data: ${Object.keys(allTrays).length} trays`);
-        } else {
-          console.log('Current test data is already in modern format');
-        }
-        
+        currentContent = await fs.readFile(currentPath, 'utf8');
       } catch (error) {
         if (error.code === 'ENOENT') {
-          console.log('Current test data file not found, skipping test');
+          // Create a current format test file if it doesn't exist
+          const currentData = {
+            id: 'current-root',
+            name: 'Current Format Root',
+            version: 1,
+            parentId: null,
+            created_dt: new Date().toISOString(),
+            properties: { priority: 1 },
+            hooks: ['@current'],
+            isDone: false,
+            children: [
+              {
+                id: 'current-child',
+                name: 'Current Child',
+                version: 1,
+                parentId: 'current-root',
+                created_dt: new Date().toISOString(),
+                properties: {},
+                hooks: [],
+                isDone: false,
+                children: []
+              }
+            ]
+          };
+          await fs.writeFile(currentPath, JSON.stringify(currentData, null, 2));
+          currentContent = await fs.readFile(currentPath, 'utf8');
         } else {
           throw error;
         }
+      }
+      
+      const currentData = JSON.parse(currentContent);
+
+      // Current data might already be in modern format or legacy format
+      const version = migrationService.detectVersion(currentData);
+      
+      if (version === 0) {
+        // Legacy format
+        const migrationResult = await migrationService.migrateHierarchical(currentData);
+        const { root, allTrays } = migrationResult;
+        
+        assert.ok(root);
+        assert.ok(Object.keys(allTrays).length > 0);
+        console.log(`Migrated current test data: ${Object.keys(allTrays).length} trays`);
+      } else {
+        console.log('Current test data is already in modern format');
+        // Verify it's valid modern format
+        assert.ok(currentData.version);
+        assert.ok(currentData.id);
+        assert.ok(currentData.name);
       }
     });
   });

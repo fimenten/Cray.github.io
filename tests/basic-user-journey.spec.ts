@@ -6,32 +6,37 @@ test.describe('Basic User Journey', () => {
     const sessionId = `test-${Date.now()}-${Math.random().toString(36).substring(7)}`;
     await page.goto(`/?sessionId=${sessionId}`);
     await page.waitForLoadState('networkidle');
+    
+    // Wait for application to fully initialize
+    await page.waitForSelector('.tray', { timeout: 10000 });
+    await page.waitForTimeout(2000); // Additional buffer for app initialization
   });
 
   test('should load the application with default tray', async ({ page }) => {
     const rootTray = page.locator('.tray').first();
-    await expect(rootTray).toBeVisible();
-    await expect(rootTray).toContainText('Root Tray');
+    await expect(rootTray).toBeVisible({ timeout: 10000 });
+    await expect(rootTray).toContainText('Root Tray', { timeout: 5000 });
     
-    // Check that default children are present - use title-specific locators
-    await expect(page.locator('.tray-title').filter({ hasText: 'ToDo' })).toBeVisible();
-    await expect(page.locator('.tray-title').filter({ hasText: 'Doing' })).toBeVisible();
-    await expect(page.locator('.tray-title').filter({ hasText: 'Done' })).toBeVisible();
+    // Check that default children are present - use title-specific locators with timeouts
+    await expect(page.locator('.tray-title').filter({ hasText: 'ToDo' })).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('.tray-title').filter({ hasText: 'Doing' })).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('.tray-title').filter({ hasText: 'Done' })).toBeVisible({ timeout: 5000 });
   });
 
   test('should create a new tray using action button', async ({ page }) => {
     // Click the add button to create a sibling tray
     const addButton = page.locator('.add-button');
-    await expect(addButton).toBeVisible();
+    await expect(addButton).toBeVisible({ timeout: 5000 });
     
     // First focus a tray so the add button knows where to add
     await page.locator('.tray').first().click();
+    await page.waitForTimeout(500); // Wait for focus to be established
     
     // Click the add button
     await addButton.click();
     
     // Wait for the new tray to be created and in edit mode
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(1000); // Increased wait time
     
     // Type in the new tray name
     await page.keyboard.type('My New Tray');
@@ -39,8 +44,11 @@ test.describe('Basic User Journey', () => {
     // Press Enter to finish editing
     await page.keyboard.press('Enter');
     
-    // Verify the text was saved (use more specific locator)
-    await expect(page.locator('.tray .tray-title').filter({ hasText: 'My New Tray' })).toBeVisible();
+    // Wait for save operation to complete
+    await page.waitForTimeout(1000);
+    
+    // Verify the text was saved (use more specific locator with timeout)
+    await expect(page.locator('.tray .tray-title').filter({ hasText: 'My New Tray' })).toBeVisible({ timeout: 5000 });
   });
 
   test('should navigate between trays using keyboard', async ({ page }) => {
