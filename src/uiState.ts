@@ -27,7 +27,7 @@ export class TrayUIState implements ITrayUIState {
     this.isFocused = options.isFocused || false;
     this.isExpanded = options.isExpanded || false;
     this.showDoneMarker = options.showDoneMarker !== undefined ? options.showDoneMarker : true;
-    this.autoUpload = options.autoUpload || false;
+    this.autoUpload = options.autoUpload !== undefined ? options.autoUpload : true;
     this.lastInteractionTime = options.lastInteractionTime || new Date();
   }
 
