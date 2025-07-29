@@ -32,7 +32,7 @@ function remote(created){
   return {id:'1',parentId:'p',name:'r',created_dt:new Date(created),children:[]};
 }
 
-test('updateData adopts newer remote when no local change', async () => {
+test('updateData merges remote when no local change', async () => {
   let posted = false;
   global.localStorage.setItem('trayPassword', 'test-password');
   global.fetch = async (url, opts)=>{
@@ -43,8 +43,8 @@ test('updateData adopts newer remote when no local change', async () => {
   const nets = load({io:{serialize:JSON.stringify,serializeAsync:async t=>JSON.stringify(t),deserialize:JSON.parse},trayOperations:{getTrayFromId:()=>parent},functions:{deleteTray:t=>{}}});
   const t = tray('2020-01-01');
   await nets.updateData(t);
-  assert.ok(parent.child); // replaced with remote
-  assert.strictEqual(posted,false);
+  assert.strictEqual(new Date(t.created_dt).toISOString(), new Date('2020-02-01').toISOString());
+  assert.strictEqual(posted,true);
 });
 
 test('updateData uploads when only local changed', async () => {
@@ -72,7 +72,7 @@ test('updateData uploads when only local changed', async () => {
   assert.strictEqual(posted,true);
 });
 
-test('updateData throws conflict when both changed', async () => {
+test('updateData merges when both changed', async () => {
   global.localStorage.setItem('trayPassword', 'test-password');
   global.fetch = async (url, opts)=>{
     if(opts.method==='GET') return { ok:true, json: async ()=>remote('2020-01-01') };
@@ -85,13 +85,15 @@ test('updateData throws conflict when both changed', async () => {
 
   // both changed: remote newer & local newer
   t.created_dt = new Date('2020-02-01');
+  t.children.push({id:'c1',parentId:'1',created_dt:new Date('2020-02-01'),children:[]});
   global.fetch = async (url, opts)=>{
-    if(opts.method==='GET') return { ok:true, json: async ()=>remote('2020-02-02') };
+    if(opts.method==='GET') return { ok:true, json: async ()=>{
+      const r = remote('2020-02-02');
+      r.children = [{id:'c2',parentId:'1',created_dt:new Date('2020-02-02'),children:[]}];
+      return r;
+    } };
     if(opts.method==='POST') return { ok:true,text:async()=>'' };
   };
-  let err;
-  try {
-    await nets.updateData(t);
-  } catch(e){ err = e; }
-  assert.ok(err, 'conflict error');
+  await nets.updateData(t);
+  assert.strictEqual(t.children.length, 2);
 });

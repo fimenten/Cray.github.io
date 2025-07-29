@@ -79,7 +79,7 @@ export class Tray {
     this.properties = properties;
     this.hooks = hooks.length > 0 ? hooks : this.parseHooksFromName(name);
     this.isDone = isDone || this.checkDoneStateFromName(name);
-    this.autoUpload = false;
+    this.autoUpload = true;
     this.showDoneMarker = false;
     // this.element = this.createElement();
     // this.element = null
@@ -240,7 +240,9 @@ export class Tray {
 
     const uploadButton = document.createElement("button");
     uploadButton.textContent = "\u2191"; // up arrow
-    uploadButton.addEventListener("click", (e) => uploadData(this));
+    uploadButton.addEventListener("click", () => {
+      updateData(this).catch((e) => alert(e.message));
+    });
 
     const updateButton = document.createElement("button");
     updateButton.textContent = "\u2193"; // down arrow

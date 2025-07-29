@@ -31,7 +31,7 @@ test('newestTimestamp finds latest date', () => {
   assert.strictEqual(new Date(ts).toISOString(), new Date('2020-01-04').toISOString());
 });
 
-test('syncTray adopts newer remote data', async () => {
+test('syncTray merges newer remote data', async () => {
   let posted = false;
   global.localStorage.setItem('trayPassword', 'test-password');
   global.fetch = async (url, opts)=>{
@@ -42,8 +42,8 @@ test('syncTray adopts newer remote data', async () => {
   const tray = {id:'1',parentId:'p',host_url:'u',filename:'f',created_dt:new Date('2020-01-01'),children:[],element:{remove(){}}};
   const nets = load({io:{serialize:JSON.stringify,serializeAsync:async t=>JSON.stringify(t),deserialize:JSON.parse},trayOperations:{getTrayFromId:()=>parent},functions:{deleteTray:t=>{parent.removed=t;}}});
   await nets.syncTray(tray);
-  assert.ok(parent.child); // replaced
-  assert.strictEqual(posted,false);
+  assert.strictEqual(new Date(tray.created_dt).toISOString(), new Date('2020-02-01').toISOString());
+  assert.strictEqual(posted,true);
 });
 
 test('syncTray uploads when local newer', async () => {

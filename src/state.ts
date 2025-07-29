@@ -33,7 +33,7 @@ const initialState: AppState = {
     hamburgerMenuOpen: false,
     contextMenuOpen: false,
     hookDialogOpen: false,
-    autoUploadEnabled: false,
+    autoUploadEnabled: true,
     lastSyncTime: null,
   },
   
