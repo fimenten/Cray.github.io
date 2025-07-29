@@ -17,26 +17,37 @@ export function newestTimestamp(tray: Tray): number {
   return latest;
 }
 
+export function mergeTrays(local: Tray, remote: Tray) {
+  if (newestTimestamp(remote) > newestTimestamp(local)) {
+    if (remote.name !== undefined) local.name = remote.name;
+    local.created_dt = new Date(remote.created_dt);
+    if (remote.borderColor !== undefined) local.borderColor = remote.borderColor;
+    if (remote.flexDirection !== undefined) local.flexDirection = remote.flexDirection;
+    if (remote.host_url) local.host_url = remote.host_url;
+    if (remote.filename) local.filename = remote.filename;
+    if (remote.isFolded !== undefined) local.isFolded = remote.isFolded;
+    local.properties = { ...local.properties, ...remote.properties };
+    local.hooks = Array.from(new Set([...(local.hooks || []), ...(remote.hooks || [])]));
+    local.isDone = remote.isDone;
+    local.showDoneMarker = remote.showDoneMarker;
+  }
+
+  const map = new Map(local.children.map((c: Tray) => [c.id, c]));
+  for (const r of remote.children) {
+    const l = map.get(r.id);
+    if (l) {
+      mergeTrays(l, r);
+    } else if (typeof local.addChild === 'function') {
+      local.addChild(r as Tray);
+    } else {
+      r.parentId = local.id;
+      local.children.push(r);
+    }
+  }
+}
+
 export async function syncTray(tray: Tray) {
-  const current = await serializeAsync(tray);
-  const last = lastSerializedMap.get(tray.id) || "";
-  if (current === last) return;
-  let remote: Tray | undefined;
-  try {
-    remote = await downloadData(tray);
-  } catch (e) {
-    remote = undefined;
-  }
-  if (remote && newestTimestamp(remote) > newestTimestamp(tray)) {
-    const parent = getTrayFromId(tray.parentId) as Tray;
-    deleteTray(tray);
-    parent.addChild(remote);
-    parent.updateAppearance();
-    lastSerializedMap.set(tray.id, await serializeAsync(remote));
-    return;
-  }
-  await uploadData(tray);
-  lastSerializedMap.set(tray.id, current);
+  await updateData(tray);
 }
 
 export function startAutoUpload(tray: Tray) {
@@ -309,46 +320,21 @@ export async function updateData(tray: Tray) {
   if (!tray.filename || !tray.host_url) {
     return;
   }
-
-  const current = await serializeAsync(tray);
-  const last = lastSerializedMap.get(tray.id);
+  const last = lastSerializedMap.get(tray.id) || "";
 
   let remote: Tray | undefined;
   try {
     remote = await downloadData(tray);
   } catch (error) {
-    throw error;
+    remote = undefined;
   }
 
-  if (!last) {
-    if (remote) {
-      const parent = getTrayFromId(tray.parentId) as Tray;
-      deleteTray(tray);
-      parent.addChild(remote);
-      parent.updateAppearance();
-      lastSerializedMap.set(tray.id, await serializeAsync(remote));
-    } else {
-      await uploadData(tray);
-      lastSerializedMap.set(tray.id, current);
-    }
-    return;
+  if (remote) {
+    mergeTrays(tray, remote);
   }
 
-  const remoteSerialized = remote ? await serializeAsync(remote) : "";
-  const localChanged = current !== last;
-  const remoteChanged = remote ? remoteSerialized !== last : false;
-
-  if (localChanged && remoteChanged) {
-    throw new Error("Data conflict");
-  }
-
-  if (remoteChanged) {
-    const parent = getTrayFromId(tray.parentId) as Tray;
-    deleteTray(tray);
-    parent.addChild(remote as Tray);
-    parent.updateAppearance();
-    lastSerializedMap.set(tray.id, remoteSerialized);
-  } else if (localChanged) {
+  const current = await serializeAsync(tray);
+  if (current !== last) {
     await uploadData(tray);
     lastSerializedMap.set(tray.id, current);
   }
