@@ -83,7 +83,7 @@ export class TrayRefactored {
     this._uiState = uiStateManager.getState(id);
     this._uiState.isExpanded = !isFold;
     this._uiState.showDoneMarker = false;
-    this._uiState.autoUpload = false;
+    this._uiState.autoUpload = true;
 
     // Initialize UI
     this.updateAppearance();

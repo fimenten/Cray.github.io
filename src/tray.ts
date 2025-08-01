@@ -246,7 +246,9 @@ export class Tray {
 
     const uploadButton = document.createElement("button");
     uploadButton.textContent = "\u2191"; // up arrow
-    uploadButton.addEventListener("click", (e) => uploadData(this));
+    uploadButton.addEventListener("click", () => {
+      updateData(this).catch((e) => alert(e.message));
+    });
 
     const updateButton = document.createElement("button");
     updateButton.textContent = "\u2193"; // down arrow

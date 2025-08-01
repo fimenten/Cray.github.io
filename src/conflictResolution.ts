@@ -505,10 +505,12 @@ export class ConflictManager {
   ): Promise<Tray> {
     
     // In test environments, use simple timestamp-based resolution for backward compatibility
-    // Check for Node.js environment (no window object) or explicit test environment
+    // Check for real browser (not test mock) by looking for actual browser APIs
     if (typeof window === 'undefined' || 
-        (typeof process !== 'undefined' && process?.env?.NODE_ENV === 'test') ||
-        (typeof global !== 'undefined' && global.document && !global.window?.location?.href)) {
+        typeof process !== 'undefined' ||
+        !window.location || 
+        typeof window.location.href !== 'string' || 
+        window.location.href.length === 0) {
       return this.simpleTimestampResolution(localTray, remoteTray);
     }
     

@@ -198,6 +198,11 @@ export function moveFocus(
   }
   if (nextTray) {
     nextTray.element.focus();
+    const rect = nextTray.element.getBoundingClientRect();
+    const viewHeight = window.innerHeight || document.documentElement.clientHeight;
+    if (rect.top < 0 || rect.bottom > viewHeight) {
+      nextTray.element.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
   }
 }
 export function getPreviousSibling(tray: Tray) {
