@@ -28,6 +28,7 @@ import { openContextMenu } from "./contextMenu";
 import { pluginManager } from "./pluginManager";
 import { HookedTask, PluginContext } from "./pluginTypes";
 import { TrayId, ITrayData, ITrayUIState } from "./types";
+import { syncIndicatorManager } from "./syncIndicators";
 
 export class Tray {
   id: TrayId;
@@ -79,7 +80,7 @@ export class Tray {
     this.properties = properties;
     this.hooks = hooks.length > 0 ? hooks : this.parseHooksFromName(name);
     this.isDone = isDone || this.checkDoneStateFromName(name);
-    this.autoUpload = false;
+    this.autoUpload = host_url && filename ? true : false;
     this.showDoneMarker = false;
     // this.element = this.createElement();
     // this.element = null
@@ -195,6 +196,11 @@ export class Tray {
     tray.addEventListener("drop", this.onDrop.bind(this));
     content.addEventListener("dblclick", this.onDoubleClick.bind(this));
     element2TrayMap.set(tray, this);
+
+    // Add sync indicator for network-enabled trays
+    if (this.host_url && this.filename) {
+      syncIndicatorManager.addTrayIndicator(this, tray);
+    }
 
     this.setupKeyboardNavigation(tray);
     // if (this.isLabelTrayCopy) {

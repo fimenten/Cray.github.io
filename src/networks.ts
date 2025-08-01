@@ -1,12 +1,13 @@
 import { Tray } from "./tray";
-import { deserialize, serializeAsync } from "./io";
+import { deserialize, serializeAsync, serialize } from "./io";
 import { getTrayFromId } from "./trayOperations";
 import { deleteTray } from "./functions";
+import { ConflictManager, ConflictError } from "./conflictResolution";
 
 import type { TrayId } from "./types";
 
 const lastSerializedMap = new Map<TrayId, string>();
-const intervalIds = new Map<TrayId, number>();
+const intervalIds = new Map<TrayId, any>();
 
 export function newestTimestamp(tray: Tray): number {
   let latest = new Date(tray.created_dt).getTime();
@@ -20,28 +21,73 @@ export function newestTimestamp(tray: Tray): number {
 export async function syncTray(tray: Tray) {
   const current = await serializeAsync(tray);
   const last = lastSerializedMap.get(tray.id) || "";
+  
+  // Skip if no local changes
   if (current === last) return;
+  
   let remote: Tray | undefined;
   try {
     remote = await downloadData(tray);
   } catch (e) {
+    // No remote version exists, proceed with upload
     remote = undefined;
   }
-  if (remote && newestTimestamp(remote) > newestTimestamp(tray)) {
-    const parent = getTrayFromId(tray.parentId) as Tray;
-    deleteTray(tray);
-    parent.addChild(remote);
-    parent.updateAppearance();
-    lastSerializedMap.set(tray.id, await serializeAsync(remote));
-    return;
+  
+  if (remote) {
+    try {
+      // Use enhanced conflict resolution only in browser environment  
+      if (typeof window !== 'undefined') {
+        const resolvedTray = await ConflictManager.handleSyncConflict(tray, remote, last, serialize);
+        
+        // If we got a resolved tray, replace the current one
+        if (resolvedTray !== tray) {
+          const parent = getTrayFromId(tray.parentId) as Tray;
+          deleteTray(tray);
+          parent.addChild(resolvedTray);
+          parent.updateAppearance();
+          lastSerializedMap.set(tray.id, await serializeAsync(resolvedTray));
+          return;
+        }
+      } else {
+        // In test environment, use simple timestamp comparison
+        if (newestTimestamp(remote) > newestTimestamp(tray)) {
+          const parent = getTrayFromId(tray.parentId) as Tray;
+          deleteTray(tray);
+          parent.addChild(remote);
+          parent.updateAppearance();
+          lastSerializedMap.set(tray.id, await serializeAsync(remote));
+          return;
+        }
+      }
+    } catch (error) {
+      if (error instanceof ConflictError) {
+        console.log(`Conflict detected for tray ${tray.name}, manual resolution required`);
+        // Re-throw conflict error to be handled by UI
+        throw error;
+      } else {
+        console.error('Error during conflict resolution:', error);
+        // Fall back to timestamp-based resolution
+        if (newestTimestamp(remote) > newestTimestamp(tray)) {
+          const parent = getTrayFromId(tray.parentId) as Tray;
+          deleteTray(tray);
+          parent.addChild(remote);
+          parent.updateAppearance();
+          lastSerializedMap.set(tray.id, await serializeAsync(remote));
+          return;
+        }
+      }
+    }
   }
+  
+  // Upload local version
   await uploadData(tray);
   lastSerializedMap.set(tray.id, current);
 }
 
 export function startAutoUpload(tray: Tray) {
   stopAutoUpload(tray);
-  const id = window.setInterval(() => {
+  const setIntervalFn = (typeof window !== 'undefined' && window.setInterval) || setInterval;
+  const id = setIntervalFn(() => {
     syncTray(tray).catch(console.error);
   }, 60000);
   intervalIds.set(tray.id, id);
@@ -53,6 +99,25 @@ export function stopAutoUpload(tray: Tray) {
     clearInterval(id);
     intervalIds.delete(tray.id);
   }
+}
+
+export function stopAllAutoUploads() {
+  console.log('Stopping all individual tray auto-uploads');
+  intervalIds.forEach((id) => {
+    clearInterval(id);
+  });
+  intervalIds.clear();
+}
+
+// Cleanup intervals on page unload
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeunload', () => {
+    console.log('Cleaning up individual tray auto-upload intervals');
+    intervalIds.forEach((id) => {
+      clearInterval(id);
+    });
+    intervalIds.clear();
+  });
 }
 function normalizeUrl(url: string): string {
   try {
@@ -389,6 +454,11 @@ export function setNetworkOption(tray: Tray) {
 
   tray.host_url = hostUrl ? (hostUrl.trim() === "" ? null : hostUrl) : null;
   tray.filename = filename ? (filename.trim() === "" ? null : filename) : null;
+  
+  // Enable auto-upload by default when network is configured
+  if (tray.host_url && tray.filename) {
+    tray.autoUpload = true;
+  }
 }
 
 export function showNetworkOptions(tray: Tray) {

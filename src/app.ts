@@ -28,7 +28,9 @@ import store from "./store";
 import { setLastFocused } from "./state";
 import { createActionButtons } from "./actionbotton";
 import { pluginManager } from "./pluginManager";
+import { globalSyncManager, initializeGlobalSync } from "./globalSync";
 import { pluginStorage } from "./pluginStorage";
+import { syncIndicatorManager } from "./syncIndicators";
 
 
 export const element2TrayMap = new WeakMap<HTMLElement, Tray>();
@@ -84,6 +86,23 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   } catch (error) {
     console.error("Failed to initialize plugin system:", error);
+  }
+
+  // Initialize sync indicator system
+  try {
+    console.log("Initializing sync indicator system");
+    syncIndicatorManager.initialize();
+  } catch (error) {
+    console.error("Failed to initialize sync indicator system:", error);
+  }
+
+  // Initialize global sync manager
+  try {
+    console.log("Initializing global sync manager");
+    initializeGlobalSync(); // Auto-start if global auto-sync is enabled
+    globalSyncManager.forceSyncCheck(); // Force initial sync check
+  } catch (error) {
+    console.error("Failed to initialize global sync manager:", error);
   }
 
   const root = getRootElement();
