@@ -229,7 +229,7 @@ test.describe('Keyboard Shortcuts', () => {
 
     await page.evaluate(() => {
       const root = document.querySelector('body > div.tray');
-      if (root) (root as HTMLElement).scrollTop = 0;
+      if (root) root.scrollTop = 0;
     });
 
     const firstChild = page.locator('.tray').nth(1);

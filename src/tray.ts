@@ -853,13 +853,29 @@ export class Tray {
     // Only remove drag-over if we're actually leaving this element
     const relatedTarget = event.relatedTarget as HTMLElement;
     if (!this.element.contains(relatedTarget)) {
-      this.element.classList.remove("drag-over");
+      // Remove all drag-related CSS classes for comprehensive cleanup
+      this.element.classList.remove(
+        "drag-over",      // Legacy drag class
+        "drop-target",    // New drag system classes
+        "drop-before", 
+        "drop-after", 
+        "drop-inside"
+      );
     }
   }
 
   onDragEnd(event: DragEvent): void {
     event.stopPropagation();
-    this.element.classList.remove("drag-over");
+    
+    // Remove all drag-related CSS classes to prevent blue state persistence
+    this.element.classList.remove(
+      "drag-over",      // Legacy drag class
+      "drop-target",    // New drag system classes
+      "drop-before", 
+      "drop-after", 
+      "drop-inside"
+    );
+    
     this.element.style.display = "block";
   }
 

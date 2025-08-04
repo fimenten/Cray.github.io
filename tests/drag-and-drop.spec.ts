@@ -167,6 +167,63 @@ test.describe('Drag and Drop', () => {
     await expect(doingTray).toBeVisible();
   });
 
+  test('should properly clean up CSS classes after drag to lower area', async ({ page }) => {
+    // Create a scenario where we drag to a lower tray position
+    const todoTitle = page.locator('.tray-title').filter({ hasText: 'ToDo' });
+    const todoTray = todoTitle.locator('..');
+    const doingTitle = page.locator('.tray-title').filter({ hasText: 'Doing' });
+    const doingTray = doingTitle.locator('..');
+    
+    // Simulate drag to lower area (common trigger for the bug)
+    const dragCleanupResult = await page.evaluate(() => {
+      const todoEl = Array.from(document.querySelectorAll('.tray')).find(el => 
+        el.querySelector('.tray-title')?.textContent?.includes('ToDo')
+      ) as HTMLElement;
+      const doingEl = Array.from(document.querySelectorAll('.tray')).find(el => 
+        el.querySelector('.tray-title')?.textContent?.includes('Doing')
+      ) as HTMLElement;
+      
+      if (todoEl && doingEl) {
+        // Add drag classes that might persist (simulating the bug condition)
+        doingEl.classList.add('drop-target', 'drop-after', 'drag-over');
+        
+        // Simulate dragend event to test cleanup
+        const dragEndEvent = new DragEvent('dragend', {
+          bubbles: true,
+          cancelable: true
+        });
+        doingEl.dispatchEvent(dragEndEvent);
+        
+        // Check if all drag classes were removed
+        const remainingClasses = Array.from(doingEl.classList).filter(cls => 
+          ['drop-target', 'drop-before', 'drop-after', 'drop-inside', 'drag-over'].includes(cls)
+        );
+        
+        return {
+          classesRemaining: remainingClasses,
+          isClean: remainingClasses.length === 0,
+          backgroundColor: window.getComputedStyle(doingEl).backgroundColor,
+          borderColor: window.getComputedStyle(doingEl).borderColor
+        };
+      }
+      return { classesRemaining: [], isClean: false, backgroundColor: '', borderColor: '' };
+    });
+    
+    // Verify all drag classes are properly cleaned up
+    expect(dragCleanupResult.isClean).toBe(true);
+    expect(dragCleanupResult.classesRemaining).toEqual([]);
+    
+    // Verify tray is not stuck in blue state
+    // Background should not be the blue drop-target color (#f0f8ff or similar)
+    expect(dragCleanupResult.backgroundColor).not.toContain('240, 248, 255'); // rgb for #f0f8ff
+    
+    // Verify tray remains interactive
+    await expect(doingTray).toBeVisible();
+    await doingTray.click();
+    await page.waitForTimeout(100);
+    await expect(doingTray).toBeVisible();
+  });
+
   test('should not allow dragging parent into its own child', async ({ page }) => {
     const doingTitle = page.locator('.tray-title').filter({ hasText: 'Doing' });
     const doingTray = doingTitle.locator('..');
