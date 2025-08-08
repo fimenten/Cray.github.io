@@ -669,19 +669,58 @@ export class Tray {
 
   isDescendantOf(ancestorId: string): boolean {
     let currentParentId: string | null = this.parentId;
-    while (currentParentId) {
+    const visitedIds = new Set<string>();
+    let iterations = 0;
+    const maxIterations = 100; // Prevent infinite loops
+    
+    while (currentParentId && iterations < maxIterations) {
+      // Cycle detection: if we've seen this ID before, we have a circular reference
+      if (visitedIds.has(currentParentId)) {
+        console.warn(`Circular reference detected in tray hierarchy: ${currentParentId}`);
+        return false;
+      }
+      
       if (currentParentId === ancestorId) {
         return true;
       }
+      
+      visitedIds.add(currentParentId);
       const parentTray = getTrayFromId(currentParentId);
       currentParentId = parentTray?.parentId || null;
+      iterations++;
     }
+    
+    if (iterations >= maxIterations) {
+      console.warn(`Maximum iterations reached in isDescendantOf for tray ${this.id}, possible infinite loop prevented`);
+    }
+    
     return false;
   }
 
   toggleDoneMarker(titleElement: HTMLDivElement) {
     this.showDoneMarker = !this.showDoneMarker;
     this.updateTitleContent(titleElement);
+  }
+
+  private clearAllDragStyles(): void {
+    // Comprehensive cleanup of all possible drag-related CSS classes
+    const dragClasses = [
+      "drag-over",      // Legacy drag class
+      "drop-target",    // New drag system classes
+      "drop-before", 
+      "drop-after", 
+      "drop-inside",
+      "drag-top",       // Additional drag classes that might exist
+      "drag-bottom",
+      "dragging"
+    ];
+    
+    dragClasses.forEach(cls => {
+      this.element.classList.remove(cls);
+    });
+    
+    // Reset any inline styles that might have been set during drag
+    this.element.style.display = "block";
   }
 
   async finishTitleEdit(titleElement: HTMLDivElement) {
@@ -764,10 +803,14 @@ export class Tray {
   }
 
   onDragOver(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    if (event.dataTransfer) {
-      event.dataTransfer.dropEffect = "move";
+    try {
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = "move";
+      }
+    } catch (error) {
+      console.warn("Error in onDragOver:", error);
     }
   }
 
@@ -789,94 +832,144 @@ export class Tray {
   }
 
   onDrop(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
+    const startTime = performance.now();
+    
+    try {
+      event.preventDefault();
+      event.stopPropagation();
 
-    if (this.isFolded) {
-      this.toggleFold();
-    }
-    this.updateAppearance();
+      // Clear drag styles immediately
+      this.clearAllDragStyles();
 
-    const movingData = event.dataTransfer?.getData("text/plain");
-    if (!movingData) return; // If there's no data, exit early
+      if (this.isFolded) {
+        this.toggleFold();
+      }
+      this.updateAppearance();
 
-    const ids = movingData.split(",");
-    const traysToMove = ids
-      .map((id) => getTrayFromId(id))
-      .filter((t): t is Tray => !!t);
-
-    // Check for circular references - prevent dropping a parent into its own descendant
-    const wouldCreateCircularReference = traysToMove.some((movingTray) => {
-      return this.isDescendantOf(movingTray.id);
-    });
-
-    if (wouldCreateCircularReference) {
-      console.warn("Cannot move tray: would create circular reference");
-      return;
-    }
-
-    const content = this.element.querySelector(
-      ".tray-content"
-    ) as HTMLElement | null;
-
-    traysToMove.forEach((movingTray) => {
-      const parentTray = getTrayFromId(movingTray.parentId);
-      if (parentTray) {
-        parentTray.removeChild(movingTray.id);
+      const movingData = event.dataTransfer?.getData("text/plain");
+      if (!movingData) {
+        console.warn("Drop operation failed: no drag data available");
+        return;
       }
 
-      this.children.unshift(movingTray);
-      movingTray.parentId = this.id;
-
-      if (content) {
-        content.insertBefore(movingTray.element, content.firstChild);
+      const ids = movingData.split(",").filter(id => id.trim().length > 0);
+      if (ids.length === 0) {
+        console.warn("Drop operation failed: no valid tray IDs");
+        return;
       }
 
-      movingTray.element.style.display = "block";
-    });
+      const traysToMove = ids
+        .map((id) => getTrayFromId(id))
+        .filter((t): t is Tray => !!t);
 
-    this.isFolded = false;
-    this.updateAppearance();
+      if (traysToMove.length === 0) {
+        console.warn("Drop operation failed: no valid trays found for IDs", ids);
+        return;
+      }
 
-    saveToIndexedDB();
+      // Check for circular references with enhanced logging
+      const wouldCreateCircularReference = traysToMove.some((movingTray) => {
+        const isDescendant = this.isDescendantOf(movingTray.id);
+        if (isDescendant) {
+          console.warn(`Circular reference prevented: cannot move tray ${movingTray.id} (${movingTray.name}) into its descendant ${this.id} (${this.name})`);
+        }
+        return isDescendant;
+      });
+
+      if (wouldCreateCircularReference) {
+        return;
+      }
+
+      const content = this.element.querySelector(".tray-content") as HTMLElement | null;
+      if (!content) {
+        console.warn("Drop operation failed: target content element not found");
+        return;
+      }
+
+      // Perform the move operations with error handling
+      const movedTrays: Tray[] = [];
+      traysToMove.forEach((movingTray) => {
+        try {
+          const parentTray = getTrayFromId(movingTray.parentId);
+          if (parentTray) {
+            parentTray.removeChild(movingTray.id);
+          }
+
+          this.children.unshift(movingTray);
+          movingTray.parentId = this.id;
+          content.insertBefore(movingTray.element, content.firstChild);
+          movingTray.element.style.display = "block";
+          movingTray.clearAllDragStyles(); // Clean up moved tray
+          movedTrays.push(movingTray);
+        } catch (error) {
+          console.error(`Error moving tray ${movingTray.id}:`, error);
+        }
+      });
+
+      this.isFolded = false;
+      this.updateAppearance();
+
+      // Save only if we successfully moved at least one tray
+      if (movedTrays.length > 0) {
+        saveToIndexedDB();
+        const endTime = performance.now();
+        const duration = endTime - startTime;
+        if (duration > 100) { // Log slow operations
+          console.log(`Drop operation took ${duration.toFixed(2)}ms for ${movedTrays.length} trays`);
+        }
+      }
+      
+    } catch (error) {
+      console.error("Critical error in onDrop:", error);
+      // Attempt cleanup even if drop failed
+      this.clearAllDragStyles();
+    }
   }
 
   onDragEnter(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.element.classList.add("drag-over");
+    try {
+      event.preventDefault();
+      event.stopPropagation();
+      
+      // Clear any existing drag styles first to prevent conflicts
+      this.clearAllDragStyles();
+      this.element.classList.add("drag-over");
+    } catch (error) {
+      console.warn("Error in onDragEnter:", error);
+    }
   }
 
   onDragLeave(event: DragEvent): void {
     event.preventDefault();
     event.stopPropagation();
-    // Only remove drag-over if we're actually leaving this element
-    const relatedTarget = event.relatedTarget as HTMLElement;
-    if (!this.element.contains(relatedTarget)) {
-      // Remove all drag-related CSS classes for comprehensive cleanup
-      this.element.classList.remove(
-        "drag-over",      // Legacy drag class
-        "drop-target",    // New drag system classes
-        "drop-before", 
-        "drop-after", 
-        "drop-inside"
-      );
+    
+    try {
+      // Only remove drag-over if we're actually leaving this element
+      const relatedTarget = event.relatedTarget as HTMLElement;
+      if (!relatedTarget || !this.element.contains(relatedTarget)) {
+        this.clearAllDragStyles();
+      }
+    } catch (error) {
+      // Fallback: always clear styles if we can't properly check containment
+      console.warn("Error in onDragLeave, clearing drag styles:", error);
+      this.clearAllDragStyles();
     }
   }
 
   onDragEnd(event: DragEvent): void {
     event.stopPropagation();
     
-    // Remove all drag-related CSS classes to prevent blue state persistence
-    this.element.classList.remove(
-      "drag-over",      // Legacy drag class
-      "drop-target",    // New drag system classes
-      "drop-before", 
-      "drop-after", 
-      "drop-inside"
-    );
+    // Use centralized cleanup method to prevent blue state persistence
+    this.clearAllDragStyles();
     
-    this.element.style.display = "block";
+    // Also clear drag styles from all children as a safety measure
+    const allChildTrays = this.element.querySelectorAll('.tray');
+    allChildTrays.forEach(childElement => {
+      const childTray = element2TrayMap.get(childElement as HTMLElement);
+      if (childTray) {
+        childTray.clearAllDragStyles();
+      }
+    });
   }
 
   onDoubleClick(event: MouseEvent): void {
