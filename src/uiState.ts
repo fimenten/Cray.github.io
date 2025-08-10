@@ -14,7 +14,6 @@ export class TrayUIState implements ITrayUIState {
   isFocused: boolean;
   isExpanded: boolean;
   showDoneMarker: boolean;
-  autoUpload: boolean;
   lastInteractionTime: Date;
 
   // DOM element reference (weak reference to avoid memory leaks)
@@ -27,7 +26,6 @@ export class TrayUIState implements ITrayUIState {
     this.isFocused = options.isFocused || false;
     this.isExpanded = options.isExpanded || false;
     this.showDoneMarker = options.showDoneMarker !== undefined ? options.showDoneMarker : true;
-    this.autoUpload = options.autoUpload !== undefined ? options.autoUpload : true;
     this.lastInteractionTime = options.lastInteractionTime || new Date();
   }
 
@@ -72,7 +70,6 @@ export class TrayUIState implements ITrayUIState {
       isFocused: false, // New trays shouldn't be focused
       isExpanded: this.isExpanded,
       showDoneMarker: this.showDoneMarker,
-      autoUpload: this.autoUpload,
       lastInteractionTime: new Date()
     });
   }
@@ -88,7 +85,6 @@ export class TrayUIState implements ITrayUIState {
       isFocused: this.isFocused,
       isExpanded: this.isExpanded,
       showDoneMarker: this.showDoneMarker,
-      autoUpload: this.autoUpload,
       lastInteractionTime: this.lastInteractionTime
     };
   }

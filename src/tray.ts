@@ -15,8 +15,6 @@ import {
   fetchTrayList,
   setNetworkOption,
   updateData,
-  startAutoUpload,
-  stopAutoUpload,
 } from "./networks";
 import { meltTray } from "./functions";
 import { id2TrayData, element2TrayMap} from "./app";
@@ -28,7 +26,6 @@ import { openContextMenu } from "./contextMenu";
 import { pluginManager } from "./pluginManager";
 import { HookedTask, PluginContext } from "./pluginTypes";
 import { TrayId, ITrayData, ITrayUIState } from "./types";
-import { syncIndicatorManager } from "./syncIndicators";
 
 export class Tray {
   id: TrayId;
@@ -46,7 +43,6 @@ export class Tray {
   isDone: boolean;
   showDoneMarker: boolean;
 
-  autoUpload: boolean;
 
   isEditing: boolean;
   isSelected: boolean;
@@ -80,7 +76,6 @@ export class Tray {
     this.properties = properties;
     this.hooks = hooks.length > 0 ? hooks : this.parseHooksFromName(name);
     this.isDone = isDone || this.checkDoneStateFromName(name);
-    this.autoUpload = host_url && filename ? true : false;
     this.showDoneMarker = false;
     // this.element = this.createElement();
     // this.element = null
@@ -197,10 +192,7 @@ export class Tray {
     content.addEventListener("dblclick", this.onDoubleClick.bind(this));
     element2TrayMap.set(tray, this);
 
-    // Add sync indicator for network-enabled trays
-    if (this.host_url && this.filename) {
-      syncIndicatorManager.addTrayIndicator(this, tray);
-    }
+    // Network-enabled tray setup complete
 
     this.setupKeyboardNavigation(tray);
     // if (this.isLabelTrayCopy) {
@@ -256,14 +248,8 @@ export class Tray {
       updateData(this).catch((e) => alert(e.message));
     });
 
-    const autoUploadButton = document.createElement("button");
-    autoUploadButton.textContent = "♻️"; // recycle icon only
-    if (this.autoUpload) autoUploadButton.classList.add("auto-upload-on");
-    autoUploadButton.addEventListener("click", () => this.toggleAutoUpload(autoUploadButton));
-
     actionsContainer.appendChild(uploadButton);
     actionsContainer.appendChild(updateButton);
-    actionsContainer.appendChild(autoUploadButton);
 
     networkContainer.appendChild(infoContainer);
     networkContainer.appendChild(actionsContainer);
@@ -370,22 +356,6 @@ export class Tray {
     saveToIndexedDB();
   }
 
-  toggleAutoUpload(button?: HTMLButtonElement) {
-    this.autoUpload = !this.autoUpload;
-    if (this.autoUpload) {
-      startAutoUpload(this);
-    } else {
-      stopAutoUpload(this);
-    }
-    if (button) {
-      button.textContent = "♻️";
-      if (this.autoUpload) {
-        button.classList.add("auto-upload-on");
-      } else {
-        button.classList.remove("auto-upload-on");
-      }
-    }
-  }
 
   setupEventListeners(element: HTMLElement): void {
     let longPressTimer: number | undefined;

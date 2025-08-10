@@ -1,7 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Tray } from "./tray";
 import { TrayId, TrayData, AppState } from "./types";
-import { trayManager } from "./trayManager";
 
 // Legacy interface for backward compatibility
 interface LegacyAppState {
@@ -33,13 +32,11 @@ const initialState: AppState = {
     hamburgerMenuOpen: false,
     contextMenuOpen: false,
     hookDialogOpen: false,
-    autoUploadEnabled: false,
     lastSyncTime: null,
   },
   
   // Network state
   network: {
-    autoUpload: {},
     syncStatus: {},
     lastError: null,
   },
@@ -145,18 +142,11 @@ const appSlice = createSlice({
     setHookDialogOpen(state, action: PayloadAction<boolean>) {
       state.app.hookDialogOpen = action.payload;
     },
-    toggleAutoUpload(state) {
-      state.app.autoUploadEnabled = !state.app.autoUploadEnabled;
-    },
     setLastSyncTime(state, action: PayloadAction<Date | null>) {
       state.app.lastSyncTime = action.payload;
     },
     
     // Network state management
-    setTrayAutoUpload(state, action: PayloadAction<{ id: TrayId; autoUpload: boolean }>) {
-      const { id, autoUpload } = action.payload;
-      state.network.autoUpload[id] = autoUpload;
-    },
     setTraySyncStatus(state, action: PayloadAction<{ id: TrayId; status: 'syncing' | 'synced' | 'error' }>) {
       const { id, status } = action.payload;
       state.network.syncStatus[id] = status;
@@ -225,11 +215,9 @@ export const {
   closeMenu,
   setContextMenuOpen,
   setHookDialogOpen,
-  toggleAutoUpload,
   setLastSyncTime,
   
   // Network state
-  setTrayAutoUpload,
   setTraySyncStatus,
   setNetworkError,
   
@@ -252,8 +240,6 @@ export const selectEditing = (state: { app: AppState }) => state.app.ui.editing;
 export const selectCollapsed = (state: { app: AppState }) => state.app.ui.collapsed;
 export const selectVisible = (state: { app: AppState }) => state.app.ui.visible;
 export const selectMenuOpen = (state: { app: AppState }) => state.app.app.hamburgerMenuOpen;
-export const selectAutoUploadEnabled = (state: { app: AppState }) => state.app.app.autoUploadEnabled;
-export const selectTrayAutoUpload = (state: { app: AppState }, trayId: TrayId) => state.app.network.autoUpload[trayId];
 export const selectTraySyncStatus = (state: { app: AppState }, trayId: TrayId) => state.app.network.syncStatus[trayId];
 export const selectNetworkError = (state: { app: AppState }) => state.app.network.lastError;
 

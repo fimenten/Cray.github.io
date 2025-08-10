@@ -87,7 +87,6 @@ export interface TrayUIState {
   isSelected: boolean;
   isFocused: boolean;
   isExpanded: boolean;
-  autoUpload: boolean;
   lastInteractionTime: Date;
   element?: HTMLDivElement | null; // Optional DOM reference
 }
@@ -100,7 +99,6 @@ export interface ITrayUIState {
   isFocused: boolean;
   isExpanded: boolean;
   showDoneMarker: boolean;
-  autoUpload: boolean;
   lastInteractionTime: Date;
 }
 
@@ -145,13 +143,11 @@ export interface AppState {
     hamburgerMenuOpen: boolean;
     contextMenuOpen: boolean;
     hookDialogOpen: boolean;
-    autoUploadEnabled: boolean;
-    lastSyncTime: Date | null;
+      lastSyncTime: Date | null;
   };
   
   // Network state
   network: {
-    autoUpload: Record<TrayId, boolean>;
     syncStatus: Record<TrayId, 'syncing' | 'synced' | 'error'>;
     lastError: string | null;
   };
@@ -163,7 +159,6 @@ export interface IAppState {
   hamburgerMenuOpen: boolean;
   contextMenuOpen: boolean;
   hookDialogOpen: boolean;
-  autoUploadEnabled: boolean;
 }
 
 // Network/IO interfaces
@@ -327,7 +322,6 @@ export interface LegacyTrayFormat {
   hooks?: string[];
   isDone?: boolean;
   // Legacy fields that may exist
-  autoUpload?: boolean;
   isEditing?: boolean;
   isSelected?: boolean;
   showDoneMarker?: boolean;

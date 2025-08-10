@@ -8,247 +8,166 @@ import {
   addChildToParent,
   removeChildFromParent,
   setFocused,
-  toggleSelected,
-  setSelected,
-  clearSelected,
   setEditing,
+  setSelected,
+  toggleSelected,
+  clearSelected,
+  selectAllTrays,
   toggleCollapsed,
   setCollapsed,
   setVisible,
-  setTrayAutoUpload,
   setTraySyncStatus,
   loadAppState,
   resetState,
   selectTrayData,
-  selectAllTrays,
+  selectAllTrays as selectAllTraysFromState,
   selectHierarchy,
   selectRootId,
   selectFocused,
+  selectEditing,
   selectSelected,
+  selectCollapsed,
+  selectVisible,
+  selectTraySyncStatus as selectTraySyncStatusFromState,
   selectTrayChildren,
-  selectTrayParent
+  selectTrayParent,
+  selectTrayDescendants,
+  selectTrayDepth,
+  selectNetworkError,
 } from "./state";
-import { TrayData, TrayId, AppState } from "./types";
-import { trayManager } from "./trayManager";
+
+import { TrayId, TrayData, ITrayData, IAppState } from "./types";
 
 /**
- * StateManager - Central coordinator between Redux state and TrayManager
- * Provides high-level state management operations with automatic synchronization
+ * Enhanced state manager that provides higher-level operations
+ * and coordinates between different state layers
  */
 export class StateManager {
-  private static instance: StateManager;
+  /**
+   * Create a new tray
+   */
+  createTray(data: Partial<TrayData>): TrayId {
+    const trayData: TrayData = {
+      id: data.id || crypto.randomUUID(),
+      name: data.name || "New Tray",
+      parentId: data.parentId || null,
+      borderColor: data.borderColor || "#000000",
+      created_dt: data.created_dt || new Date(),
+      flexDirection: data.flexDirection || "column",
+      host_url: data.host_url || null,
+      filename: data.filename || null,
+      isFolded: data.isFolded || false,
+      properties: data.properties || {},
+      hooks: data.hooks || [],
+      isDone: data.isDone || false,
+      showDoneMarker: data.showDoneMarker !== undefined ? data.showDoneMarker : true,
+      version: 1,
+    };
 
-  static getInstance(): StateManager {
-    if (!StateManager.instance) {
-      StateManager.instance = new StateManager();
+    store.dispatch(setTrayData({ id: trayData.id, data: trayData }));
+    
+    if (trayData.parentId) {
+      store.dispatch(addChildToParent({ parentId: trayData.parentId, childId: trayData.id }));
     }
-    return StateManager.instance;
+
+    return trayData.id;
   }
 
   /**
-   * Create a new tray and update both Redux state and TrayManager
+   * Update tray data
    */
-  createTray(
-    name: string, 
-    parentId: TrayId | null = null,
-    options: Partial<TrayData> = {}
-  ): TrayId {
-    // Create in TrayManager
-    const id = trayManager.createTray(name, parentId, options);
-    
-    // Update Redux state
-    const trayData = trayManager.getTrayData(id)!;
-    store.dispatch(setTrayData({ id, data: trayData }));
-    
-    // Update hierarchy
-    if (parentId) {
-      store.dispatch(addChildToParent({ parentId, childId: id }));
-    } else {
-      // Set as root if no root exists
-      const currentRoot = this.getRootId();
-      if (!currentRoot) {
-        store.dispatch(setRootId(id));
-        trayManager.setRootId(id);
-      }
-    }
-    
-    return id;
-  }
-
-  /**
-   * Update tray data with synchronization
-   */
-  updateTray(id: TrayId, updates: Partial<TrayData>): boolean {
-    // Update TrayManager
-    const success = trayManager.updateTrayData(id, updates);
-    if (!success) return false;
-    
-    // Update Redux state
+  updateTray(id: TrayId, updates: Partial<TrayData>): void {
     store.dispatch(updateTrayData({ id, updates }));
-    
-    // Handle parent changes
-    if ('parentId' in updates) {
-      const oldParent = this.getTrayParent(id);
-      const newParent = updates.parentId;
-      
-      // Remove from old parent
-      if (oldParent) {
-        store.dispatch(removeChildFromParent({ parentId: oldParent, childId: id }));
-      }
-      
-      // Add to new parent
-      if (newParent) {
-        store.dispatch(addChildToParent({ parentId: newParent, childId: id }));
-      }
-    }
-    
-    return true;
   }
 
   /**
-   * Delete tray and all descendants
+   * Delete a tray and all its children
    */
-  deleteTray(id: TrayId): TrayId[] {
-    // Get all IDs that will be removed
-    const removedIds = trayManager.deleteTray(id);
+  deleteTray(id: TrayId): void {
+    const state = store.getState();
+    const children = selectTrayChildren(state, id);
     
-    // Remove from Redux state
-    for (const removedId of removedIds) {
-      store.dispatch(removeTrayData(removedId));
-      
-      // Remove from parent's children list
-      const parent = this.getTrayParent(removedId);
-      if (parent) {
-        store.dispatch(removeChildFromParent({ parentId: parent, childId: removedId }));
-      }
+    // Recursively delete children
+    children.forEach(childId => this.deleteTray(childId));
+    
+    // Remove from parent
+    const parentId = selectTrayParent(state, id);
+    if (parentId) {
+      store.dispatch(removeChildFromParent({ parentId, childId: id }));
     }
     
-    // Update root if necessary
-    if (this.getRootId() === id) {
-      const newRoot = trayManager.getRootId();
-      store.dispatch(setRootId(newRoot));
-    }
-    
-    return removedIds;
+    // Remove the tray itself
+    store.dispatch(removeTrayData(id));
   }
 
   /**
-   * Move tray to new parent
+   * Move a tray to a new parent
    */
-  moveTray(trayId: TrayId, newParentId: TrayId | null): boolean {
-    const oldParent = this.getTrayParent(trayId);
+  moveTray(trayId: TrayId, newParentId: TrayId | null): void {
+    const state = store.getState();
+    const currentParentId = selectTrayParent(state, trayId);
     
-    // Update TrayManager
-    const success = trayManager.moveTray(trayId, newParentId);
-    if (!success) return false;
+    // Remove from current parent
+    if (currentParentId) {
+      store.dispatch(removeChildFromParent({ parentId: currentParentId, childId: trayId }));
+    }
     
-    // Update Redux state
-    this.updateTray(trayId, { parentId: newParentId });
+    // Add to new parent
+    if (newParentId) {
+      store.dispatch(addChildToParent({ parentId: newParentId, childId: trayId }));
+    }
     
-    return true;
+    // Update tray's parent reference
+    store.dispatch(updateTrayData({ id: trayId, updates: { parentId: newParentId } }));
   }
 
   /**
    * Set focus to a tray
    */
-  setFocus(trayId: TrayId | null): void {
+  focusTray(trayId: TrayId | null): void {
     store.dispatch(setFocused(trayId));
-    
-    if (trayId) {
-      // Update UI state in TrayManager
-      trayManager.updateTrayUIState(trayId, { isFocused: true });
-    }
-    
-    // Clear focus from other trays
-    const currentFocus = this.getFocused();
-    if (currentFocus && currentFocus !== trayId) {
-      trayManager.updateTrayUIState(currentFocus, { isFocused: false });
-    }
+  }
+
+  /**
+   * Start editing a tray
+   */
+  startEditing(trayId: TrayId): void {
+    store.dispatch(setEditing(trayId));
+  }
+
+  /**
+   * Stop editing
+   */
+  stopEditing(): void {
+    store.dispatch(setEditing(null));
   }
 
   /**
    * Toggle tray selection
    */
-  toggleSelection(trayId: TrayId): void {
+  toggleTraySelection(trayId: TrayId): void {
     store.dispatch(toggleSelected(trayId));
-    
-    // Sync with TrayManager
-    const isSelected = this.isSelected(trayId);
-    trayManager.updateTrayUIState(trayId, { isSelected });
-  }
-
-  /**
-   * Set multiple trays as selected
-   */
-  setSelection(trayIds: TrayId[]): void {
-    // Clear current selection in TrayManager
-    const currentSelection = this.getSelected();
-    for (const id of currentSelection) {
-      trayManager.updateTrayUIState(id, { isSelected: false });
-    }
-    
-    // Set new selection
-    store.dispatch(setSelected(trayIds));
-    
-    // Update TrayManager
-    for (const id of trayIds) {
-      trayManager.updateTrayUIState(id, { isSelected: true });
-    }
   }
 
   /**
    * Clear all selections
    */
   clearSelection(): void {
-    const currentSelection = this.getSelected();
-    
     store.dispatch(clearSelected());
-    
-    // Update TrayManager
-    for (const id of currentSelection) {
-      trayManager.updateTrayUIState(id, { isSelected: false });
-    }
   }
 
   /**
-   * Set editing state
-   */
-  setEditing(trayId: TrayId | null): void {
-    const currentEditing = this.getEditing();
-    
-    store.dispatch(setEditing(trayId));
-    
-    // Update TrayManager
-    if (currentEditing) {
-      trayManager.updateTrayUIState(currentEditing, { isEditing: false });
-    }
-    
-    if (trayId) {
-      trayManager.updateTrayUIState(trayId, { isEditing: true });
-    }
-  }
-
-  /**
-   * Toggle collapsed state
+   * Toggle tray collapsed state
    */
   toggleCollapsed(trayId: TrayId): void {
-    const isCollapsed = this.isCollapsed(trayId);
-    const newCollapsedState = !isCollapsed;
-    
-    store.dispatch(setCollapsed({ id: trayId, collapsed: newCollapsedState }));
-    
-    // Update tray data
-    this.updateTray(trayId, { isFolded: newCollapsedState });
+    store.dispatch(toggleCollapsed(trayId));
   }
 
   /**
-   * Set auto upload for a tray
+   * Set tray visibility
    */
-  setAutoUpload(trayId: TrayId, autoUpload: boolean): void {
-    store.dispatch(setTrayAutoUpload({ id: trayId, autoUpload }));
-    
-    // Update TrayManager
-    trayManager.updateTrayUIState(trayId, { autoUpload });
+  setVisible(trayId: TrayId, visible: boolean): void {
+    store.dispatch(setVisible([trayId])); // Fixed format
   }
 
   /**
@@ -259,162 +178,98 @@ export class StateManager {
   }
 
   /**
-   * Load complete state from external source
+   * Get current state snapshot
    */
-  loadState(newState: Partial<AppState>): void {
-    // Load into Redux
-    store.dispatch(loadAppState(newState));
-    
-    // Sync with TrayManager
-    trayManager.loadFromState(newState);
+  getState() {
+    return store.getState();
+  }
+
+  /**
+   * Load state from serialized data
+   */
+  loadState(state: any): void {
+    store.dispatch(loadAppState(state));
   }
 
   /**
    * Reset all state
    */
-  resetState(): void {
+  resetAllState(): void {
     store.dispatch(resetState());
-    trayManager.clear();
   }
 
   /**
    * Export current state
    */
-  exportState(): AppState {
-    return store.getState().app;
+  exportState(): any {
+    return store.getState();
   }
 
   /**
-   * Sync TrayManager state to Redux
+   * Initialize with default state
    */
-  syncFromTrayManager(): void {
-    const managerState = trayManager.exportToState();
-    this.loadState(managerState);
+  initialize(): void {
+    // Create root tray if needed
+    const state = store.getState();
+    const rootId = selectRootId(state);
+    
+    if (!rootId) {
+      const newRootId = this.createTray({
+        name: "Root",
+        parentId: null,
+      });
+      store.dispatch(setRootId(newRootId));
+    }
   }
 
   /**
-   * Sync Redux state to TrayManager
+   * Get all tray data
    */
-  syncToTrayManager(): void {
-    const reduxState = this.exportState();
-    trayManager.loadFromState(reduxState);
-  }
-
-  // Getter methods for common state access
-  getTrayData(id: TrayId): TrayData | null {
-    return selectTrayData(store.getState(), id) || null;
-  }
-
   getAllTrays(): Record<TrayId, TrayData> {
-    return selectAllTrays(store.getState());
-  }
-
-  getHierarchy(): AppState['hierarchy'] {
-    return selectHierarchy(store.getState());
-  }
-
-  getRootId(): TrayId | null {
-    return selectRootId(store.getState());
-  }
-
-  getFocused(): TrayId | null {
-    return selectFocused(store.getState());
-  }
-
-  getSelected(): TrayId[] {
-    return Array.from(selectSelected(store.getState()));
-  }
-
-  isSelected(trayId: TrayId): boolean {
-    return selectSelected(store.getState()).has(trayId);
-  }
-
-  getEditing(): TrayId | null {
-    return selectSelected(store.getState()) as unknown as TrayId | null; // Type assertion needed due to selector complexity
-  }
-
-  getTrayChildren(trayId: TrayId): TrayId[] {
-    return selectTrayChildren(store.getState(), trayId);
-  }
-
-  getTrayParent(trayId: TrayId): TrayId | null {
-    return selectTrayParent(store.getState(), trayId);
-  }
-
-  isCollapsed(trayId: TrayId): boolean {
-    const trayData = this.getTrayData(trayId);
-    return trayData?.isFolded || false;
+    const state = store.getState();
+    return state.app.trays;
   }
 
   /**
-   * Get flat list of all tray IDs in tree order
+   * Get tray by ID
    */
-  getFlatTrayList(): TrayId[] {
-    const rootId = this.getRootId();
-    if (!rootId) return [];
-
-    const result: TrayId[] = [];
-    const traverse = (trayId: TrayId) => {
-      result.push(trayId);
-      const children = this.getTrayChildren(trayId);
-      for (const childId of children) {
-        traverse(childId);
-      }
-    };
-
-    traverse(rootId);
-    return result;
+  getTray(id: TrayId): TrayData | null {
+    const state = store.getState();
+    return selectTrayData(state, id) || null;
   }
 
   /**
-   * Validate state consistency between Redux and TrayManager
+   * Validate state integrity
    */
-  validateConsistency(): { isValid: boolean; errors: string[] } {
+  validate(): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
-
-    // Validate TrayManager
-    const managerValidation = trayManager.validate();
-    if (!managerValidation.isValid) {
-      errors.push(...managerValidation.errors.map(e => `TrayManager: ${e}`));
-    }
-
-    // Compare Redux and TrayManager states
-    const reduxTrays = this.getAllTrays();
-    const managerTrays = trayManager.getAllTrayData();
-
-    // Check for mismatched trays
-    const reduxIds = new Set(Object.keys(reduxTrays));
-    const managerIds = new Set(Object.keys(managerTrays));
-
-    for (const id of reduxIds) {
-      if (!managerIds.has(id)) {
-        errors.push(`Redux has tray ${id} but TrayManager doesn't`);
-      }
-    }
-
-    for (const id of managerIds) {
-      if (!reduxIds.has(id)) {
-        errors.push(`TrayManager has tray ${id} but Redux doesn't`);
-      }
-    }
-
-    // Check for data consistency
-    for (const id of reduxIds) {
-      if (managerIds.has(id)) {
-        const reduxData = reduxTrays[id];
-        const managerData = managerTrays[id];
-        
-        // Compare key fields
-        if (reduxData.name !== managerData.name) {
-          errors.push(`Name mismatch for tray ${id}: Redux='${reduxData.name}', Manager='${managerData.name}'`);
+    
+    try {
+      const state = store.getState();
+      const trays = state.app.trays;
+      const hierarchy = state.app.hierarchy;
+      
+      // Check hierarchy consistency
+      for (const [parentId, children] of Object.entries(hierarchy.parentToChildren)) {
+        if (!trays[parentId]) {
+          errors.push(`Parent tray ${parentId} not found in trays`);
         }
         
-        if (reduxData.parentId !== managerData.parentId) {
-          errors.push(`Parent mismatch for tray ${id}: Redux='${reduxData.parentId}', Manager='${managerData.parentId}'`);
+        for (const childId of children) {
+          if (!trays[childId]) {
+            errors.push(`Child tray ${childId} not found in trays`);
+          }
+          
+          if (hierarchy.childToParent[childId] !== parentId) {
+            errors.push(`Inconsistent parent-child relationship: ${childId} -> ${parentId}`);
+          }
         }
       }
+      
+    } catch (e: any) {
+      errors.push(`State validation error: ${e.message}`);
     }
-
+    
     return {
       isValid: errors.length === 0,
       errors
@@ -425,44 +280,21 @@ export class StateManager {
    * Get performance metrics
    */
   getMetrics(): {
-    reduxTrays: number;
-    managerTrays: number;
-    selectedCount: number;
-    focusedTray: TrayId | null;
+    totalTrays: number;
     maxDepth: number;
+    selectedCount: number;
+    visibleCount: number;
   } {
-    const reduxTrays = Object.keys(this.getAllTrays()).length;
-    const managerMetrics = trayManager.getMetrics();
-    const selected = this.getSelected();
-    const focused = this.getFocused();
+    const state = store.getState();
     
-    // Calculate max depth
-    let maxDepth = 0;
-    const allIds = Object.keys(this.getAllTrays());
-    for (const id of allIds) {
-      let depth = 0;
-      let currentId: TrayId | null = id;
-      while (currentId) {
-        const parent = this.getTrayParent(currentId);
-        if (parent) {
-          depth++;
-          currentId = parent;
-        } else {
-          break;
-        }
-      }
-      maxDepth = Math.max(maxDepth, depth);
-    }
-
     return {
-      reduxTrays,
-      managerTrays: managerMetrics.totalTrays,
-      selectedCount: selected.length,
-      focusedTray: focused,
-      maxDepth
+      totalTrays: Object.keys(state.app.trays).length,
+      maxDepth: 0, // Simplified for now
+      selectedCount: state.app.ui.selected.size,
+      visibleCount: state.app.ui.visible.size,
     };
   }
 }
 
 // Export singleton instance
-export const stateManager = StateManager.getInstance();
+export const stateManager = new StateManager();

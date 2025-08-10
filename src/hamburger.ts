@@ -10,10 +10,9 @@ import { element2TrayMap } from "./app";
 import { Tray } from "./tray";
 import { downloadData, uploadData } from "./networks";
 import { copyTray, deleteTray } from "./functions";
-import { setLastFocused, toggleAutoUpload, selectAutoUploadEnabled } from "./state";
+import { setLastFocused } from "./state";
 import { showPluginManagerDialog } from "./pluginUI";
 import store from "./store";
-import { globalSyncManager } from "./globalSync";
 
 // Notification system for hook tasks
 export function showHookNotification(hookNames: string[]): void {
@@ -86,7 +85,6 @@ export interface HamburgerMenuItem {
 
 export const GENERAL_MENU_ITEMS: HamburgerMenuItem[] = [
   { action: "search", label: "🔍 Search Trays" },
-  { action: "autoSyncSettings", label: "🔄 Auto-Sync Settings" },
   { action: "reset", label: "トレイをリセット" },
   { action: "save", label: "現在の状態を保存" },
   { action: "load", label: "保存した状態を読み込む" },
@@ -231,7 +229,6 @@ export function createHamburgerMenu() {
 
   const menuActions: Record<string, () => void> = {
     search: showSearchDialog,
-    autoSyncSettings: showAutoSyncDialog,
     reset: () => {
       if (
         confirm("すべてのトレイをリセットしますか？この操作は元に戻せません。")
@@ -1004,145 +1001,6 @@ export function showHookViewDialog(): void {
   });
 }
 
-function showAutoSyncDialog(): void {
-  const dialog = document.createElement("div");
-  dialog.classList.add("auto-sync-dialog");
-  dialog.style.cssText = `
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    padding: 20px;
-    z-index: 10000;
-    width: 90vw;
-    max-width: 500px;
-    min-width: 320px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  `;
-
-  const currentState = store.getState();
-  const autoUploadEnabled = selectAutoUploadEnabled(currentState);
-  
-  dialog.innerHTML = `
-    <h3 style="margin: 0 0 20px 0; color: #333;">🔄 Auto-Sync Settings</h3>
-    
-    <div style="margin-bottom: 20px;">
-      <label style="display: flex; align-items: center; cursor: pointer;">
-        <input type="checkbox" id="autoSyncToggle" ${autoUploadEnabled ? 'checked' : ''} 
-               style="margin-right: 10px; transform: scale(1.2);">
-        <span style="font-weight: 500;">Enable Global Auto-Sync</span>
-      </label>
-      <p style="margin: 8px 0 0 30px; font-size: 0.9em; color: #666;">
-        Automatically sync all network-enabled trays in the background
-      </p>
-    </div>
-    
-    <div style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px;">
-      <h4 style="margin: 0 0 10px 0; color: #555;">📊 Sync Status</h4>
-      <div id="syncStatusInfo" style="font-size: 0.9em; color: #666;">
-        Loading status...
-      </div>
-    </div>
-    
-    <div style="margin-bottom: 20px; padding: 15px; background: #fff3cd; border-radius: 6px; border-left: 4px solid #ffc107;">
-      <h4 style="margin: 0 0 10px 0; color: #856404;">⚠️ Conflict Resolution</h4>
-      <p style="margin: 0; font-size: 0.9em; color: #856404;">
-        When conflicts occur, you'll be prompted to choose how to resolve them. 
-        Enhanced conflict resolution is coming soon.
-      </p>
-    </div>
-    
-    <div style="display: flex; gap: 10px; justify-content: flex-end;">
-      <button id="cancelAutoSync" style="padding: 8px 16px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer;">
-        Cancel
-      </button>
-      <button id="saveAutoSync" style="padding: 8px 16px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer;">
-        Save
-      </button>
-    </div>
-  `;
-
-  document.body.appendChild(dialog);
-
-  // Update sync status info
-  const updateSyncStatus = () => {
-    const statusElement = dialog.querySelector('#syncStatusInfo');
-    if (statusElement) {
-      const syncStatus = globalSyncManager.getSyncStatus();
-      
-      statusElement.innerHTML = `
-        <div>Network-enabled trays: <strong>${syncStatus.networkTrays}</strong></div>
-        <div>Auto-syncing trays: <strong>${syncStatus.autoSyncTrays}</strong></div>
-        <div>Sync queue: <strong>${syncStatus.queueLength}</strong></div>
-        <div>Active syncs: <strong>${syncStatus.activeSyncs}</strong></div>
-        <div>Global sync manager: <strong>${syncStatus.isRunning ? 'Running' : 'Stopped'}</strong></div>
-      `;
-    }
-  };
-
-  updateSyncStatus();
-
-  // Event handlers
-  const autoSyncToggle = dialog.querySelector('#autoSyncToggle') as HTMLInputElement;
-  const cancelButton = dialog.querySelector('#cancelAutoSync') as HTMLButtonElement;
-  const saveButton = dialog.querySelector('#saveAutoSync') as HTMLButtonElement;
-
-  cancelButton.addEventListener('click', () => {
-    dialog.remove();
-  });
-
-  saveButton.addEventListener('click', () => {
-    const newState = autoSyncToggle.checked;
-    if (newState !== autoUploadEnabled) {
-      store.dispatch(toggleAutoUpload());
-      
-      // Show notification
-      const notification = document.createElement("div");
-      notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: #28a745;
-        color: white;
-        padding: 12px 16px;
-        border-radius: 6px;
-        z-index: 10001;
-        font-size: 14px;
-      `;
-      notification.textContent = `Auto-sync ${newState ? 'enabled' : 'disabled'}`;
-      document.body.appendChild(notification);
-      
-      setTimeout(() => notification.remove(), 3000);
-    }
-    dialog.remove();
-  });
-
-  // Close dialog on outside click
-  const closeDialog = (event: MouseEvent) => {
-    if (event.target === dialog) {
-      dialog.remove();
-      document.removeEventListener('click', closeDialog);
-    }
-  };
-  
-  setTimeout(() => {
-    document.addEventListener('click', closeDialog);
-  }, 100);
-
-  // Close on Escape key
-  const onKeyDown = (event: KeyboardEvent) => {
-    if (event.key === 'Escape') {
-      dialog.remove();
-      document.removeEventListener('keydown', onKeyDown);
-      document.removeEventListener('click', closeDialog);
-    }
-  };
-  
-  document.addEventListener('keydown', onKeyDown);
-}
 
 // Helper function to get all network-enabled trays
 function getAllNetworkTrays(tray: Tray): Tray[] {

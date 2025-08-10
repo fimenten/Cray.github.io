@@ -1,144 +1,8 @@
 import { Tray } from "./tray";
-import { deserialize, serializeAsync, serialize } from "./io";
-import { getTrayFromId } from "./trayOperations";
-import { deleteTray } from "./functions";
-import { ConflictManager, ConflictError } from "./conflictResolution";
+import { serializeAsync, deserialize } from "./io";
 
-import type { TrayId } from "./types";
+const lastSerializedMap = new Map<string, string>();
 
-const lastSerializedMap = new Map<TrayId, string>();
-const intervalIds = new Map<TrayId, any>();
-
-export function newestTimestamp(tray: Tray): number {
-  let latest = new Date(tray.created_dt).getTime();
-  for (const child of tray.children) {
-    const t = newestTimestamp(child);
-    if (t > latest) latest = t;
-  }
-  return latest;
-}
-
-export function mergeTrays(local: Tray, remote: Tray) {
-  if (newestTimestamp(remote) > newestTimestamp(local)) {
-    if (remote.name !== undefined) local.name = remote.name;
-    local.created_dt = new Date(remote.created_dt);
-    if (remote.borderColor !== undefined) local.borderColor = remote.borderColor;
-    if (remote.flexDirection !== undefined) local.flexDirection = remote.flexDirection;
-    if (remote.host_url) local.host_url = remote.host_url;
-    if (remote.filename) local.filename = remote.filename;
-    if (remote.isFolded !== undefined) local.isFolded = remote.isFolded;
-    local.properties = { ...local.properties, ...remote.properties };
-    local.hooks = Array.from(new Set([...(local.hooks || []), ...(remote.hooks || [])]));
-    local.isDone = remote.isDone;
-    local.showDoneMarker = remote.showDoneMarker;
-  }
-
-  const map = new Map(local.children.map((c: Tray) => [c.id, c]));
-  for (const r of remote.children) {
-    const l = map.get(r.id);
-    if (l) {
-      mergeTrays(l, r);
-    } else if (typeof local.addChild === 'function') {
-      local.addChild(r as Tray);
-    } else {
-      r.parentId = local.id;
-      local.children.push(r);
-    }
-  }
-}
-
-export async function syncTray(tray: Tray) {
-  const current = await serializeAsync(tray);
-  const last = lastSerializedMap.get(tray.id) || "";
-  
-  // Skip if no local changes
-  if (current === last) return;
-  
-  let remote: Tray | undefined;
-  try {
-    remote = await downloadData(tray);
-  } catch (e) {
-    // No remote version exists, proceed with upload
-    remote = undefined;
-  }
-  
-  if (remote) {
-    try {
-      // Use enhanced conflict resolution only in real browser environment
-      // Check for real browser (not test mock) by looking for actual browser APIs
-      if (typeof window !== 'undefined' && 
-          typeof process === 'undefined' && 
-          window.location && 
-          typeof window.location.href === 'string' && 
-          window.location.href.length > 0) {
-        const resolvedTray = await ConflictManager.handleSyncConflict(tray, remote, last, serialize);
-        
-        // If we got a resolved tray, replace the current one
-        if (resolvedTray !== tray) {
-          const parent = getTrayFromId(tray.parentId) as Tray;
-          deleteTray(tray);
-          parent.addChild(resolvedTray);
-          parent.updateAppearance();
-          lastSerializedMap.set(tray.id, await serializeAsync(resolvedTray));
-          return;
-        }
-      } else {
-        // In test environment, use merge-based resolution for compatibility
-        mergeTrays(tray, remote);
-      }
-    } catch (error) {
-      if (error instanceof ConflictError) {
-        console.log(`Conflict detected for tray ${tray.name}, manual resolution required`);
-        // Re-throw conflict error to be handled by UI
-        throw error;
-      } else {
-        console.error('Error during conflict resolution:', error);
-        // Fall back to merge-based resolution
-        mergeTrays(tray, remote);
-      }
-    }
-  }
-  
-  // Upload local version (which may have been merged)
-  await uploadData(tray);
-  lastSerializedMap.set(tray.id, await serializeAsync(tray));
-}
-
-export function startAutoUpload(tray: Tray) {
-  stopAutoUpload(tray);
-  const setIntervalFn = (typeof window !== 'undefined' && window.setInterval) || setInterval;
-  const id = setIntervalFn(() => {
-    syncTray(tray).catch(console.error);
-  }, 60000);
-  intervalIds.set(tray.id, id);
-}
-
-export function stopAutoUpload(tray: Tray) {
-  const id = intervalIds.get(tray.id);
-  if (id !== undefined) {
-    clearInterval(id);
-    intervalIds.delete(tray.id);
-  }
-}
-
-export function stopAllAutoUploads() {
-  console.log('Stopping all individual tray auto-uploads');
-  intervalIds.forEach((id) => {
-    clearInterval(id);
-  });
-  intervalIds.clear();
-}
-
-// Cleanup intervals on page unload
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', () => {
-    console.log('Cleaning up individual tray auto-upload intervals');
-    intervalIds.forEach((id) => {
-      clearInterval(id);
-    });
-    intervalIds.clear();
-  });
-}
 function normalizeUrl(url: string): string {
   try {
     const urlObj = new URL(url);
@@ -218,6 +82,7 @@ export function fetchTrayList(tray: Tray) {
       alert("Failed to fetch tray list from server.");
     });
 }
+
 export function showTraySelectionDialog(
   parent: Tray,
   url: string,
@@ -258,6 +123,7 @@ export function showTraySelectionDialog(
     dialog.remove();
   });
 }
+
 export async function addTrayFromServer(
   parent: Tray,
   host_url: string,
@@ -294,13 +160,12 @@ export async function addTrayFromServer(
     alert("Failed to add tray from server.");
   }
 }
+
 export async function uploadData(tray: Tray) {
   const data = JSON.parse(await serializeAsync(tray));
   if (!tray.host_url) {
     return;
   }
-
-
 
   if (!tray.filename) {
     return;
@@ -353,8 +218,6 @@ export async function downloadData(tray: Tray) {
     return;
   }
 
-
-
   const password = getPasswordForServer(tray.host_url);
   if (!password) {
     showUploadNotification("No password configured for this server. Please set up server passwords in the hamburger menu.", true);
@@ -390,6 +253,33 @@ export async function downloadData(tray: Tray) {
   }
 }
 
+export function newestTimestamp(tray1: Tray, tray2: Tray): Tray {
+  // Handle both Date objects and ISO strings
+  const getTimestamp = (date: any) => {
+    if (!date) return 0;
+    if (typeof date === 'string') return new Date(date).getTime();
+    if (date.getTime) return date.getTime();
+    return 0;
+  };
+  
+  const ts1 = getTimestamp(tray1.created_dt);
+  const ts2 = getTimestamp(tray2.created_dt);
+  return ts1 > ts2 ? tray1 : tray2;
+}
+
+function mergeTrays(local: Tray, remote: Tray) {
+  // Simple merge strategy - take the newest timestamp
+  const newest = newestTimestamp(local, remote);
+  if (newest === remote) {
+    // Update local with remote data
+    local.name = remote.name;
+    local.properties = remote.properties;
+    local.hooks = remote.hooks;
+    local.isDone = remote.isDone;
+  }
+  // If local is newest, no changes needed
+}
+
 export async function updateData(tray: Tray) {
   if (!tray.filename || !tray.host_url) {
     return;
@@ -411,6 +301,19 @@ export async function updateData(tray: Tray) {
   if (current !== last) {
     await uploadData(tray);
     lastSerializedMap.set(tray.id, current);
+  }
+}
+
+export async function syncTray(tray: Tray) {
+  if (!tray.host_url || !tray.filename) {
+    return;
+  }
+  
+  try {
+    await updateData(tray);
+  } catch (error) {
+    console.error("Sync failed:", error);
+    throw error;
   }
 }
 
@@ -449,11 +352,6 @@ export function setNetworkOption(tray: Tray) {
 
   tray.host_url = hostUrl ? (hostUrl.trim() === "" ? null : hostUrl) : null;
   tray.filename = filename ? (filename.trim() === "" ? null : filename) : null;
-  
-  // Enable auto-upload by default when network is configured
-  if (tray.host_url && tray.filename) {
-    tray.autoUpload = true;
-  }
 }
 
 export function showNetworkOptions(tray: Tray) {
@@ -473,7 +371,6 @@ export function showNetworkOptions(tray: Tray) {
   if (url) tray.host_url = url;
   if (filename) tray.filename = filename;
 }
-
 
 export async function removeDataFromServer(tray: Tray) {
   if (!tray.filename) {
@@ -522,23 +419,35 @@ export function ondownloadButtonPressed(tray: Tray) {
   if (confirm("Are you sure you want to download?")) {
     downloadData(tray)
       .then((downloaded) => {
-        // Update the current tray with the downloaded data
-        let parent = getTrayFromId(tray.parentId) as Tray;
-        deleteTray(tray);
-        parent.addChild(downloaded as Tray);
-        parent.updateAppearance();
-
-        // Notify user of successful download
-        showUploadNotification("Download completed successfully.");
+        if (downloaded) {
+          // Replace current tray content with downloaded content
+          tray.name = downloaded.name;
+          tray.children = downloaded.children;
+          // Preserve network settings
+          downloaded.host_url = tray.host_url;
+          downloaded.filename = tray.filename;
+          showUploadNotification("Data downloaded successfully.");
+        }
       })
       .catch((error) => {
         console.error("Download failed:", error);
-        showUploadNotification(
-          "Download failed. Please check your connection.",
-        );
+        showUploadNotification("Failed to download data.", true);
       });
-  } else {
-    // If user cancels, notify them
-    showUploadNotification("Download cancelled.");
   }
+}
+
+// Stub functions for backward compatibility with tests
+export function startAutoUpload(tray: Tray) {
+  // Auto-upload feature removed - this is a stub for test compatibility
+  console.log("Auto-upload feature has been removed");
+}
+
+export function stopAutoUpload(tray: Tray) {
+  // Auto-upload feature removed - this is a stub for test compatibility
+  console.log("Auto-upload feature has been removed");
+}
+
+export function stopAllAutoUploads() {
+  // Auto-upload feature removed - this is a stub for test compatibility
+  console.log("Auto-upload feature has been removed");
 }

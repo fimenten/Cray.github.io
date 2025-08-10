@@ -443,10 +443,6 @@
   text-align: left;
 }
 
-.network-tray-buttons button.auto-upload-on {
-  background-color: green;
-  color: white;
-}
 
 .network-tray-buttons button:hover {
   background-color: #e0e0e0;
