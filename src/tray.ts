@@ -245,7 +245,7 @@ export class Tray {
     const updateButton = document.createElement("button");
     updateButton.textContent = "\u2193"; // down arrow
     updateButton.addEventListener("click", () => {
-      updateData(this).catch((e) => alert(e.message));
+      downloadData(this).catch((e) => alert(e.message));
     });
 
     actionsContainer.appendChild(uploadButton);
