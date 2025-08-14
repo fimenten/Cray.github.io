@@ -4,5 +4,9 @@ past.txt
 tray_data.json
 cjs
 
+# Test results and reports
+test-results/
+playwright-report/
+
 # Keep built bundle in repository for zero-cost deployment
 !dist/bundle.js
