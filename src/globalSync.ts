@@ -349,7 +349,7 @@ export class GlobalSyncManager {
       // Validate tray data before sync
       const validation = dataIntegrityManager.validateTray(tray);
       if (!validation.isValid) {
-        const errorSummary = validation.errors.map(e => e.message).join(', ');
+        const errorSummary = validation.errors.map((e: { message: string }) => e.message).join(', ');
         throw new Error(`Tray validation failed before sync: ${errorSummary}`);
       }
 
@@ -376,7 +376,7 @@ export class GlobalSyncManager {
         // Handle conflict errors differently - they need user intervention
         console.log(`Conflict detected for tray ${tray.name}, requiring manual resolution`);
         store.dispatch(setTraySyncStatus({ id: tray.id, status: 'error' }));
-        store.dispatch(setNetworkError(`Sync conflict: ${error.message}`));
+        store.dispatch(setNetworkError(`Sync conflict: ${(error as Error).message}`));
         syncIndicatorManager.showSyncError(`Conflict: ${tray.name}`, 'Manual resolution required');
         
         // Don't retry conflict errors automatically
@@ -420,8 +420,8 @@ export class GlobalSyncManager {
     const state = store.getState();
     const trayAutoUpload = selectTrayAutoUpload(state, tray.id);
     
-    // Use tray-specific setting if available, otherwise use tray's autoUpload property
-    return trayAutoUpload !== undefined ? trayAutoUpload : tray.autoUpload;
+    // Use tray-specific setting if available, otherwise default to false since autoUpload was removed
+    return trayAutoUpload !== undefined ? trayAutoUpload : false;
   }
 
   /**

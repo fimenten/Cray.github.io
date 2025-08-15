@@ -280,4 +280,17 @@ export const selectTrayDescendants = (state: { app: AppState }, trayId: TrayId):
   return descendants;
 };
 
+// Auto-upload related selectors
+export const selectAutoUploadEnabled = (state: { app: AppState }): boolean => {
+  // For now, return true as default since auto-upload feature was removed
+  // but we need this selector for backward compatibility
+  return false;
+};
+
+export const selectTrayAutoUpload = (state: { app: AppState }, trayId: TrayId): boolean | undefined => {
+  // Return undefined to indicate no tray-specific setting available
+  // This maintains backward compatibility while the feature is removed
+  return undefined;
+};
+
 export default appSlice.reducer;
