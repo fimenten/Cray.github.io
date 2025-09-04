@@ -126,6 +126,18 @@ export interface TweakingSettings {
   margin: number; // pixels (0 - 20)
 }
 
+// Notification preferences interface
+export interface NotificationPreferences {
+  showSyncSuccess: boolean; // Show "Data uploaded/downloaded successfully" messages
+  showSyncProgress: boolean; // Show sync progress indicators
+  showSyncErrors: boolean; // Show sync error notifications (always recommended to keep true)
+  showHookNotifications: boolean; // Show notifications when tasks with hooks are added
+  showAutoUploadMessages: boolean; // Show "Auto-upload/download: [tray name]" messages
+  quietMode: boolean; // Only show critical error notifications
+  batchNotifications: boolean; // Group multiple notifications into summaries
+  notificationDelay: number; // Delay between notifications in ms (500-5000)
+}
+
 // Enhanced state management interfaces
 export interface AppState {
   // Data layer
@@ -161,6 +173,9 @@ export interface AppState {
   
   // Tweaking settings
   tweaking: TweakingSettings;
+  
+  // Notification preferences
+  notifications: NotificationPreferences;
 }
 
 // Legacy state interface for compatibility

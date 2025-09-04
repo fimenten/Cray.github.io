@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Tray } from "./tray";
-import { TrayId, TrayData, AppState, TweakingSettings } from "./types";
+import { TrayId, TrayData, AppState, TweakingSettings, NotificationPreferences } from "./types";
 
 // Legacy interface for backward compatibility
 interface LegacyAppState {
@@ -55,6 +55,28 @@ const initialState: AppState = {
       fontSize: 1.0,
       fontWeight: 'bold' as const,
       margin: 10,
+    };
+  })(),
+  
+  // Notification preferences (initialized from localStorage)
+  notifications: (() => {
+    try {
+      const stored = localStorage.getItem('notificationPreferences');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.warn('Failed to load notification preferences from localStorage:', e);
+    }
+    return {
+      showSyncSuccess: true,
+      showSyncProgress: true,
+      showSyncErrors: true,
+      showHookNotifications: true,
+      showAutoUploadMessages: true,
+      quietMode: false,
+      batchNotifications: false,
+      notificationDelay: 2000,
     };
   })(),
 };
@@ -180,6 +202,14 @@ const appSlice = createSlice({
       state.tweaking = { ...state.tweaking, ...action.payload };
     },
     
+    // Notification preferences management
+    setNotificationPreferences(state, action: PayloadAction<NotificationPreferences>) {
+      state.notifications = action.payload;
+    },
+    updateNotificationPreferences(state, action: PayloadAction<Partial<NotificationPreferences>>) {
+      state.notifications = { ...state.notifications, ...action.payload };
+    },
+    
     // Legacy compatibility reducers
     setLastFocused(state, action: PayloadAction<Tray | TrayId>) {
       const id = typeof action.payload === 'string' ? action.payload : action.payload.id;
@@ -250,6 +280,10 @@ export const {
   setTweakingSettings,
   updateTweakingSettings,
   
+  // Notification preferences
+  setNotificationPreferences,
+  updateNotificationPreferences,
+  
   // Legacy compatibility
   setLastFocused,
   
@@ -272,6 +306,7 @@ export const selectMenuOpen = (state: { app: AppState }) => state.app.app.hambur
 export const selectTraySyncStatus = (state: { app: AppState }, trayId: TrayId) => state.app.network.syncStatus[trayId];
 export const selectNetworkError = (state: { app: AppState }) => state.app.network.lastError;
 export const selectTweakingSettings = (state: { app: AppState }) => state.app.tweaking;
+export const selectNotificationPreferences = (state: { app: AppState }) => state.app.notifications;
 
 // Complex selectors
 export const selectTrayChildren = (state: { app: AppState }, trayId: TrayId) => 
@@ -365,6 +400,58 @@ export function getTweakingSettings(): TweakingSettings {
 
 export function saveTweakingSettings(settings: TweakingSettings): void {
   localStorage.setItem('tweakingSettings', JSON.stringify(settings));
+}
+
+// Notification preferences utility functions
+export function getNotificationPreferences(): NotificationPreferences {
+  const stored = localStorage.getItem('notificationPreferences');
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      console.warn('Failed to parse notification preferences from localStorage:', e);
+    }
+  }
+  // Return default settings
+  return {
+    showSyncSuccess: true,
+    showSyncProgress: true,
+    showSyncErrors: true,
+    showHookNotifications: true,
+    showAutoUploadMessages: true,
+    quietMode: false,
+    batchNotifications: false,
+    notificationDelay: 2000,
+  };
+}
+
+export function saveNotificationPreferences(preferences: NotificationPreferences): void {
+  localStorage.setItem('notificationPreferences', JSON.stringify(preferences));
+}
+
+// Helper function to check if a specific notification type should be shown
+export function shouldShowNotification(type: 'sync-success' | 'sync-progress' | 'sync-error' | 'hook' | 'auto-upload'): boolean {
+  const prefs = getNotificationPreferences();
+  
+  // In quiet mode, only show errors
+  if (prefs.quietMode) {
+    return type === 'sync-error';
+  }
+  
+  switch (type) {
+    case 'sync-success':
+      return prefs.showSyncSuccess;
+    case 'sync-progress':
+      return prefs.showSyncProgress;
+    case 'sync-error':
+      return prefs.showSyncErrors;
+    case 'hook':
+      return prefs.showHookNotifications;
+    case 'auto-upload':
+      return prefs.showAutoUploadMessages;
+    default:
+      return true;
+  }
 }
 
 export default appSlice.reducer;

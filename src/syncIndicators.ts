@@ -6,7 +6,7 @@
  */
 
 import store from './store';
-import { selectTraySyncStatus, selectNetworkError, selectAutoUploadEnabled } from './state';
+import { selectTraySyncStatus, selectNetworkError, selectAutoUploadEnabled, shouldShowNotification } from './state';
 import { globalSyncManager } from './globalSync';
 import { Tray } from './tray';
 import { element2TrayMap } from './app';
@@ -205,7 +205,7 @@ export class SyncIndicatorManager {
    * Show sync progress notification
    */
   public showSyncProgress(message: string, progress?: number): void {
-    if (!this.options.showProgress) return;
+    if (!this.options.showProgress || !shouldShowNotification('sync-progress')) return;
 
     const notification = this.createNotification('progress', message, progress);
     this.showNotification(notification);
@@ -215,7 +215,7 @@ export class SyncIndicatorManager {
    * Show sync error notification
    */
   public showSyncError(message: string, details?: string): void {
-    if (!this.options.showErrors) return;
+    if (!this.options.showErrors || !shouldShowNotification('sync-error')) return;
 
     const notification = this.createNotification('error', message, undefined, details);
     this.showNotification(notification);
@@ -225,6 +225,8 @@ export class SyncIndicatorManager {
    * Show sync success notification
    */
   public showSyncSuccess(message: string): void {
+    if (!shouldShowNotification('sync-success')) return;
+    
     const notification = this.createNotification('success', message);
     this.showNotification(notification);
   }

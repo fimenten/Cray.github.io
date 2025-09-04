@@ -1,6 +1,7 @@
 import { Tray } from "./tray";
 import { serializeAsync, deserialize } from "./io";
 import { detectConflict, ConflictError, updateLastKnownState, ConflictDetectionResult } from './conflictResolution';
+import { shouldShowNotification, getNotificationPreferences } from './state';
 
 const lastSerializedMap = new Map<string, string>();
 
@@ -319,6 +320,17 @@ export async function syncTray(tray: Tray) {
 }
 
 export function showUploadNotification(message: string, isError = false) {
+  // Check notification preferences
+  if (isError) {
+    if (!shouldShowNotification('sync-error')) {
+      return; // Don't show error notifications if disabled
+    }
+  } else {
+    if (!shouldShowNotification('sync-success')) {
+      return; // Don't show success notifications if disabled
+    }
+  }
+  
   const notification = document.createElement("div");
   notification.textContent = message;
   notification.style.position = "fixed";
@@ -332,13 +344,19 @@ export function showUploadNotification(message: string, isError = false) {
 
   document.body.appendChild(notification);
 
+  // Use notification delay from preferences
+  const prefs = getNotificationPreferences();
+  const displayTime = isError ? 5000 : 3000; // Errors stay longer
+  
   setTimeout(() => {
     notification.style.transition = "opacity 0.5s";
     notification.style.opacity = "0";
     setTimeout(() => {
-      document.body.removeChild(notification);
+      if (notification.parentNode) {
+        document.body.removeChild(notification);
+      }
     }, 500);
-  }, 3000);
+  }, displayTime);
 }
 
 export function setNetworkOption(tray: Tray) {
@@ -557,7 +575,9 @@ async function handleConflictResult(
     case 'upload':
       await uploadData(localTray);
       await updateLastKnownState(localTray);
-      showUploadNotification(`Auto-upload: ${localTray.name}`);
+      if (shouldShowNotification('auto-upload')) {
+        showUploadNotification(`Auto-upload: ${localTray.name}`);
+      }
       break;
       
     case 'download':
@@ -572,7 +592,9 @@ async function handleConflictResult(
       remoteTray.filename = localTray.filename;
       
       await updateLastKnownState(localTray);
-      showUploadNotification(`Auto-download: ${localTray.name}`);
+      if (shouldShowNotification('auto-upload')) {
+        showUploadNotification(`Auto-download: ${localTray.name}`);
+      }
       break;
       
     case 'conflict':

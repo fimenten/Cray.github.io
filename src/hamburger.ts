@@ -10,14 +10,14 @@ import { element2TrayMap } from "./app";
 import { Tray } from "./tray";
 import { downloadData, uploadData } from "./networks";
 import { copyTray, deleteTray } from "./functions";
-import { setLastFocused, setGlobalAutoUpload, selectAutoUploadEnabled, getTrayAutoUpload, setTrayAutoUpload, selectTweakingSettings, updateTweakingSettings, saveTweakingSettings } from "./state";
+import { setLastFocused, setGlobalAutoUpload, selectAutoUploadEnabled, getTrayAutoUpload, setTrayAutoUpload, selectTweakingSettings, updateTweakingSettings, saveTweakingSettings, shouldShowNotification, getNotificationPreferences, saveNotificationPreferences } from "./state";
 import { showPluginManagerDialog } from "./pluginUI";
 import store from "./store";
 import { globalSyncManager } from "./globalSync";
 
 // Notification system for hook tasks
 export function showHookNotification(hookNames: string[]): void {
-  if (hookNames.length === 0) return;
+  if (hookNames.length === 0 || !shouldShowNotification('hook')) return;
   
   const notification = document.createElement("div");
   notification.classList.add("hook-notification");
@@ -1205,6 +1205,7 @@ function showAutoUploadSettings(): void {
   const state = store.getState();
   const globalEnabled = selectAutoUploadEnabled(state);
   const status = globalSyncManager.getSyncStatus();
+  const notifPrefs = getNotificationPreferences();
   
   const rootTray = element2TrayMap.get(getRootElement() as HTMLDivElement);
   const networkTrays = rootTray ? getAllNetworkTrays(rootTray) : [];
@@ -1221,13 +1222,13 @@ function showAutoUploadSettings(): void {
     padding: 20px;
     z-index: 10001;
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    max-width: 500px;
-    max-height: 70vh;
+    max-width: 600px;
+    max-height: 80vh;
     overflow-y: auto;
   `;
   
   dialog.innerHTML = `
-    <h3>Auto-Upload Settings</h3>
+    <h3>Auto-Upload & Notification Settings</h3>
     
     <div style="margin-bottom: 15px;">
       <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
@@ -1248,9 +1249,52 @@ function showAutoUploadSettings(): void {
       Queue: ${status.queueLength} | Active: ${status.activeSyncs}
     </div>
     
+    <div style="margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; padding: 12px;">
+      <h4 style="margin: 0 0 10px 0;">🔔 Notification Preferences</h4>
+      
+      <div style="margin-bottom: 10px;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 6px;">
+          <input type="checkbox" id="quietMode" ${notifPrefs.quietMode ? 'checked' : ''}>
+          <strong>Quiet Mode</strong> <small>(only show error notifications)</small>
+        </label>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px;">
+        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+          <input type="checkbox" id="showSyncSuccess" ${notifPrefs.showSyncSuccess ? 'checked' : ''} ${notifPrefs.quietMode ? 'disabled' : ''}>
+          <span>Sync Success Messages</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+          <input type="checkbox" id="showSyncProgress" ${notifPrefs.showSyncProgress ? 'checked' : ''} ${notifPrefs.quietMode ? 'disabled' : ''}>
+          <span>Sync Progress Indicators</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+          <input type="checkbox" id="showAutoUploadMessages" ${notifPrefs.showAutoUploadMessages ? 'checked' : ''} ${notifPrefs.quietMode ? 'disabled' : ''}>
+          <span>Auto-Upload Messages</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+          <input type="checkbox" id="showHookNotifications" ${notifPrefs.showHookNotifications ? 'checked' : ''} ${notifPrefs.quietMode ? 'disabled' : ''}>
+          <span>Hook Task Notifications</span>
+        </label>
+      </div>
+      
+      <div style="margin-top: 10px;">
+        <label style="display: block; margin-bottom: 4px; font-size: 14px; font-weight: 500;">
+          Notification Display Time:
+        </label>
+        <input type="range" id="notificationDelay" min="1000" max="8000" step="500" value="${notifPrefs.notificationDelay}" 
+               style="width: 100%;" ${notifPrefs.quietMode ? 'disabled' : ''}>
+        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666;">
+          <span>1s</span>
+          <span id="delayValue">${notifPrefs.notificationDelay / 1000}s</span>
+          <span>8s</span>
+        </div>
+      </div>
+    </div>
+    
     <div style="margin-bottom: 15px;">
       <strong>Network-Enabled Trays (${networkTrays.length}):</strong>
-      <div id="trayList" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 8px; margin-top: 8px;">
+      <div id="trayList" style="max-height: 150px; overflow-y: auto; border: 1px solid #ddd; padding: 8px; margin-top: 8px;">
         ${networkTrays.map(tray => `
           <div style="display: flex; align-items: center; justify-content: space-between; margin: 4px 0; padding: 4px; background: #fafafa; border-radius: 3px;">
             <span style="flex: 1; font-size: 14px;">${tray.name.substring(0, 30)}${tray.name.length > 30 ? '...' : ''}</span>
@@ -1276,6 +1320,34 @@ function showAutoUploadSettings(): void {
   const cancelBtn = dialog.querySelector('#cancelAutoUploadSettings') as HTMLButtonElement;
   const globalCheckbox = dialog.querySelector('#globalAutoUpload') as HTMLInputElement;
   
+  // Notification preference controls
+  const quietModeCheckbox = dialog.querySelector('#quietMode') as HTMLInputElement;
+  const delaySlider = dialog.querySelector('#notificationDelay') as HTMLInputElement;
+  const delayValue = dialog.querySelector('#delayValue') as HTMLSpanElement;
+  
+  // Update delay value display
+  delaySlider.addEventListener('input', () => {
+    delayValue.textContent = `${parseInt(delaySlider.value) / 1000}s`;
+  });
+  
+  // Handle quiet mode toggle
+  quietModeCheckbox.addEventListener('change', () => {
+    const isQuiet = quietModeCheckbox.checked;
+    const notificationCheckboxes = [
+      '#showSyncSuccess', '#showSyncProgress', '#showAutoUploadMessages', '#showHookNotifications'
+    ];
+    
+    notificationCheckboxes.forEach(selector => {
+      const checkbox = dialog.querySelector(selector) as HTMLInputElement;
+      if (checkbox) {
+        checkbox.disabled = isQuiet;
+        if (isQuiet) checkbox.checked = false;
+      }
+    });
+    
+    delaySlider.disabled = isQuiet;
+  });
+  
   saveBtn.addEventListener('click', () => {
     // Save global setting
     const newGlobalState = globalCheckbox.checked;
@@ -1290,6 +1362,20 @@ function showAutoUploadSettings(): void {
       }
     });
     
+    // Save notification preferences
+    const newNotifPrefs = {
+      showSyncSuccess: (dialog.querySelector('#showSyncSuccess') as HTMLInputElement).checked,
+      showSyncProgress: (dialog.querySelector('#showSyncProgress') as HTMLInputElement).checked,
+      showSyncErrors: true, // Always keep errors enabled
+      showHookNotifications: (dialog.querySelector('#showHookNotifications') as HTMLInputElement).checked,
+      showAutoUploadMessages: (dialog.querySelector('#showAutoUploadMessages') as HTMLInputElement).checked,
+      quietMode: quietModeCheckbox.checked,
+      batchNotifications: false, // Not implemented yet
+      notificationDelay: parseInt(delaySlider.value),
+    };
+    
+    saveNotificationPreferences(newNotifPrefs);
+    
     // Restart/stop global sync based on new settings
     if (newGlobalState && !globalSyncManager.getSyncStatus().isRunning) {
       globalSyncManager.start();
@@ -1297,7 +1383,7 @@ function showAutoUploadSettings(): void {
       globalSyncManager.stop();
     }
     
-    alert('Auto-upload settings saved successfully!');
+    alert('Auto-upload and notification settings saved successfully!');
     document.body.removeChild(dialog);
   });
   
