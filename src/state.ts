@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { Tray } from "./tray";
-import { TrayId, TrayData, AppState } from "./types";
+import { TrayId, TrayData, AppState, TweakingSettings } from "./types";
 
 // Legacy interface for backward compatibility
 interface LegacyAppState {
@@ -40,6 +40,23 @@ const initialState: AppState = {
     syncStatus: {},
     lastError: null,
   },
+  
+  // Tweaking settings (initialized from localStorage)
+  tweaking: (() => {
+    try {
+      const stored = localStorage.getItem('tweakingSettings');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch (e) {
+      console.warn('Failed to load tweaking settings from localStorage:', e);
+    }
+    return {
+      fontSize: 1.0,
+      fontWeight: 'bold' as const,
+      margin: 10,
+    };
+  })(),
 };
 
 const appSlice = createSlice({
@@ -155,6 +172,14 @@ const appSlice = createSlice({
       state.network.lastError = action.payload;
     },
     
+    // Tweaking settings management
+    setTweakingSettings(state, action: PayloadAction<TweakingSettings>) {
+      state.tweaking = action.payload;
+    },
+    updateTweakingSettings(state, action: PayloadAction<Partial<TweakingSettings>>) {
+      state.tweaking = { ...state.tweaking, ...action.payload };
+    },
+    
     // Legacy compatibility reducers
     setLastFocused(state, action: PayloadAction<Tray | TrayId>) {
       const id = typeof action.payload === 'string' ? action.payload : action.payload.id;
@@ -221,6 +246,10 @@ export const {
   setTraySyncStatus,
   setNetworkError,
   
+  // Tweaking settings
+  setTweakingSettings,
+  updateTweakingSettings,
+  
   // Legacy compatibility
   setLastFocused,
   
@@ -242,6 +271,7 @@ export const selectVisible = (state: { app: AppState }) => state.app.ui.visible;
 export const selectMenuOpen = (state: { app: AppState }) => state.app.app.hamburgerMenuOpen;
 export const selectTraySyncStatus = (state: { app: AppState }, trayId: TrayId) => state.app.network.syncStatus[trayId];
 export const selectNetworkError = (state: { app: AppState }) => state.app.network.lastError;
+export const selectTweakingSettings = (state: { app: AppState }) => state.app.tweaking;
 
 // Complex selectors
 export const selectTrayChildren = (state: { app: AppState }, trayId: TrayId) => 
@@ -313,6 +343,28 @@ export function removeTrayAutoUpload(trayId: TrayId): void {
   const settings = JSON.parse(localStorage.getItem('trayAutoUploadSettings') || '{}');
   delete settings[trayId];
   localStorage.setItem('trayAutoUploadSettings', JSON.stringify(settings));
+}
+
+// Tweaking settings persistence functions
+export function getTweakingSettings(): TweakingSettings {
+  const stored = localStorage.getItem('tweakingSettings');
+  if (stored) {
+    try {
+      return JSON.parse(stored);
+    } catch (e) {
+      console.warn('Failed to parse tweaking settings from localStorage:', e);
+    }
+  }
+  // Return default settings
+  return {
+    fontSize: 1.0,
+    fontWeight: 'bold',
+    margin: 10,
+  };
+}
+
+export function saveTweakingSettings(settings: TweakingSettings): void {
+  localStorage.setItem('tweakingSettings', JSON.stringify(settings));
 }
 
 export default appSlice.reducer;

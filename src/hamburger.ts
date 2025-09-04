@@ -10,7 +10,7 @@ import { element2TrayMap } from "./app";
 import { Tray } from "./tray";
 import { downloadData, uploadData } from "./networks";
 import { copyTray, deleteTray } from "./functions";
-import { setLastFocused, setGlobalAutoUpload, selectAutoUploadEnabled, getTrayAutoUpload, setTrayAutoUpload } from "./state";
+import { setLastFocused, setGlobalAutoUpload, selectAutoUploadEnabled, getTrayAutoUpload, setTrayAutoUpload, selectTweakingSettings, updateTweakingSettings, saveTweakingSettings } from "./state";
 import { showPluginManagerDialog } from "./pluginUI";
 import store from "./store";
 import { globalSyncManager } from "./globalSync";
@@ -166,6 +166,12 @@ export function createHamburgerMenu() {
   hookButton.innerHTML = "🏷️";
   leftBar.appendChild(hookButton);
   hookButton.addEventListener("click", showHookViewDialog);
+
+  const tweakingButton = document.createElement("div");
+  tweakingButton.classList.add("tweaking-button");
+  tweakingButton.innerHTML = "⚙️";
+  leftBar.appendChild(tweakingButton);
+  tweakingButton.addEventListener("click", showTweakingDialog);
 
 
   const selectionMenu = document.createElement("div");
@@ -1006,6 +1012,162 @@ export function showHookViewDialog(): void {
   });
 }
 
+
+function showTweakingDialog(): void {
+  const state = store.getState();
+  const currentSettings = selectTweakingSettings(state);
+  
+  const dialog = document.createElement("div");
+  dialog.classList.add("tweaking-dialog");
+  dialog.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border: 2px solid #333;
+    border-radius: 8px;
+    padding: 20px;
+    z-index: 10001;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    width: 320px;
+    font-family: system-ui, -apple-system, sans-serif;
+  `;
+  
+  dialog.innerHTML = `
+    <h3 style="margin: 0 0 20px 0; text-align: center;">⚙️ Tweaking Settings</h3>
+    
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 8px; font-weight: 600;">
+        Font Size: <span id="fontSizeValue">${currentSettings.fontSize}em</span>
+      </label>
+      <input type="range" id="fontSizeSlider" min="0.8" max="2.0" step="0.1" value="${currentSettings.fontSize}" 
+             style="width: 100%; margin-bottom: 8px;">
+      <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666;">
+        <span>0.8em</span>
+        <span>2.0em</span>
+      </div>
+    </div>
+    
+    <div style="margin-bottom: 20px;">
+      <label style="display: block; margin-bottom: 8px; font-weight: 600;">
+        Font Weight:
+      </label>
+      <div style="display: flex; gap: 10px;">
+        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+          <input type="radio" name="fontWeight" value="normal" ${currentSettings.fontWeight === 'normal' ? 'checked' : ''}>
+          <span>Normal</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+          <input type="radio" name="fontWeight" value="bold" ${currentSettings.fontWeight === 'bold' ? 'checked' : ''}>
+          <span>Bold</span>
+        </label>
+      </div>
+    </div>
+    
+    <div style="margin-bottom: 25px;">
+      <label style="display: block; margin-bottom: 8px; font-weight: 600;">
+        Margin (余白): <span id="marginValue">${currentSettings.margin}px</span>
+      </label>
+      <input type="range" id="marginSlider" min="0" max="20" step="1" value="${currentSettings.margin}" 
+             style="width: 100%; margin-bottom: 8px;">
+      <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666;">
+        <span>0px</span>
+        <span>20px</span>
+      </div>
+    </div>
+    
+    <div style="display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #eee; padding-top: 20px;">
+      <button id="resetTweaking" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Reset</button>
+      <button id="applyTweaking" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Apply</button>
+      <button id="closeTweaking" style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Close</button>
+    </div>
+  `;
+  
+  document.body.appendChild(dialog);
+  
+  // Get control elements
+  const fontSizeSlider = dialog.querySelector('#fontSizeSlider') as HTMLInputElement;
+  const fontSizeValue = dialog.querySelector('#fontSizeValue') as HTMLSpanElement;
+  const marginSlider = dialog.querySelector('#marginSlider') as HTMLInputElement;
+  const marginValue = dialog.querySelector('#marginValue') as HTMLSpanElement;
+  const fontWeightRadios = dialog.querySelectorAll('input[name="fontWeight"]') as NodeListOf<HTMLInputElement>;
+  const resetBtn = dialog.querySelector('#resetTweaking') as HTMLButtonElement;
+  const applyBtn = dialog.querySelector('#applyTweaking') as HTMLButtonElement;
+  const closeBtn = dialog.querySelector('#closeTweaking') as HTMLButtonElement;
+  
+  // Update display values when sliders change
+  fontSizeSlider.addEventListener('input', () => {
+    fontSizeValue.textContent = `${fontSizeSlider.value}em`;
+  });
+  
+  marginSlider.addEventListener('input', () => {
+    marginValue.textContent = `${marginSlider.value}px`;
+  });
+  
+  // Button handlers
+  resetBtn.addEventListener('click', () => {
+    // Reset to default values
+    fontSizeSlider.value = '1.0';
+    fontSizeValue.textContent = '1.0em';
+    marginSlider.value = '10';
+    marginValue.textContent = '10px';
+    fontWeightRadios.forEach(radio => {
+      radio.checked = radio.value === 'bold';
+    });
+  });
+  
+  applyBtn.addEventListener('click', () => {
+    const newSettings = {
+      fontSize: parseFloat(fontSizeSlider.value),
+      fontWeight: (document.querySelector('input[name="fontWeight"]:checked') as HTMLInputElement).value as 'normal' | 'bold',
+      margin: parseInt(marginSlider.value, 10),
+    };
+    
+    // Update Redux state
+    store.dispatch(updateTweakingSettings(newSettings));
+    
+    // Save to localStorage
+    saveTweakingSettings(newSettings);
+    
+    // Apply the settings to CSS
+    applyTweakingSettings(newSettings);
+    
+    alert('Tweaking settings applied successfully!');
+    dialog.remove();
+  });
+  
+  closeBtn.addEventListener('click', () => {
+    dialog.remove();
+  });
+  
+  // Close on ESC key
+  const escListener = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      dialog.remove();
+      document.removeEventListener('keydown', escListener);
+    }
+  };
+  document.addEventListener('keydown', escListener);
+  
+  // Close when clicking outside
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) {
+      dialog.remove();
+    }
+  });
+}
+
+function applyTweakingSettings(settings: { fontSize: number; fontWeight: 'normal' | 'bold'; margin: number }): void {
+  // Update CSS custom properties
+  const root = document.documentElement;
+  
+  root.style.setProperty('--tray-font-size', `${settings.fontSize}em`);
+  root.style.setProperty('--tray-font-weight', settings.fontWeight);
+  root.style.setProperty('--tray-margin', `${settings.margin}px`);
+  
+  console.log('Applied tweaking settings:', settings);
+}
 
 // Helper function to get all network-enabled trays
 function getAllNetworkTrays(tray: Tray): Tray[] {

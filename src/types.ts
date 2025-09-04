@@ -119,6 +119,13 @@ export interface IPluginContext {
   deleteTray(id: TrayId): boolean;
 }
 
+// Tweaking settings interface
+export interface TweakingSettings {
+  fontSize: number; // em units (0.8 - 2.0)
+  fontWeight: 'normal' | 'bold'; // CSS font-weight values
+  margin: number; // pixels (0 - 20)
+}
+
 // Enhanced state management interfaces
 export interface AppState {
   // Data layer
@@ -151,6 +158,9 @@ export interface AppState {
     syncStatus: Record<TrayId, 'syncing' | 'synced' | 'error'>;
     lastError: string | null;
   };
+  
+  // Tweaking settings
+  tweaking: TweakingSettings;
 }
 
 // Legacy state interface for compatibility

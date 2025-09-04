@@ -7,6 +7,11 @@
   --hover-bg-color: #f0f0f0;
   --menu-bg-color: white;
   --menu-border-color: #ccc;
+  
+  /* Tweaking settings variables */
+  --tray-font-size: 1.0em;
+  --tray-font-weight: bold;
+  --tray-margin: 10px;
 }
 
 /* Base Tray Styles */
@@ -44,7 +49,7 @@
   align-items: flex-start;
   justify-content: space-between;
   width: 100%;
-  padding: 10px 0 10px 10px;
+  padding: var(--tray-margin) 0 var(--tray-margin) var(--tray-margin);
   box-sizing: border-box;
   min-height: 30px;
   transition: min-height 0.3s ease;
@@ -107,7 +112,8 @@
   box-sizing: border-box;
   word-wrap: break-word;
   white-space: normal;
-  font-weight: bold;
+  font-weight: var(--tray-font-weight);
+  font-size: var(--tray-font-size);
   outline: none;
   cursor: text;
   color: var(--title-color);
@@ -149,10 +155,10 @@
 
 /* Tray Content */
 .tray-content {
-  padding-left: 1px;
-  /* padding-top: 10px; */
-  padding-right: 1px;
-  padding-bottom: 10px;
+  padding-left: calc(var(--tray-margin) / 10);
+  /* padding-top: var(--tray-margin); */
+  padding-right: calc(var(--tray-margin) / 10);
+  padding-bottom: var(--tray-margin);
   box-sizing: border-box;
   background-color: var(--tray-content-bg-color);
   display: flex;
@@ -608,6 +614,13 @@ body > .tray > .tray-content {
 }
 
 .hook-view-button {
+  padding: 10px;
+  font-size: 20px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.tweaking-button {
   padding: 10px;
   font-size: 20px;
   cursor: pointer;

@@ -24,7 +24,7 @@ import { Tray } from "./tray";
 import { TrayId } from "./types";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import store from "./store";
-import { setLastFocused } from "./state";
+import { setLastFocused, getTweakingSettings } from "./state";
 import { createActionButtons } from "./actionbotton";
 import { pluginManager } from "./pluginManager";
 import { pluginStorage } from "./pluginStorage";
@@ -85,6 +85,18 @@ window.addEventListener("DOMContentLoaded", async () => {
     console.error("Failed to initialize plugin system:", error);
   }
 
+  // Initialize tweaking settings
+  try {
+    const tweakingSettings = getTweakingSettings();
+    const root = document.documentElement;
+    root.style.setProperty('--tray-font-size', `${tweakingSettings.fontSize}em`);
+    root.style.setProperty('--tray-font-weight', tweakingSettings.fontWeight);
+    root.style.setProperty('--tray-margin', `${tweakingSettings.margin}px`);
+    console.log('Initialized tweaking settings:', tweakingSettings);
+  } catch (error) {
+    console.error('Failed to initialize tweaking settings:', error);
+  }
+
   // Sync indicator system removed
 
   const root = getRootElement();
@@ -96,10 +108,10 @@ window.addEventListener("DOMContentLoaded", async () => {
   }
 
 
-  // const { leftBar } = createHamburgerMenu();
-  // console.log("leftBar:", leftBar); // Debug log
+  const { leftBar } = createHamburgerMenu();
+  console.log("leftBar:", leftBar); // Debug log
   // document.body.insertBefore(leftBar, document.body.firstChild);
-  // document.body.appendChild(leftBar);
+  document.body.appendChild(leftBar);
 
 
 
