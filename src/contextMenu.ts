@@ -98,6 +98,9 @@ const menu: HTMLElement = buildMenu();
 document.body.appendChild(menu);
 menu.style.display = "none";       // 初期は非表示
 
+// Track the tray that opened the context menu for focus restoration
+let contextMenuTray: Tray | null = null;
+
 // -- ビルド関数 --------------------------------------------------
 export function buildMenu(): HTMLElement {
   const el = document.createElement("div");
@@ -129,6 +132,9 @@ export function buildMenu(): HTMLElement {
 
 // ===== パブリック API ==========================================
 export function openContextMenu(tray: Tray, ev: MouseEvent | TouchEvent | { clientX: number; clientY: number }) {
+  // Store reference to the tray that opened the menu for focus restoration
+  contextMenuTray = tray;
+  
   // ――― HMR や再描画で切れていたら付け直す ―――
   if (!menu.isConnected) document.body.appendChild(menu);
 
@@ -165,6 +171,14 @@ export function closeContextMenu() {
   menu.querySelectorAll<HTMLElement>(".menu-item").forEach((el) =>
     el.classList.remove("focused")
   );
+  
+  // Restore focus to the tray that opened the context menu
+  if (contextMenuTray && contextMenuTray.element && typeof contextMenuTray.element.focus === 'function') {
+    contextMenuTray.element.focus();
+  }
+  
+  // Clear the reference
+  contextMenuTray = null;
 }
 
 // ===== 内部ヘルパ ==============================================
