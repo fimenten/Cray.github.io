@@ -10,9 +10,10 @@ import { element2TrayMap } from "./app";
 import { Tray } from "./tray";
 import { downloadData, uploadData } from "./networks";
 import { copyTray, deleteTray } from "./functions";
-import { setLastFocused } from "./state";
+import { setLastFocused, setGlobalAutoUpload, selectAutoUploadEnabled, getTrayAutoUpload, setTrayAutoUpload } from "./state";
 import { showPluginManagerDialog } from "./pluginUI";
 import store from "./store";
+import { globalSyncManager } from "./globalSync";
 
 // Notification system for hook tasks
 export function showHookNotification(hookNames: string[]): void {
@@ -103,6 +104,8 @@ export const GENERAL_MENU_ITEMS: HamburgerMenuItem[] = [
   { action: "newSession", label: "New Session" },
   { action: "temporalTray", label: "Temporal Tray" },
   { action: "pluginManager", label: "🔌 Plugin Manager" },
+  { action: "toggleAutoUpload", label: "🔄 Toggle Auto-Upload" },
+  { action: "autoUploadSettings", label: "⚙️ Auto-Upload Settings" },
 ];
 
 export const SELECTION_MENU_ITEMS: HamburgerMenuItem[] = [
@@ -249,6 +252,8 @@ export function createHamburgerMenu() {
     cutSelected: cutSelected,
     copySelected: copySelected,
     pluginManager: showPluginManagerDialog,
+    toggleAutoUpload: toggleGlobalAutoUpload,
+    autoUploadSettings: showAutoUploadSettings,
   };
 
   menu.addEventListener("click", (event: MouseEvent) => {
@@ -1015,4 +1020,135 @@ function getAllNetworkTrays(tray: Tray): Tray[] {
   });
   
   return networkTrays;
+}
+
+// Auto-upload management functions
+function toggleGlobalAutoUpload(): void {
+  const state = store.getState();
+  const currentlyEnabled = selectAutoUploadEnabled(state);
+  const newState = !currentlyEnabled;
+  
+  setGlobalAutoUpload(newState);
+  
+  if (newState) {
+    globalSyncManager.start();
+    alert("Auto-upload enabled globally. Individual trays can be configured via their context menus.");
+  } else {
+    globalSyncManager.stop();
+    alert("Auto-upload disabled globally.");
+  }
+}
+
+function showAutoUploadSettings(): void {
+  const state = store.getState();
+  const globalEnabled = selectAutoUploadEnabled(state);
+  const status = globalSyncManager.getSyncStatus();
+  
+  const rootTray = element2TrayMap.get(getRootElement() as HTMLDivElement);
+  const networkTrays = rootTray ? getAllNetworkTrays(rootTray) : [];
+  
+  const dialog = document.createElement("div");
+  dialog.style.cssText = `
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    border: 2px solid #333;
+    border-radius: 8px;
+    padding: 20px;
+    z-index: 10001;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    max-width: 500px;
+    max-height: 70vh;
+    overflow-y: auto;
+  `;
+  
+  dialog.innerHTML = `
+    <h3>Auto-Upload Settings</h3>
+    
+    <div style="margin-bottom: 15px;">
+      <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+        <input type="checkbox" id="globalAutoUpload" ${globalEnabled ? 'checked' : ''}>
+        <strong>Enable Global Auto-Upload</strong>
+      </label>
+      <small style="color: #666; margin-left: 24px;">
+        When enabled, network-configured trays will automatically sync changes
+      </small>
+    </div>
+    
+    <div style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
+      <strong>Current Status:</strong><br>
+      Global: ${globalEnabled ? '✅ Enabled' : '❌ Disabled'}<br>
+      Running: ${status.isRunning ? '✅ Active' : '❌ Stopped'}<br>
+      Network Trays: ${status.networkTrays}<br>
+      Auto-Sync Trays: ${status.autoSyncTrays}<br>
+      Queue: ${status.queueLength} | Active: ${status.activeSyncs}
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+      <strong>Network-Enabled Trays (${networkTrays.length}):</strong>
+      <div id="trayList" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 8px; margin-top: 8px;">
+        ${networkTrays.map(tray => `
+          <div style="display: flex; align-items: center; justify-content: space-between; margin: 4px 0; padding: 4px; background: #fafafa; border-radius: 3px;">
+            <span style="flex: 1; font-size: 14px;">${tray.name.substring(0, 30)}${tray.name.length > 30 ? '...' : ''}</span>
+            <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+              <input type="checkbox" data-tray-id="${tray.id}" class="tray-auto-upload" ${getTrayAutoUpload(tray.id) ? 'checked' : ''}>
+              <span style="font-size: 12px;">Auto-sync</span>
+            </label>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    
+    <div style="display: flex; gap: 10px; justify-content: flex-end;">
+      <button id="saveAutoUploadSettings" style="padding: 8px 16px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Save</button>
+      <button id="cancelAutoUploadSettings" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+    </div>
+  `;
+  
+  document.body.appendChild(dialog);
+  
+  // Event handlers
+  const saveBtn = dialog.querySelector('#saveAutoUploadSettings') as HTMLButtonElement;
+  const cancelBtn = dialog.querySelector('#cancelAutoUploadSettings') as HTMLButtonElement;
+  const globalCheckbox = dialog.querySelector('#globalAutoUpload') as HTMLInputElement;
+  
+  saveBtn.addEventListener('click', () => {
+    // Save global setting
+    const newGlobalState = globalCheckbox.checked;
+    setGlobalAutoUpload(newGlobalState);
+    
+    // Save individual tray settings
+    const trayCheckboxes = dialog.querySelectorAll('.tray-auto-upload') as NodeListOf<HTMLInputElement>;
+    trayCheckboxes.forEach(checkbox => {
+      const trayId = checkbox.getAttribute('data-tray-id');
+      if (trayId) {
+        setTrayAutoUpload(trayId, checkbox.checked);
+      }
+    });
+    
+    // Restart/stop global sync based on new settings
+    if (newGlobalState && !globalSyncManager.getSyncStatus().isRunning) {
+      globalSyncManager.start();
+    } else if (!newGlobalState && globalSyncManager.getSyncStatus().isRunning) {
+      globalSyncManager.stop();
+    }
+    
+    alert('Auto-upload settings saved successfully!');
+    document.body.removeChild(dialog);
+  });
+  
+  cancelBtn.addEventListener('click', () => {
+    document.body.removeChild(dialog);
+  });
+  
+  // Close on ESC key
+  const escListener = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      document.body.removeChild(dialog);
+      document.removeEventListener('keydown', escListener);
+    }
+  };
+  document.addEventListener('keydown', escListener);
 }

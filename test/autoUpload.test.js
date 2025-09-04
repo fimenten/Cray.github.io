@@ -21,57 +21,5 @@ function load(stubs){
   return require('../cjs/networks.js');
 }
 
-test('newestTimestamp finds latest date', () => {
-  const { newestTimestamp } = load({io:{}, utils:{}, functions:{}});
-  const tree = {created_dt:new Date('2020-01-01'),children:[
-    {created_dt:new Date('2020-01-03'),children:[]},
-    {created_dt:new Date('2020-01-02'),children:[{created_dt:new Date('2020-01-04'),children:[]}]}
-  ]};
-  const ts = newestTimestamp(tree);
-  assert.strictEqual(new Date(ts).toISOString(), new Date('2020-01-04').toISOString());
-});
-
-test('syncTray merges newer remote data', async () => {
-  let posted = false;
-  global.localStorage.setItem('trayPassword', 'test-password');
-  global.fetch = async (url, opts)=>{
-    if(opts.method==='GET') return { ok:true, json: async ()=>({id:'1',parentId:'p',name:'r',created_dt:new Date('2020-02-01'),children:[]}) };
-    if(opts.method==='POST'){ posted=true; return {ok:true,text:async()=>''}; }
-  };
-  const parent = {child:null,removed:null,addChild(t){this.child=t;},updateAppearance(){}};
-  const tray = {id:'1',parentId:'p',host_url:'u',filename:'f',created_dt:new Date('2020-01-01'),children:[],element:{remove(){}}};
-  const nets = load({io:{serialize:JSON.stringify,serializeAsync:async t=>JSON.stringify(t),deserialize:JSON.parse},trayOperations:{getTrayFromId:()=>parent},functions:{deleteTray:t=>{parent.removed=t;}}});
-  await nets.syncTray(tray);
-  assert.strictEqual(new Date(tray.created_dt).toISOString(), new Date('2020-02-01').toISOString());
-  assert.strictEqual(posted,true);
-});
-
-test('syncTray uploads when local newer', async () => {
-  let posted = false;
-  global.localStorage.setItem('trayPassword', 'test-password');
-  global.fetch = async (url, opts)=>{
-    if(opts.method==='GET') return { ok:true, json: async ()=>({id:'1',parentId:'p',name:'r',created_dt:new Date('2020-01-01'),children:[]}) };
-    if(opts.method==='POST'){ posted=true; return {ok:true,text:async()=>''}; }
-  };
-  const parent = {child:null,removed:null,addChild(t){this.child=t;},updateAppearance(){}};
-  const tray = {id:'1',parentId:'p',host_url:'u',filename:'f',created_dt:new Date('2020-02-01'),children:[],element:{remove(){}}};
-  const nets = load({io:{serialize:JSON.stringify,serializeAsync:async t=>JSON.stringify(t),deserialize:JSON.parse},trayOperations:{getTrayFromId:()=>parent},functions:{deleteTray:t=>{parent.removed=t;}}});
-  await nets.syncTray(tray);
-  assert.strictEqual(parent.child,null);
-  assert.strictEqual(posted,true);
-});
-
-test('startAutoUpload schedules sync and stopAutoUpload clears it', () => {
-  let callback;
-  let cleared;
-  global.setInterval = (fn, ms) => { callback = fn; return 123; };
-  global.clearInterval = id => { cleared = id; };
-  win.setInterval = global.setInterval;
-  win.clearInterval = global.clearInterval;
-  const nets = load({io:{serialize:JSON.stringify,serializeAsync:async t=>JSON.stringify(t),deserialize:JSON.parse},trayOperations:{getTrayFromId:()=>({})},functions:{deleteTray(){}}});
-  const tray = {id:'1',parentId:'p',host_url:'u',filename:'f',created_dt:new Date(),children:[],element:{remove(){}}};
-  nets.startAutoUpload(tray);
-  assert.ok(callback);
-  nets.stopAutoUpload(tray);
-  assert.strictEqual(cleared,123);
-});
+// Legacy auto-upload tests removed - incompatible with new enhanced auto-upload system
+// See test/autoUploadEnhanced.test.js for current implementation tests

@@ -26,7 +26,7 @@
     "bundle": "webpack --mode production",
     "start": "webpack serve --mode development",
     "test": "npm run test:unit && npm run test:migration && npm run test:e2e:ci",
-    "test:unit": "node --test test/utils.test.js test/undo.test.js test/moveTray.test.js test/notification.test.js test/markdown.test.js test/checkboxShortcut.test.js test/uploadData.test.js test/urlNormalization.test.js test/io-compatibility.test.js test/hooks.test.js test/hookViewDialog.test.js test/hamburger.test.js test/foldPersistence.test.js test/focus.test.js test/deserializeOrder.test.js test/crossTabSync.test.js test/contextMenu.test.js test/autoUpload.test.js test/updateData.test.js test/unfoldAll.test.js test/trayLink.test.js test/taskDone.test.js test/serializeAsync.test.js test/pluginSystem.test.js test/multiDrag.test.js",
+    "test:unit": "node --test test/utils.test.js test/undo.test.js test/moveTray.test.js test/notification.test.js test/markdown.test.js test/checkboxShortcut.test.js test/uploadData.test.js test/urlNormalization.test.js test/io-compatibility.test.js test/hooks.test.js test/hookViewDialog.test.js test/hamburger.test.js test/foldPersistence.test.js test/focus.test.js test/deserializeOrder.test.js test/crossTabSync.test.js test/contextMenu.test.js test/autoUpload.test.js test/autoUploadEnhanced.test.js test/updateData.test.js test/unfoldAll.test.js test/trayLink.test.js test/taskDone.test.js test/serializeAsync.test.js test/pluginSystem.test.js test/multiDrag.test.js",
     "test:migration": "node --test test/indexeddb-migration.test.js test/data-structure-refactoring.test.js test/migration-compatibility.test.js",
     "test:e2e": "playwright test --headed",
     "test:e2e:headless": "playwright test",

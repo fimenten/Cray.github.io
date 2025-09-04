@@ -10,7 +10,7 @@ import { syncTray, stopAllAutoUploads } from './networks';
 import { getRootElement } from './utils';
 import { element2TrayMap } from './app';
 import store from './store';
-import { selectAutoUploadEnabled, selectTrayAutoUpload, setTraySyncStatus, setNetworkError } from './state';
+import { selectAutoUploadEnabled, selectTrayAutoUpload, setTraySyncStatus, setNetworkError, getTrayAutoUpload } from './state';
 import { ConflictError } from './conflictResolution';
 import { syncIndicatorManager } from './syncIndicators';
 import { dataIntegrityManager } from './dataIntegrity';
@@ -417,11 +417,7 @@ export class GlobalSyncManager {
     }
 
     // Check individual tray auto-upload setting
-    const state = store.getState();
-    const trayAutoUpload = selectTrayAutoUpload(state, tray.id);
-    
-    // Use tray-specific setting if available, otherwise default to false since autoUpload was removed
-    return trayAutoUpload !== undefined ? trayAutoUpload : false;
+    return getTrayAutoUpload(tray.id);
   }
 
   /**

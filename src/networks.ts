@@ -1,5 +1,6 @@
 import { Tray } from "./tray";
 import { serializeAsync, deserialize } from "./io";
+import { detectConflict, ConflictError, updateLastKnownState, ConflictDetectionResult } from './conflictResolution';
 
 const lastSerializedMap = new Map<string, string>();
 
@@ -436,18 +437,172 @@ export function ondownloadButtonPressed(tray: Tray) {
   }
 }
 
-// Stub functions for backward compatibility with tests
-export function startAutoUpload(tray: Tray) {
-  // Auto-upload feature removed - this is a stub for test compatibility
-  console.log("Auto-upload feature has been removed");
+// Auto-upload management
+const autoUploadTimers = new Map<string, number>();
+const pendingUploads = new Set<string>();
+const UPLOAD_DEBOUNCE_DELAY = 2000; // 2 seconds
+
+export async function startAutoUpload(tray: Tray): Promise<void> {
+  if (!tray.host_url || !tray.filename) {
+    console.warn(`Cannot start auto-upload for tray ${tray.id}: missing host_url or filename`);
+    return;
+  }
+
+  console.log(`Starting auto-upload for tray: ${tray.name} (${tray.id})`);
+  
+  // Update initial baseline state
+  await updateLastKnownState(tray);
 }
 
-export function stopAutoUpload(tray: Tray) {
-  // Auto-upload feature removed - this is a stub for test compatibility
-  console.log("Auto-upload feature has been removed");
+export function stopAutoUpload(tray: Tray): void {
+  const timerId = autoUploadTimers.get(tray.id);
+  if (timerId) {
+    clearTimeout(timerId);
+    autoUploadTimers.delete(tray.id);
+  }
+  pendingUploads.delete(tray.id);
+  console.log(`Stopped auto-upload for tray: ${tray.name} (${tray.id})`);
 }
 
-export function stopAllAutoUploads() {
-  // Auto-upload feature removed - this is a stub for test compatibility
-  console.log("Auto-upload feature has been removed");
+export function stopAllAutoUploads(): void {
+  autoUploadTimers.forEach(timerId => clearTimeout(timerId));
+  autoUploadTimers.clear();
+  pendingUploads.clear();
+  console.log("Stopped all auto-uploads");
+}
+
+export function scheduleAutoUpload(tray: Tray): void {
+  if (!tray.host_url || !tray.filename) {
+    return;
+  }
+
+  if (pendingUploads.has(tray.id)) {
+    return; // Upload already scheduled
+  }
+
+  // Clear existing timer if any
+  const existingTimer = autoUploadTimers.get(tray.id);
+  if (existingTimer) {
+    clearTimeout(existingTimer);
+  }
+
+  // Mark as pending
+  pendingUploads.add(tray.id);
+
+  // Schedule upload with debounce
+  const timerId = setTimeout(async () => {
+    try {
+      await performAutoUpload(tray);
+    } catch (error) {
+      console.error(`Auto-upload failed for tray ${tray.id}:`, error);
+      showUploadNotification(`Auto-upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`, true);
+    } finally {
+      autoUploadTimers.delete(tray.id);
+      pendingUploads.delete(tray.id);
+    }
+  }, UPLOAD_DEBOUNCE_DELAY);
+
+  autoUploadTimers.set(tray.id, timerId as unknown as number);
+  console.log(`Auto-upload scheduled for tray ${tray.name} in ${UPLOAD_DEBOUNCE_DELAY}ms`);
+}
+
+async function performAutoUpload(tray: Tray): Promise<void> {
+  if (!tray.host_url || !tray.filename) {
+    throw new Error('Missing host_url or filename');
+  }
+
+  console.log(`Performing auto-upload for tray: ${tray.name} (${tray.id})`);
+
+  try {
+    // Download remote version to check for conflicts
+    let remoteTray: Tray | undefined;
+    try {
+      remoteTray = await downloadData(tray);
+    } catch (error) {
+      // If download fails, assume no remote version exists
+      console.log(`No remote version found for ${tray.name}, proceeding with upload`);
+      remoteTray = undefined;
+    }
+
+    if (remoteTray) {
+      // Perform conflict detection
+      const conflictResult = await detectConflict(tray, remoteTray);
+      
+      await handleConflictResult(conflictResult, tray, remoteTray);
+    } else {
+      // No remote version, safe to upload
+      await uploadData(tray);
+      await updateLastKnownState(tray);
+      console.log(`Auto-upload completed for tray: ${tray.name}`);
+    }
+
+  } catch (error) {
+    if (error instanceof ConflictError) {
+      // Show conflict notification to user
+      showConflictNotification(error);
+      throw error;
+    } else {
+      // Other errors - retry logic handled by global sync manager
+      throw error;
+    }
+  }
+}
+
+async function handleConflictResult(
+  conflictResult: ConflictDetectionResult, 
+  localTray: Tray, 
+  remoteTray: Tray
+): Promise<void> {
+  switch (conflictResult.action) {
+    case 'upload':
+      await uploadData(localTray);
+      await updateLastKnownState(localTray);
+      showUploadNotification(`Auto-upload: ${localTray.name}`);
+      break;
+      
+    case 'download':
+      // Update local tray with remote data
+      localTray.name = remoteTray.name;
+      localTray.children = remoteTray.children;
+      localTray.properties = remoteTray.properties;
+      localTray.hooks = remoteTray.hooks;
+      localTray.isDone = remoteTray.isDone;
+      // Preserve network settings
+      remoteTray.host_url = localTray.host_url;
+      remoteTray.filename = localTray.filename;
+      
+      await updateLastKnownState(localTray);
+      showUploadNotification(`Auto-download: ${localTray.name}`);
+      break;
+      
+    case 'conflict':
+      // Throw conflict error for manual resolution
+      throw new ConflictError(
+        `Sync conflict detected for ${localTray.name}: ${conflictResult.reason}`,
+        conflictResult.conflictType || 'both_updated',
+        localTray,
+        remoteTray
+      );
+      
+    case 'nothing':
+      // No action needed
+      console.log(`No sync needed for tray: ${localTray.name}`);
+      break;
+      
+    default:
+      throw new Error(`Unknown conflict resolution action: ${conflictResult.action}`);
+  }
+}
+
+function showConflictNotification(error: ConflictError): void {
+  const message = `Conflict detected for "${error.localTray.name}". Manual resolution required.`;
+  showUploadNotification(message, true);
+  
+  // Could show a more sophisticated conflict resolution dialog here
+  console.log('Conflict details:', {
+    type: error.conflictType,
+    local: error.localTray.name,
+    remote: error.remoteTray.name,
+    message: error.message
+  });
 }

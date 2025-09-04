@@ -282,15 +282,37 @@ export const selectTrayDescendants = (state: { app: AppState }, trayId: TrayId):
 
 // Auto-upload related selectors
 export const selectAutoUploadEnabled = (state: { app: AppState }): boolean => {
-  // For now, return true as default since auto-upload feature was removed
-  // but we need this selector for backward compatibility
-  return false;
+  // Enable auto-upload by default - can be configured per app instance
+  return localStorage.getItem('autoUploadEnabled') !== 'false';
 };
 
 export const selectTrayAutoUpload = (state: { app: AppState }, trayId: TrayId): boolean | undefined => {
-  // Return undefined to indicate no tray-specific setting available
-  // This maintains backward compatibility while the feature is removed
-  return undefined;
+  // Check for tray-specific auto-upload setting
+  const trayAutoUploadSettings = JSON.parse(localStorage.getItem('trayAutoUploadSettings') || '{}');
+  return trayAutoUploadSettings[trayId];
 };
+
+// Auto-upload settings management functions
+export function setGlobalAutoUpload(enabled: boolean): void {
+  localStorage.setItem('autoUploadEnabled', enabled.toString());
+}
+
+export function setTrayAutoUpload(trayId: TrayId, enabled: boolean): void {
+  const settings = JSON.parse(localStorage.getItem('trayAutoUploadSettings') || '{}');
+  settings[trayId] = enabled;
+  localStorage.setItem('trayAutoUploadSettings', JSON.stringify(settings));
+}
+
+export function getTrayAutoUpload(trayId: TrayId): boolean {
+  const settings = JSON.parse(localStorage.getItem('trayAutoUploadSettings') || '{}');
+  // Default to true for network-enabled trays if no specific setting exists
+  return settings[trayId] !== undefined ? settings[trayId] : true;
+}
+
+export function removeTrayAutoUpload(trayId: TrayId): void {
+  const settings = JSON.parse(localStorage.getItem('trayAutoUploadSettings') || '{}');
+  delete settings[trayId];
+  localStorage.setItem('trayAutoUploadSettings', JSON.stringify(settings));
+}
 
 export default appSlice.reducer;

@@ -15,12 +15,15 @@ import {
   fetchTrayList,
   setNetworkOption,
   updateData,
+  scheduleAutoUpload,
+  startAutoUpload,
+  stopAutoUpload,
 } from "./networks";
 import { meltTray } from "./functions";
 import { id2TrayData, element2TrayMap} from "./app";
 import { colorPalette } from "./const";
 import { handleKeyDown } from "./keyboardInteraction";
-import { setLastFocused } from "./state";
+import { setLastFocused, getTrayAutoUpload } from "./state";
 import store from "./store";
 import { openContextMenu } from "./contextMenu";
 import { pluginManager } from "./pluginManager";
@@ -85,6 +88,13 @@ export class Tray {
     this.updateAppearance();
     this.updateBorderColor(this.borderColor);
     // this.setupFocusTracking(this);
+    
+    // Initialize auto-upload if network settings are present
+    if (this.host_url && this.filename) {
+      startAutoUpload(this).catch(error => {
+        console.warn(`Failed to start auto-upload for tray ${this.id}:`, error);
+      });
+    }
   }
 
   get element(){
@@ -436,6 +446,9 @@ export class Tray {
     }
     
     this.updateAppearance();
+    
+    // Trigger auto-upload for structure change
+    this.triggerAutoUpload();
   }
 
   // updateBorderColor() {
@@ -667,6 +680,41 @@ export class Tray {
     return false;
   }
 
+  canMoveToTarget(movingTray: Tray): { canMove: boolean, reason?: string } {
+    // 1. Self-drop check: prevent tray from being dropped onto itself
+    if (this.id === movingTray.id) {
+      return { canMove: false, reason: "Cannot move tray onto itself" };
+    }
+
+    // 2. Data model hierarchy check: prevent circular references in tray structure
+    if (this.isDescendantOf(movingTray.id)) {
+      return { canMove: false, reason: `Cannot move tray ${movingTray.id} into its descendant ${this.id}` };
+    }
+
+    // 3. DOM element validation
+    if (!this.element || !movingTray.element) {
+      return { canMove: false, reason: "Missing DOM elements for move operation" };
+    }
+
+    // 4. DOM containment check: prevent DOM circular references
+    if (movingTray.element.contains(this.element)) {
+      return { canMove: false, reason: "Cannot move tray into an element it contains" };
+    }
+
+    // 5. Target content container validation
+    const content = this.element.querySelector(".tray-content") as HTMLElement | null;
+    if (!content) {
+      return { canMove: false, reason: "Target tray missing content container" };
+    }
+
+    // 6. Check if moving tray's element is already in the target container
+    if (content.contains(movingTray.element)) {
+      return { canMove: false, reason: "Tray is already in target location" };
+    }
+
+    return { canMove: true };
+  }
+
   toggleDoneMarker(titleElement: HTMLDivElement) {
     this.showDoneMarker = !this.showDoneMarker;
     this.updateTitleContent(titleElement);
@@ -757,6 +805,9 @@ export class Tray {
     if (trayElement) {
       trayElement.focus();
     }
+    
+    // Trigger auto-upload for content change
+    this.triggerAutoUpload();
   }
 
   onDragStart(event: DragEvent): void {
@@ -837,16 +888,17 @@ export class Tray {
         return;
       }
 
-      // Check for circular references with enhanced logging
-      const wouldCreateCircularReference = traysToMove.some((movingTray) => {
-        const isDescendant = this.isDescendantOf(movingTray.id);
-        if (isDescendant) {
-          console.warn(`Circular reference prevented: cannot move tray ${movingTray.id} (${movingTray.name}) into its descendant ${this.id} (${this.name})`);
+      // Comprehensive validation using new canMoveToTarget method
+      const invalidMoves = traysToMove.map((movingTray) => {
+        const validation = this.canMoveToTarget(movingTray);
+        if (!validation.canMove) {
+          console.warn(`Move validation failed for tray ${movingTray.id} (${movingTray.name}): ${validation.reason}`);
         }
-        return isDescendant;
-      });
+        return { tray: movingTray, validation };
+      }).filter(({ validation }) => !validation.canMove);
 
-      if (wouldCreateCircularReference) {
+      if (invalidMoves.length > 0) {
+        console.warn(`Drop operation aborted: ${invalidMoves.length} invalid moves detected`);
         return;
       }
 
@@ -856,23 +908,51 @@ export class Tray {
         return;
       }
 
-      // Perform the move operations with error handling
+      // Perform the move operations with enhanced error handling
       const movedTrays: Tray[] = [];
       traysToMove.forEach((movingTray) => {
         try {
+          // Double-check validation just before DOM manipulation
+          const lastValidation = this.canMoveToTarget(movingTray);
+          if (!lastValidation.canMove) {
+            console.warn(`Last-minute validation failed for tray ${movingTray.id}: ${lastValidation.reason}`);
+            return; // Skip this tray
+          }
+
           const parentTray = getTrayFromId(movingTray.parentId);
           if (parentTray) {
             parentTray.removeChild(movingTray.id);
           }
 
+          // Verify DOM elements still exist before manipulation
+          if (!this.element || !movingTray.element || !content) {
+            console.error(`DOM elements missing during move operation for tray ${movingTray.id}`);
+            return; // Skip this tray
+          }
+
+          // Additional DOM safety check
+          if (content.contains(movingTray.element)) {
+            console.warn(`Tray ${movingTray.id} already in target location, skipping DOM operation`);
+          } else {
+            content.insertBefore(movingTray.element, content.firstChild);
+          }
+
+          // Update data model
           this.children.unshift(movingTray);
           movingTray.parentId = this.id;
-          content.insertBefore(movingTray.element, content.firstChild);
           movingTray.element.style.display = "block";
           movingTray.clearAllDragStyles(); // Clean up moved tray
           movedTrays.push(movingTray);
         } catch (error) {
           console.error(`Error moving tray ${movingTray.id}:`, error);
+          // Attempt to restore consistency if partial move occurred
+          try {
+            if (this.children.includes(movingTray)) {
+              this.children = this.children.filter(child => child.id !== movingTray.id);
+            }
+          } catch (cleanupError) {
+            console.error(`Additional error during cleanup for tray ${movingTray.id}:`, cleanupError);
+          }
         }
       });
 
@@ -962,6 +1042,18 @@ export class Tray {
     // Implement functionality or leave empty if no behavior is needed
   }
 
+  triggerAutoUpload(): void {
+    if (!this.host_url || !this.filename) {
+      return; // No network config, skip auto-upload
+    }
+    
+    if (!getTrayAutoUpload(this.id)) {
+      return; // Auto-upload disabled for this tray
+    }
+    
+    scheduleAutoUpload(this);
+  }
+
   addChild(childTray: Tray): void {
     this.children.unshift(childTray);
     childTray.parentId = this.id;
@@ -983,6 +1075,9 @@ export class Tray {
       this.updateBorderColor(this.borderColor);
       this.updateAppearance();
     }
+    
+    // Trigger auto-upload for structure change
+    this.triggerAutoUpload();
   }
 
   moveFocusAfterDelete(parent: Tray, deletedIndex: number) {
