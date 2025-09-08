@@ -522,29 +522,25 @@ export const globalSyncManager = GlobalSyncManager.getInstance();
 
 // Auto-start function to be called after all modules are loaded
 export function initializeGlobalSync() {
-  if (typeof window !== 'undefined') {
-    const state = store.getState();
-    if (selectAutoUploadEnabled(state)) {
-      globalSyncManager.start();
-    }
-  }
+  // Global sync disabled for performance - using individual tray auto-upload only
+  console.log('Global sync manager disabled - using individual tray auto-upload for better performance');
 }
 
-// Listen for global auto-sync state changes
-store.subscribe(() => {
-  const currentState = store.getState();
-  const autoSyncEnabled = selectAutoUploadEnabled(currentState);
-  
-  if (autoSyncEnabled && !globalSyncManager.getSyncStatus().isRunning) {
-    globalSyncManager.start();
-  } else if (!autoSyncEnabled && globalSyncManager.getSyncStatus().isRunning) {
-    globalSyncManager.stop();
-  }
-});
+// Listen for global auto-sync state changes - disabled for performance
+// store.subscribe(() => {
+//   const currentState = store.getState();
+//   const autoSyncEnabled = selectAutoUploadEnabled(currentState);
+//   
+//   if (autoSyncEnabled && !globalSyncManager.getSyncStatus().isRunning) {
+//     globalSyncManager.start();
+//   } else if (!autoSyncEnabled && globalSyncManager.getSyncStatus().isRunning) {
+//     globalSyncManager.stop();
+//   }
+// });
 
-// Cleanup on page unload
-if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', () => {
-    globalSyncManager.stop();
-  });
-}
+// Cleanup on page unload - disabled since global sync is not running
+// if (typeof window !== 'undefined') {
+//   window.addEventListener('beforeunload', () => {
+//     globalSyncManager.stop();
+//   });
+// }

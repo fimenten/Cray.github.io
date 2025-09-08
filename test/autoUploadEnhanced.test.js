@@ -237,7 +237,7 @@ test('auto-upload settings management', () => {
   assert.strictEqual(getTrayAutoUpload('tray-new'), true); // Should default to true
 });
 
-test('scheduleAutoUpload debounces correctly', () => {
+test('scheduleAutoUpload debounces correctly', async () => {
   let scheduledCallbacks = [];
   global.setTimeout = (fn, delay) => {
     const id = Math.random();
@@ -246,6 +246,13 @@ test('scheduleAutoUpload debounces correctly', () => {
   };
   global.clearTimeout = (id) => {
     scheduledCallbacks = scheduledCallbacks.filter(cb => cb.id !== id);
+  };
+  
+  // Mock localStorage for configurable delay
+  global.localStorage = {
+    getItem: (key) => key === 'autoUploadDelay' ? '2' : null,
+    setItem: () => {},
+    removeItem: () => {}
   };
   
   const { networks } = load();
@@ -259,13 +266,14 @@ test('scheduleAutoUpload debounces correctly', () => {
   };
   
   // Schedule first upload
-  scheduleAutoUpload(tray);
+  await scheduleAutoUpload(tray);
   assert.strictEqual(scheduledCallbacks.length, 1);
   assert.strictEqual(scheduledCallbacks[0].delay, 2000); // 2 second debounce
   
-  // Schedule second upload - should clear first and create new
-  scheduleAutoUpload(tray);
-  // Due to debouncing, we should still have only 1 callback
+  // Change content to trigger second upload
+  tray.name = 'Test Tray Modified';
+  await scheduleAutoUpload(tray);
+  // Due to debouncing and content change, we should have 1 callback
   assert.strictEqual(scheduledCallbacks.length >= 1, true);
 });
 

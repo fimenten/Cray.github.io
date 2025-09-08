@@ -458,7 +458,30 @@ export function ondownloadButtonPressed(tray: Tray) {
 // Auto-upload management
 const autoUploadTimers = new Map<string, number>();
 const pendingUploads = new Set<string>();
-const UPLOAD_DEBOUNCE_DELAY = 2000; // 2 seconds
+const trayContentHashes = new Map<string, string>();
+
+// Get configurable upload delay from localStorage
+function getUploadDelay(): number {
+  const stored = localStorage.getItem('autoUploadDelay');
+  if (stored) {
+    const numValue = parseFloat(stored);
+    if (!isNaN(numValue) && numValue > 0) {
+      return numValue * 1000; // Convert seconds to ms
+    }
+  }
+  return 60000; // Default 60s (1 min) if invalid or missing
+}
+
+// Simple hash function for content change detection
+function hashContent(content: string): string {
+  let hash = 0;
+  for (let i = 0; i < content.length; i++) {
+    const char = content.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  return hash.toString(16);
+}
 
 export async function startAutoUpload(tray: Tray): Promise<void> {
   if (!tray.host_url || !tray.filename) {
@@ -467,6 +490,16 @@ export async function startAutoUpload(tray: Tray): Promise<void> {
   }
 
   console.log(`Starting auto-upload for tray: ${tray.name} (${tray.id})`);
+  
+  // Initialize content hash for this tray
+  try {
+    const initialContent = await serializeAsync(tray);
+    const initialHash = hashContent(initialContent);
+    trayContentHashes.set(tray.id, initialHash);
+    console.log(`Initialized content hash for tray ${tray.name}`);
+  } catch (error) {
+    console.warn(`Failed to initialize content hash for tray ${tray.id}:`, error);
+  }
   
   // Update initial baseline state
   await updateLastKnownState(tray);
@@ -479,6 +512,7 @@ export function stopAutoUpload(tray: Tray): void {
     autoUploadTimers.delete(tray.id);
   }
   pendingUploads.delete(tray.id);
+  trayContentHashes.delete(tray.id); // Clean up hash cache
   console.log(`Stopped auto-upload for tray: ${tray.name} (${tray.id})`);
 }
 
@@ -486,12 +520,31 @@ export function stopAllAutoUploads(): void {
   autoUploadTimers.forEach(timerId => clearTimeout(timerId));
   autoUploadTimers.clear();
   pendingUploads.clear();
+  trayContentHashes.clear(); // Clean up all hash cache
   console.log("Stopped all auto-uploads");
 }
 
-export function scheduleAutoUpload(tray: Tray): void {
+export async function scheduleAutoUpload(tray: Tray): Promise<void> {
   if (!tray.host_url || !tray.filename) {
     return;
+  }
+
+  // Check if content has actually changed using hash
+  try {
+    const currentContent = await serializeAsync(tray);
+    const currentHash = hashContent(currentContent);
+    const lastHash = trayContentHashes.get(tray.id);
+    
+    if (lastHash === currentHash) {
+      console.log(`No content change detected for tray ${tray.name}, skipping sync`);
+      return; // No actual change, skip sync
+    }
+    
+    // Store the new hash
+    trayContentHashes.set(tray.id, currentHash);
+  } catch (error) {
+    console.warn(`Failed to check content hash for tray ${tray.id}:`, error);
+    // Continue with sync if hash check fails
   }
 
   if (pendingUploads.has(tray.id)) {
@@ -507,6 +560,8 @@ export function scheduleAutoUpload(tray: Tray): void {
   // Mark as pending
   pendingUploads.add(tray.id);
 
+  const uploadDelay = getUploadDelay();
+  
   // Schedule upload with debounce
   const timerId = setTimeout(async () => {
     try {
@@ -518,10 +573,10 @@ export function scheduleAutoUpload(tray: Tray): void {
       autoUploadTimers.delete(tray.id);
       pendingUploads.delete(tray.id);
     }
-  }, UPLOAD_DEBOUNCE_DELAY);
+  }, uploadDelay);
 
   autoUploadTimers.set(tray.id, timerId as unknown as number);
-  console.log(`Auto-upload scheduled for tray ${tray.name} in ${UPLOAD_DEBOUNCE_DELAY}ms`);
+  console.log(`Auto-upload scheduled for tray ${tray.name} in ${uploadDelay}ms`);
 }
 
 async function performAutoUpload(tray: Tray): Promise<void> {

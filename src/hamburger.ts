@@ -1207,6 +1207,9 @@ function showAutoUploadSettings(): void {
   const status = globalSyncManager.getSyncStatus();
   const notifPrefs = getNotificationPreferences();
   
+  // Get current upload delay setting
+  const currentDelay = localStorage.getItem('autoUploadDelay') || '60';
+  
   const rootTray = element2TrayMap.get(getRootElement() as HTMLDivElement);
   const networkTrays = rootTray ? getAllNetworkTrays(rootTray) : [];
   
@@ -1240,13 +1243,27 @@ function showAutoUploadSettings(): void {
       </small>
     </div>
     
+    <div style="margin-bottom: 15px;">
+      <label style="display: block; margin-bottom: 8px; font-weight: 500;">
+        Auto-Upload Frequency:
+      </label>
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+        <span>Current: <strong id="currentFrequency">${currentDelay}s</strong></span>
+        <button id="customFrequencyBtn" style="padding: 4px 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">
+          Set Custom
+        </button>
+      </div>
+      <small style="color: #666;">
+        Click "Set Custom" to enter any sync frequency in seconds (e.g., 0.5, 10, 300).
+      </small>
+    </div>
+    
     <div style="margin-bottom: 15px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
-      <strong>Current Status:</strong><br>
+      <strong>System Status:</strong><br>
       Global: ${globalEnabled ? '✅ Enabled' : '❌ Disabled'}<br>
-      Running: ${status.isRunning ? '✅ Active' : '❌ Stopped'}<br>
-      Network Trays: ${status.networkTrays}<br>
-      Auto-Sync Trays: ${status.autoSyncTrays}<br>
-      Queue: ${status.queueLength} | Active: ${status.activeSyncs}
+      Background Sync: ❌ Disabled (Performance Mode)<br>
+      Network Trays: ${networkTrays.length}<br>
+      Upload Delay: ${currentDelay}s
     </div>
     
     <div style="margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; padding: 12px;">
@@ -1325,9 +1342,29 @@ function showAutoUploadSettings(): void {
   const delaySlider = dialog.querySelector('#notificationDelay') as HTMLInputElement;
   const delayValue = dialog.querySelector('#delayValue') as HTMLSpanElement;
   
+  // Upload frequency controls
+  const customFrequencyBtn = dialog.querySelector('#customFrequencyBtn') as HTMLButtonElement;
+  const currentFrequency = dialog.querySelector('#currentFrequency') as HTMLSpanElement;
+  
   // Update delay value display
   delaySlider.addEventListener('input', () => {
     delayValue.textContent = `${parseInt(delaySlider.value) / 1000}s`;
+  });
+  
+  // Custom frequency button handler
+  customFrequencyBtn.addEventListener('click', () => {
+    const currentValue = localStorage.getItem('autoUploadDelay') || '60';
+    const newValue = prompt('Enter sync frequency in seconds (e.g., 0.5, 10, 300):', currentValue);
+    
+    if (newValue !== null) {
+      const numValue = parseFloat(newValue);
+      if (!isNaN(numValue) && numValue > 0) {
+        localStorage.setItem('autoUploadDelay', newValue);
+        currentFrequency.textContent = `${newValue}s`;
+      } else {
+        alert('Please enter a valid positive number (e.g., 0.5, 2, 10, 300)');
+      }
+    }
   });
   
   // Handle quiet mode toggle
@@ -1376,12 +1413,9 @@ function showAutoUploadSettings(): void {
     
     saveNotificationPreferences(newNotifPrefs);
     
-    // Restart/stop global sync based on new settings
-    if (newGlobalState && !globalSyncManager.getSyncStatus().isRunning) {
-      globalSyncManager.start();
-    } else if (!newGlobalState && globalSyncManager.getSyncStatus().isRunning) {
-      globalSyncManager.stop();
-    }
+    // Upload frequency is saved immediately when set via the custom button
+    
+    // Note: Global sync manager is disabled for performance - only individual tray auto-upload is used
     
     alert('Auto-upload and notification settings saved successfully!');
     document.body.removeChild(dialog);
