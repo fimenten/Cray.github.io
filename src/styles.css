@@ -51,7 +51,7 @@
   width: 100%;
   padding: var(--tray-margin) 0 var(--tray-margin) var(--tray-margin);
   box-sizing: border-box;
-  min-height: 30px;
+  /* min-height: 30px; */
   transition: min-height 0.3s ease;
 }
 
